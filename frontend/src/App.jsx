@@ -5,6 +5,9 @@ import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 import VaultPage from './VaultPage';
 
+// API base URL - uses env variable in production, localhost in dev
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 // Particles configuration - flowing dots moving gently
 const particlesConfig = {
   fullScreen: false,
@@ -229,7 +232,53 @@ function App() {
   const [loadingMsg, setLoadingMsg] = useState('');
   const [focusedInput, setFocusedInput] = useState(null);
 
-  // Handle Login
+  // ===== Handle Google OAuth callback (after redirect back from Google) =====
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const regComplete = params.get('reg_complete');
+    const regError = params.get('reg_error');
+    
+    // Clean the URL params
+    if (regComplete || regError) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    
+    if (regError) {
+      setError('Registration failed: ' + regError);
+      return;
+    }
+    
+    if (regComplete) {
+      // Google auth succeeded - now fetch the keys from backend
+      setLoading(true);
+      setLoadingMsg('Finalizing your vault...');
+      
+      fetch(`${API_URL}/api/register/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reg_id: regComplete }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            // Store share3 in browser localStorage
+            window.localStorage.setItem('local_share', data.local_share);
+            setUsername(data.username);
+            setGoldenKey(data.golden_key);
+            setPage('vault');
+          } else {
+            setError('Registration Error: ' + (data.message || 'Unknown error'));
+          }
+        })
+        .catch(e => {
+          console.error('Registration complete error:', e);
+          setError('Failed to complete registration: ' + e.message);
+        })
+        .finally(() => setLoading(false));
+    }
+  }, []);
+
+  // Handle Login (unchanged - no Google needed)
   const handleLogin = async () => {
     setError('');
     const localShare = window.localStorage.getItem('local_share');
@@ -239,7 +288,7 @@ function App() {
     setLoadingMsg('Unlocking your vault...');
     
     try {
-      const res = await fetch('http://localhost:5000/api/login', {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, local_share: localShare }),
@@ -255,7 +304,7 @@ function App() {
     } catch (e) {
       console.error('Login error:', e);
       if (e.message.includes('Failed to fetch')) {
-        setError("Cannot connect to backend. Make sure the server is running on port 5000.");
+        setError("Cannot connect to backend. Make sure the server is running.");
       } else {
         setError("Login failed: " + (e.message || "Unknown error"));
       }
@@ -264,7 +313,7 @@ function App() {
     }
   };
 
-  // Handle Registration
+  // Handle Registration (NEW: redirects to Google for EACH user)
   const handleRegister = async () => {
     setError('');
     if (!username || !password) {
@@ -273,30 +322,38 @@ function App() {
     }
     
     setLoading(true);
-    setLoadingMsg('Creating your secure vault...');
+    setLoadingMsg('Setting up your vault...');
     
     try {
-        const res = await fetch('http://localhost:5000/api/register', {
+        const res = await fetch(`${API_URL}/api/register/init`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
         
         const data = await res.json();
-        setLoading(false);
         
-        if (data.status === 'success') {
+        if (data.status === 'redirect') {
+          // Redirect user to Google sign-in (THEIR account, THEIR Drive)
+          setLoadingMsg('Redirecting to Google sign-in...');
+          window.location.href = data.auth_url;
+          // Page will redirect - don't set loading to false
+          return;
+        } else if (data.status === 'success') {
+          // Fallback for old-style direct registration (localhost dev)
           window.localStorage.setItem('local_share', data.local_share);
           setGoldenKey(data.golden_key);
           setPage('vault');
+          setLoading(false);
         } else {
           setError('Registration Error: ' + (data.message || 'Unknown error'));
+          setLoading(false);
         }
     } catch (e) {
       console.error('Registration error:', e);
       setLoading(false);
       if (e.message.includes('Failed to fetch')) {
-        setError("Cannot connect to backend. Make sure the server is running on port 5000.");
+        setError("Cannot connect to backend. Make sure the server is running.");
       } else {
         setError("Registration failed: " + (e.message || "Unknown error"));
       }

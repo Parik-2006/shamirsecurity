@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 
+// API base URL - uses env variable in production, localhost in dev
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 // Particles configuration for vault page
 const particlesConfig = {
   fullScreen: false,
@@ -570,7 +573,7 @@ function VaultPage({ username, goldenKey, onLogout }) {
     else setLoading(true);
     
     try {
-      const res = await fetch('http://localhost:5000/api/get_passwords', {
+      const res = await fetch(`${API_URL}/api/get_passwords`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, golden_key: goldenKey }),
@@ -603,7 +606,7 @@ function VaultPage({ username, goldenKey, onLogout }) {
     setLoading(true);
     
     try {
-      const res = await fetch('http://localhost:5000/api/add_password', {
+      const res = await fetch(`${API_URL}/api/add_password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
