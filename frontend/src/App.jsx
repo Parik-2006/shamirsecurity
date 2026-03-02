@@ -62,6 +62,64 @@ const FloatingOrbs = () => (
   </>
 );
 
+// Animated floating shapes that move around the screen
+const AnimatedShapes = () => (
+  <>
+    {/* Rotating rings */}
+    <motion.div
+      style={{ position: 'fixed', top: '15%', left: '10%', width: 80, height: 80, border: '2px solid rgba(99, 102, 241, 0.3)', borderRadius: '50%', pointerEvents: 'none' }}
+      animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+      transition={{ rotate: { duration: 20, repeat: Infinity, ease: 'linear' }, scale: { duration: 4, repeat: Infinity } }}
+    />
+    <motion.div
+      style={{ position: 'fixed', bottom: '20%', right: '8%', width: 60, height: 60, border: '2px solid rgba(236, 72, 153, 0.3)', borderRadius: '50%', pointerEvents: 'none' }}
+      animate={{ rotate: -360, scale: [1, 0.8, 1] }}
+      transition={{ rotate: { duration: 15, repeat: Infinity, ease: 'linear' }, scale: { duration: 3, repeat: Infinity } }}
+    />
+    
+    {/* Floating dots */}
+    <motion.div
+      style={{ position: 'fixed', top: '30%', right: '15%', width: 12, height: 12, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', borderRadius: '50%', pointerEvents: 'none' }}
+      animate={{ y: [0, -30, 0], x: [0, 15, 0], opacity: [0.6, 1, 0.6] }}
+      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+    />
+    <motion.div
+      style={{ position: 'fixed', top: '60%', left: '12%', width: 8, height: 8, background: 'linear-gradient(135deg, #06b6d4, #10b981)', borderRadius: '50%', pointerEvents: 'none' }}
+      animate={{ y: [0, 25, 0], x: [0, -20, 0], opacity: [0.5, 1, 0.5] }}
+      transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+    />
+    <motion.div
+      style={{ position: 'fixed', bottom: '30%', left: '20%', width: 10, height: 10, background: 'linear-gradient(135deg, #ec4899, #f472b6)', borderRadius: '50%', pointerEvents: 'none' }}
+      animate={{ y: [0, -20, 0], x: [0, 10, 0], opacity: [0.7, 1, 0.7] }}
+      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+    />
+    <motion.div
+      style={{ position: 'fixed', top: '20%', right: '25%', width: 6, height: 6, background: '#facc15', borderRadius: '50%', pointerEvents: 'none' }}
+      animate={{ y: [0, 35, 0], opacity: [0.4, 0.9, 0.4] }}
+      transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+    />
+    
+    {/* Floating squares */}
+    <motion.div
+      style={{ position: 'fixed', top: '45%', right: '5%', width: 20, height: 20, border: '2px solid rgba(6, 182, 212, 0.4)', borderRadius: 4, pointerEvents: 'none' }}
+      animate={{ rotate: [0, 90, 180, 270, 360], y: [0, -15, 0] }}
+      transition={{ rotate: { duration: 8, repeat: Infinity, ease: 'linear' }, y: { duration: 4, repeat: Infinity } }}
+    />
+    <motion.div
+      style={{ position: 'fixed', bottom: '15%', left: '8%', width: 16, height: 16, border: '2px solid rgba(139, 92, 246, 0.4)', borderRadius: 3, pointerEvents: 'none' }}
+      animate={{ rotate: [0, -180, -360], x: [0, 20, 0] }}
+      transition={{ rotate: { duration: 12, repeat: Infinity, ease: 'linear' }, x: { duration: 5, repeat: Infinity } }}
+    />
+    
+    {/* Pulsing circle */}
+    <motion.div
+      style={{ position: 'fixed', top: '70%', right: '20%', width: 40, height: 40, border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '50%', pointerEvents: 'none' }}
+      animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0.2, 0.5] }}
+      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+    />
+  </>
+);
+
 // Animated flowing wave at bottom
 const FlowingWaves = () => (
   <div className="waves-container">
@@ -87,17 +145,12 @@ const FlowingWaves = () => (
   </div>
 );
 
-// Animated Shield SVG Icon (reduced glow)
+// Animated Shield SVG Icon (static position, only colors animate)
 const ShieldIcon = () => (
-  <motion.div
-    initial={{ scale: 0, rotate: -180 }}
-    animate={{ scale: 1, rotate: 0 }}
-    transition={{ type: "spring", stiffness: 200, damping: 15 }}
-    className="shield-icon-wrapper"
-  >
-    <motion.svg
-      width="80"
-      height="80"
+  <div className="shield-icon-wrapper">
+    <svg
+      width="60"
+      height="60"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -116,14 +169,12 @@ const ShieldIcon = () => (
           />
         </linearGradient>
       </defs>
-      <motion.path
+      <path
         d="M12 2L4 5V11.09C4 16.14 7.41 20.85 12 22C16.59 20.85 20 16.14 20 11.09V5L12 2ZM12 11.99H18C17.47 15.11 15.72 17.77 12 18.93V12H6V6.3L12 4.19V11.99Z"
         fill="url(#shieldGradient)"
-        animate={{ scale: [1, 1.03, 1] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       />
-    </motion.svg>
-  </motion.div>
+    </svg>
+  </div>
 );
 
 // Loading spinner component
@@ -286,41 +337,42 @@ function App() {
 
   // --- RENDER LOGIN PAGE ---
   return (
-    <div className="app-wrapper" style={{ justifyContent: 'center', alignItems: 'center', display: 'flex', height: '100dvh', flexDirection: 'column', padding: '10px' }}>
+    <div className="app-wrapper">
       <ParticlesBackground />
+      <AnimatedShapes />
       <FloatingOrbs />
-      <FlowingWaves />
       
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        style={{ textAlign: 'center', marginBottom: 'clamp(15px, 4vh, 40px)', zIndex: 1 }}
-      >
-        <ShieldIcon />
-        <motion.h1 
-          className="gradient-text-animated"
-          style={{ fontSize: 'clamp(1.8rem, 6vw, 3rem)', margin: 'clamp(10px, 2vh, 20px) 0 0 0', letterSpacing: '-1px', fontWeight: 700 }}
+      <div style={{ 
+        position: 'absolute', 
+        top: '50%', 
+        left: '50%', 
+        transform: 'translate(-50%, -50%)', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        zIndex: 10,
+        width: '100%',
+        maxWidth: '400px',
+        padding: '20px',
+        boxSizing: 'border-box'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+          <ShieldIcon />
+          <h1 
+            className="gradient-text-animated"
+            style={{ fontSize: '1.6rem', margin: '6px 0 0 0', letterSpacing: '-0.5px', fontWeight: 700 }}
+          >
+            Shamir Vault
+          </h1>
+          <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '4px' }}>
+            Secure Multi-Key Secret Management
+          </p>
+        </div>
+        
+        <div 
+          className="glass-card card-glow" 
+          style={{ padding: '20px', width: '100%' }}
         >
-          Shamir Vault
-        </motion.h1>
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          style={{ color: '#94a3b8', fontSize: 'clamp(0.85rem, 2.5vw, 1.1rem)', marginTop: '8px' }}
-        >
-          Secure Multi-Key Secret Management
-        </motion.p>
-      </motion.div>
-      
-      <motion.div 
-        className="glass-card card-glow" 
-        style={{ padding: 'clamp(20px, 5vw, 50px)', width: 'clamp(300px, 90vw, 420px)', maxWidth: '95vw', zIndex: 1 }}
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.15 }}
-      >
         <AnimatePresence mode="wait">
           {loading ? (
             <LoadingSpinner 
@@ -329,20 +381,15 @@ function App() {
               subMessage="Please wait..."
             />
           ) : (
-            <motion.div
-              key="form"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.div variants={itemVariants} className="input-group">
+            <div key="form">
+              <div className="input-group">
                 <div className="input-icon">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                     <circle cx="12" cy="7" r="4"/>
                   </svg>
                 </div>
-                <motion.input 
+                <input 
                   placeholder="Enter Username" 
                   value={username} 
                   onChange={e => setUsername(e.target.value)}
@@ -350,16 +397,16 @@ function App() {
                   onBlur={() => setFocusedInput(null)}
                   className={focusedInput === 'username' ? 'input-focused' : ''}
                 />
-              </motion.div>
+              </div>
               
-              <motion.div variants={itemVariants} className="input-group">
+              <div className="input-group">
                 <div className="input-icon">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                   </svg>
                 </div>
-                <motion.input 
+                <input 
                   placeholder="Master Password" 
                   type="password" 
                   value={password} 
@@ -368,62 +415,45 @@ function App() {
                   onBlur={() => setFocusedInput(null)}
                   className={focusedInput === 'password' ? 'input-focused' : ''}
                 />
-              </motion.div>
+              </div>
               
-              <AnimatePresence>
-                {error && (
-                  <motion.div 
-                    className="error-message"
-                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                    animate={{ opacity: 1, height: 'auto', marginTop: 15 }}
-                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px', flexShrink: 0 }}>
-                      <circle cx="12" cy="12" r="10"/>
-                      <line x1="15" y1="9" x2="9" y2="15"/>
-                      <line x1="9" y1="9" x2="15" y2="15"/>
-                    </svg>
-                    {error}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {error && (
+                <div className="error-message" style={{ marginTop: 15 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px', flexShrink: 0 }}>
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                  </svg>
+                  {error}
+                </div>
+              )}
               
-              <motion.div 
-                variants={itemVariants}
-                style={{ marginTop: 'clamp(15px, 3vh, 25px)', display: 'flex', flexDirection: 'column', gap: '10px' }}
-              >
-                <motion.button 
+              <div style={{ marginTop: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button 
                   onClick={handleRegister} 
                   className="btn-gradient-rainbow"
                   style={{ width: '100%' }}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '10px' }}>
                     <path d="M12 5v14M5 12h14"/>
                   </svg>
                   Create New Vault
-                </motion.button>
+                </button>
                 
-                <motion.button 
+                <button 
                   onClick={handleLogin} 
                   className="btn-gradient-cyan"
                   style={{ width: '100%' }}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '10px' }}>
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
                   </svg>
                   Unlock Vault
-                </motion.button>
-              </motion.div>
+                </button>
+              </div>
               
-              <motion.div 
-                variants={itemVariants}
-                style={{ marginTop: 'clamp(15px, 3vh, 30px)', textAlign: 'center' }}
-              >
+              <div style={{ marginTop: '18px', textAlign: 'center' }}>
                 <div className="security-badge" style={{ background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.1))' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="url(#badgeGrad)" strokeWidth="2">
                     <defs>
@@ -437,11 +467,12 @@ function App() {
                   </svg>
                   <span style={{ background: 'linear-gradient(90deg, var(--pink), var(--purple), var(--cyan))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Protected by Shamir's Secret Sharing</span>
                 </div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
+      </div>
     </div>
   );
 }

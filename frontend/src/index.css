@@ -69,21 +69,30 @@ body, html {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-darker);
   color: var(--text-primary);
-  height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile */
-  width: 100vw;
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
 }
 
 /* ===== ANIMATED BACKGROUND ===== */
 .app-wrapper {
-  height: 100vh;
-  height: 100dvh;
   width: 100vw;
+  height: 100vh;
   background: var(--bg-dark);
   display: flex;
-  flex-direction: column;
-  position: relative;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
   overflow: hidden;
 }
 
@@ -121,26 +130,26 @@ body, html {
 }
 
 .orb-1 {
-  width: 300px;
-  height: 300px;
+  width: 450px;
+  height: 450px;
   background: linear-gradient(135deg, var(--pink), var(--fuchsia));
-  top: -80px;
-  right: -80px;
+  top: -100px;
+  right: -100px;
   animation: floatOrb1 30s ease-in-out infinite;
 }
 
 .orb-2 {
-  width: 280px;
-  height: 280px;
+  width: 420px;
+  height: 420px;
   background: linear-gradient(135deg, var(--cyan), var(--teal));
-  bottom: -60px;
-  left: -60px;
+  bottom: -80px;
+  left: -80px;
   animation: floatOrb2 35s ease-in-out infinite;
 }
 
 .orb-3 {
-  width: 200px;
-  height: 200px;
+  width: 320px;
+  height: 320px;
   background: linear-gradient(135deg, var(--purple), var(--indigo));
   top: 45%;
   left: 20%;
@@ -148,8 +157,8 @@ body, html {
 }
 
 .orb-4 {
-  width: 180px;
-  height: 180px;
+  width: 280px;
+  height: 280px;
   background: linear-gradient(135deg, var(--orange), var(--amber));
   top: 20%;
   right: 15%;
@@ -245,18 +254,18 @@ body, html {
 }
 
 .input-group input {
-  padding-left: 48px;
+  padding-left: 42px;
 }
 
 input {
   width: 100%;
-  padding: 16px 18px;
+  padding: 12px 14px;
   margin: 0;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid var(--glass-border);
-  border-radius: 14px;
+  border-radius: 12px;
   color: var(--text-primary);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-family: inherit;
   outline: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -281,12 +290,12 @@ input:focus::placeholder {
 /* ===== BUTTONS ===== */
 button {
   cursor: pointer;
-  border-radius: 14px;
+  border-radius: 12px;
   border: none;
   font-weight: 600;
   font-family: inherit;
-  font-size: 0.95rem;
-  padding: 14px 24px;
+  font-size: 0.9rem;
+  padding: 12px 20px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -723,23 +732,27 @@ button:active {
 
 /* Extra small devices (phones, less than 480px) */
 @media (max-width: 480px) {
-  .app-wrapper {
-    padding: 10px;
-    justify-content: center;
-  }
-  
   .glass-card {
-    padding: 20px 16px !important;
-    width: calc(100vw - 20px) !important;
-    max-width: 100% !important;
-    margin: 0 auto;
-    border-radius: 16px;
+    padding: 18px 14px !important;
+    width: 92% !important;
+    max-width: none !important;
+    border-radius: 14px;
   }
   
   .vault-header {
     padding: 10px 12px;
     flex-direction: column;
     gap: 10px;
+    align-items: stretch;
+  }
+  
+  .vault-header > div:first-child {
+    justify-content: center;
+  }
+  
+  .vault-header > div:last-child {
+    justify-content: center;
+    flex-wrap: wrap;
   }
   
   .vault-header h2 {
@@ -747,23 +760,27 @@ button:active {
   }
   
   .header-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px;
   }
   
   .header-icon svg {
-    width: 18px;
-    height: 18px;
+    width: 16px !important;
+    height: 16px !important;
   }
   
   input {
     padding: 12px 14px;
-    font-size: 0.9rem;
+    font-size: 16px !important; /* Prevents zoom on iOS */
   }
   
   .input-group input {
     padding-left: 38px;
+  }
+  
+  .input-icon {
+    left: 12px;
   }
   
   .input-icon svg {
@@ -772,12 +789,25 @@ button:active {
   }
   
   button {
-    padding: 12px 18px;
+    padding: 12px 16px;
     font-size: 0.85rem;
   }
   
+  .vault-header button {
+    padding: 8px 12px !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .vault-header button span {
+    display: none;
+  }
+  
+  .vault-header button svg {
+    margin: 0 !important;
+  }
+  
   h1 {
-    font-size: 1.8rem !important;
+    font-size: 1.6rem !important;
   }
   
   .shield-icon-wrapper svg {
@@ -786,43 +816,55 @@ button:active {
   }
   
   .security-badge {
-    font-size: 0.7rem;
-    padding: 6px 12px;
+    font-size: 0.65rem;
+    padding: 6px 10px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
   .floating-orb {
-    opacity: 0.12;
-    filter: blur(80px);
+    opacity: 0.1;
+    filter: blur(100px);
   }
   
-  .orb-1, .orb-2 { width: 150px; height: 150px; }
-  .orb-3, .orb-4 { width: 100px; height: 100px; }
+  .orb-1, .orb-2 { width: 120px; height: 120px; }
+  .orb-3, .orb-4 { display: none; }
   
   .waves-container {
-    height: 40px;
+    height: 30px;
+  }
+  
+  .vault-table {
+    display: block;
+    overflow-x: auto;
   }
   
   .vault-table th,
   .vault-table td {
-    padding: 10px 8px;
-    font-size: 0.75rem;
+    padding: 8px 6px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+  }
+  
+  .vault-table td:first-child {
+    min-width: 120px;
   }
   
   .spinner-container {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
+  }
+  
+  main {
+    padding: 12px !important;
   }
 }
 
 /* Small devices (phones landscape, 481px - 768px) */
 @media (min-width: 481px) and (max-width: 768px) {
-  .app-wrapper {
-    padding: 15px;
-  }
-  
   .glass-card {
-    padding: 30px 24px !important;
-    width: 90vw !important;
+    padding: 28px 24px !important;
+    width: 90% !important;
     max-width: 400px !important;
     border-radius: 18px;
   }
@@ -830,11 +872,17 @@ button:active {
   .vault-header {
     padding: 12px 16px;
     flex-direction: row;
+    flex-wrap: wrap;
     gap: 12px;
+  }
+  
+  .vault-header button span {
+    display: inline;
   }
   
   input {
     padding: 14px 16px;
+    font-size: 16px;
   }
   
   .input-group input {
@@ -842,7 +890,7 @@ button:active {
   }
   
   h1 {
-    font-size: 2.2rem !important;
+    font-size: 2rem !important;
   }
   
   .floating-orb {
@@ -850,31 +898,43 @@ button:active {
   }
   
   .waves-container {
-    height: 60px;
+    height: 50px;
+  }
+  
+  main {
+    padding: 20px !important;
   }
 }
 
 /* Medium devices (tablets, 769px - 1024px) */
 @media (min-width: 769px) and (max-width: 1024px) {
   .glass-card {
-    padding: 40px 35px !important;
+    padding: 36px 32px !important;
     width: 420px !important;
   }
   
   .waves-container {
-    height: 80px;
+    height: 70px;
+  }
+  
+  main {
+    padding: 30px !important;
   }
 }
 
 /* Large devices (desktops, 1025px+) */
 @media (min-width: 1025px) {
   .glass-card {
-    padding: 50px !important;
-    width: 450px !important;
+    padding: 45px !important;
+    width: 440px !important;
   }
   
   .waves-container {
-    height: 100px;
+    height: 90px;
+  }
+  
+  main {
+    padding: 40px 50px !important;
   }
 }
 

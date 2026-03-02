@@ -47,6 +47,69 @@ const FloatingOrbs = () => (
   </>
 );
 
+// Animated floating shapes that move around the screen
+const AnimatedShapes = () => (
+  <>
+    {/* Rotating rings */}
+    <motion.div
+      style={{ position: 'fixed', top: '10%', left: '5%', width: 120, height: 120, border: '3px solid rgba(99, 102, 241, 0.25)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
+      animate={{ rotate: 360, scale: [1, 1.15, 1] }}
+      transition={{ rotate: { duration: 25, repeat: Infinity, ease: 'linear' }, scale: { duration: 5, repeat: Infinity } }}
+    />
+    <motion.div
+      style={{ position: 'fixed', bottom: '15%', right: '5%', width: 90, height: 90, border: '3px solid rgba(236, 72, 153, 0.25)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
+      animate={{ rotate: -360, scale: [1, 0.85, 1] }}
+      transition={{ rotate: { duration: 18, repeat: Infinity, ease: 'linear' }, scale: { duration: 4, repeat: Infinity } }}
+    />
+    
+    {/* Floating dots */}
+    <motion.div
+      style={{ position: 'fixed', top: '25%', right: '10%', width: 18, height: 18, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
+      animate={{ y: [0, -35, 0], x: [0, 20, 0], opacity: [0.5, 1, 0.5] }}
+      transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+    />
+    <motion.div
+      style={{ position: 'fixed', top: '55%', left: '8%', width: 14, height: 14, background: 'linear-gradient(135deg, #06b6d4, #10b981)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
+      animate={{ y: [0, 30, 0], x: [0, -25, 0], opacity: [0.4, 1, 0.4] }}
+      transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+    />
+    <motion.div
+      style={{ position: 'fixed', bottom: '25%', left: '15%', width: 14, height: 14, background: 'linear-gradient(135deg, #ec4899, #f472b6)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
+      animate={{ y: [0, -28, 0], x: [0, 15, 0], opacity: [0.6, 1, 0.6] }}
+      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+    />
+    <motion.div
+      style={{ position: 'fixed', top: '15%', right: '20%', width: 12, height: 12, background: '#facc15', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
+      animate={{ y: [0, 40, 0], opacity: [0.3, 0.8, 0.3] }}
+      transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+    />
+    
+    {/* Floating squares */}
+    <motion.div
+      style={{ position: 'fixed', top: '40%', right: '3%', width: 30, height: 30, border: '3px solid rgba(6, 182, 212, 0.35)', borderRadius: 6, pointerEvents: 'none', zIndex: 0 }}
+      animate={{ rotate: [0, 90, 180, 270, 360], y: [0, -20, 0] }}
+      transition={{ rotate: { duration: 10, repeat: Infinity, ease: 'linear' }, y: { duration: 5, repeat: Infinity } }}
+    />
+    <motion.div
+      style={{ position: 'fixed', bottom: '10%', left: '5%', width: 24, height: 24, border: '3px solid rgba(139, 92, 246, 0.35)', borderRadius: 5, pointerEvents: 'none', zIndex: 0 }}
+      animate={{ rotate: [0, -180, -360], x: [0, 25, 0] }}
+      transition={{ rotate: { duration: 14, repeat: Infinity, ease: 'linear' }, x: { duration: 6, repeat: Infinity } }}
+    />
+    
+    {/* Pulsing circles */}
+    <motion.div
+      style={{ position: 'fixed', top: '65%', right: '15%', width: 60, height: 60, border: '2px solid rgba(16, 185, 129, 0.25)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
+      animate={{ scale: [1, 1.5, 1], opacity: [0.4, 0.15, 0.4] }}
+      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+    />
+    <motion.div
+      style={{ position: 'fixed', top: '8%', left: '40%', width: 45, height: 45, border: '2px solid rgba(251, 146, 60, 0.2)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
+      animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.1, 0.3] }}
+      transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+    />
+  </>
+);
+
 // Animated flowing wave at bottom
 const FlowingWaves = () => (
   <div className="waves-container">
@@ -191,6 +254,185 @@ const getServiceColor = (str) => {
   return colors[Math.abs(hash) % colors.length];
 };
 
+// Map common service names to their domains for logo fetching
+const getServiceDomain = (serviceName) => {
+  const normalizedName = serviceName.toLowerCase().trim();
+  
+  // Common service mappings
+  const domainMap = {
+    'netflix': 'netflix.com',
+    'prime': 'amazon.com',
+    'amazon prime': 'amazon.com',
+    'amazon': 'amazon.com',
+    'github': 'github.com',
+    'google': 'google.com',
+    'gmail': 'gmail.com',
+    'facebook': 'facebook.com',
+    'instagram': 'instagram.com',
+    'twitter': 'twitter.com',
+    'x': 'x.com',
+    'linkedin': 'linkedin.com',
+    'spotify': 'spotify.com',
+    'discord': 'discord.com',
+    'slack': 'slack.com',
+    'dropbox': 'dropbox.com',
+    'microsoft': 'microsoft.com',
+    'outlook': 'outlook.com',
+    'apple': 'apple.com',
+    'icloud': 'icloud.com',
+    'paypal': 'paypal.com',
+    'stripe': 'stripe.com',
+    'twitch': 'twitch.tv',
+    'reddit': 'reddit.com',
+    'pinterest': 'pinterest.com',
+    'snapchat': 'snapchat.com',
+    'tiktok': 'tiktok.com',
+    'youtube': 'youtube.com',
+    'whatsapp': 'whatsapp.com',
+    'telegram': 'telegram.org',
+    'zoom': 'zoom.us',
+    'notion': 'notion.so',
+    'figma': 'figma.com',
+    'adobe': 'adobe.com',
+    'canva': 'canva.com',
+    'trello': 'trello.com',
+    'jira': 'atlassian.com',
+    'bitbucket': 'bitbucket.org',
+    'gitlab': 'gitlab.com',
+    'heroku': 'heroku.com',
+    'vercel': 'vercel.com',
+    'netlify': 'netlify.com',
+    'aws': 'aws.amazon.com',
+    'azure': 'azure.microsoft.com',
+    'digitalocean': 'digitalocean.com',
+    'cloudflare': 'cloudflare.com',
+    'steam': 'steampowered.com',
+    'epic': 'epicgames.com',
+    'epic games': 'epicgames.com',
+    'playstation': 'playstation.com',
+    'psn': 'playstation.com',
+    'xbox': 'xbox.com',
+    'nintendo': 'nintendo.com',
+    'hotstar': 'hotstar.com',
+    'disney': 'disney.com',
+    'disney+': 'disneyplus.com',
+    'disneyplus': 'disneyplus.com',
+    'hbo': 'hbomax.com',
+    'hulu': 'hulu.com',
+    'crunchyroll': 'crunchyroll.com',
+    'ebay': 'ebay.com',
+    'walmart': 'walmart.com',
+    'target': 'target.com',
+    'flipkart': 'flipkart.com',
+    'myntra': 'myntra.com',
+    'zomato': 'zomato.com',
+    'swiggy': 'swiggy.com',
+    'uber': 'uber.com',
+    'ola': 'olacabs.com',
+    'airbnb': 'airbnb.com',
+    'booking': 'booking.com',
+    'expedia': 'expedia.com',
+    'coursera': 'coursera.org',
+    'udemy': 'udemy.com',
+    'skillshare': 'skillshare.com',
+    'duolingo': 'duolingo.com',
+    'khan academy': 'khanacademy.org',
+    'medium': 'medium.com',
+    'substack': 'substack.com',
+    'wordpress': 'wordpress.com',
+    'tumblr': 'tumblr.com',
+    'quora': 'quora.com',
+    'stackoverflow': 'stackoverflow.com',
+    'stack overflow': 'stackoverflow.com',
+    'hackerrank': 'hackerrank.com',
+    'leetcode': 'leetcode.com',
+    'codechef': 'codechef.com',
+    'codeforces': 'codeforces.com',
+    'behance': 'behance.net',
+    'dribbble': 'dribbble.com',
+    'producthunt': 'producthunt.com',
+    'product hunt': 'producthunt.com',
+  };
+  
+  // Check direct mapping
+  if (domainMap[normalizedName]) {
+    return domainMap[normalizedName];
+  }
+  
+  // Check if service name contains a known keyword
+  for (const [key, domain] of Object.entries(domainMap)) {
+    if (normalizedName.includes(key) || key.includes(normalizedName)) {
+      return domain;
+    }
+  }
+  
+  // Try to construct domain from service name
+  const cleanName = normalizedName.replace(/[^a-z0-9]/g, '');
+  return `${cleanName}.com`;
+};
+
+// ServiceLogo component - fetches real logos dynamically
+const ServiceLogo = ({ serviceName, colors }) => {
+  const [logoUrl, setLogoUrl] = useState(null);
+  const [logoLoaded, setLogoLoaded] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  
+  useEffect(() => {
+    const domain = getServiceDomain(serviceName);
+    // Use Google's favicon service (more reliable) with fallback to Clearbit
+    const googleFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+    const clearbitLogo = `https://logo.clearbit.com/${domain}`;
+    
+    // Try Clearbit first for higher quality logos
+    const img = new Image();
+    img.onload = () => {
+      setLogoUrl(clearbitLogo);
+      setLogoLoaded(true);
+    };
+    img.onerror = () => {
+      // Fallback to Google favicon
+      const fallbackImg = new Image();
+      fallbackImg.onload = () => {
+        setLogoUrl(googleFavicon);
+        setLogoLoaded(true);
+      };
+      fallbackImg.onerror = () => {
+        setLogoError(true);
+      };
+      fallbackImg.src = googleFavicon;
+    };
+    img.src = clearbitLogo;
+    
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [serviceName]);
+  
+  // Fallback to letter-based icon
+  if (logoError || !logoLoaded) {
+    return (
+      <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'white' }}>
+        {serviceName.charAt(0).toUpperCase()}
+      </span>
+    );
+  }
+  
+  return (
+    <img
+      src={logoUrl}
+      alt={serviceName}
+      style={{
+        width: '24px',
+        height: '24px',
+        objectFit: 'contain',
+        borderRadius: '4px',
+      }}
+      onError={() => setLogoError(true)}
+    />
+  );
+};
+
 // Password row component with animations
 const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
   const [copied, setCopied] = useState(false);
@@ -209,68 +451,101 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
       exit={{ opacity: 0, x: 20 }}
       transition={{ delay: index * 0.05, type: "spring", stiffness: 300, damping: 30 }}
       whileHover={{ backgroundColor: `${colors[0]}08` }}
+      style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
     >
-      <td style={{ padding: '14px 16px' }}>
-        <motion.div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: index * 0.05 + 0.1, type: "spring" }}
-            whileHover={{ scale: 1.1, rotate: 5 }}
+      <td style={{ padding: '16px 20px', width: '25%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div
             style={{
-              width: '38px',
-              height: '38px',
+              width: '42px',
+              height: '42px',
+              minWidth: '42px',
               borderRadius: '10px',
               background: `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '0.95rem',
+              fontSize: '1rem',
               fontWeight: 600,
               color: 'white',
-              boxShadow: `0 3px 12px ${colors[0]}30`,
-              border: `2px solid ${colors[2]}`
+              boxShadow: `0 4px 12px ${colors[0]}30`,
+              overflow: 'hidden',
+              flexShrink: 0
             }}
           >
-            {item.service.charAt(0).toUpperCase()}
-          </motion.div>
-          <span style={{ fontWeight: 500, color: colors[0] }}>{item.service}</span>
-        </motion.div>
-      </td>
-      <td style={{ padding: '14px 16px', color: '#cbd5e1', fontSize: '0.9rem' }}>
-        {item.username || <span style={{ color: '#64748b', fontStyle: 'italic' }}>No username</span>}
-      </td>
-      <td style={{ padding: '14px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <motion.span 
-            style={{ fontFamily: 'monospace', letterSpacing: isVisible ? '0' : '2px' }}
-          >
-            {isVisible ? item.password : '••••••••••••'}
-          </motion.span>
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <motion.button 
-              onClick={() => onToggleVisibility(index)}
-              className="icon-btn"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              title={isVisible ? 'Hide' : 'Show'}
-            >
-              {isVisible ? Icons.eyeOff : Icons.eye}
-            </motion.button>
-            <motion.button
-              onClick={handleCopy}
-              className={`icon-btn ${copied ? 'icon-btn-success' : ''}`}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              title="Copy"
-            >
-              {copied ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              ) : Icons.copy}
-            </motion.button>
+            <ServiceLogo serviceName={item.service} colors={colors} />
           </div>
+          <span style={{ fontWeight: 700, color: colors[0], textTransform: 'uppercase', fontSize: '0.95rem', letterSpacing: '0.5px' }}>{item.service}</span>
+        </div>
+      </td>
+      <td style={{ padding: '16px 20px', color: '#cbd5e1', fontSize: '0.95rem', width: '25%' }}>
+        {item.username || <span style={{ color: '#64748b', fontStyle: 'italic' }}>-</span>}
+      </td>
+      <td style={{ padding: '16px 20px', width: '25%' }}>
+        <span style={{ 
+          fontFamily: 'monospace', 
+          letterSpacing: isVisible ? '1px' : '3px', 
+          fontSize: '1rem', 
+          color: isVisible ? '#10b981' : '#e2e8f0',
+          fontWeight: isVisible ? 500 : 400
+        }}>
+          {isVisible ? item.password : '••••••••••••'}
+        </span>
+      </td>
+      <td style={{ padding: '16px 20px', width: '25%' }}>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', alignItems: 'center' }}>
+          <motion.button 
+            onClick={() => onToggleVisibility(index)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            title={isVisible ? 'Hide Password' : 'Show Password'}
+            style={{ 
+              padding: '10px 16px', 
+              borderRadius: '8px', 
+              background: isVisible ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',
+              border: isVisible ? '2px solid rgba(239, 68, 68, 0.5)' : '2px solid rgba(34, 197, 94, 0.5)',
+              color: isVisible ? '#ef4444' : '#22c55e',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              minWidth: '90px'
+            }}
+          >
+            {isVisible ? Icons.eyeOff : Icons.eye}
+            <span>{isVisible ? 'Hide' : 'Show'}</span>
+          </motion.button>
+          <motion.button
+            onClick={handleCopy}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            title="Copy Password"
+            style={{ 
+              padding: '10px 16px', 
+              borderRadius: '8px',
+              background: copied ? 'rgba(34, 197, 94, 0.15)' : 'rgba(99, 102, 241, 0.15)',
+              border: copied ? '2px solid rgba(34, 197, 94, 0.5)' : '2px solid rgba(99, 102, 241, 0.5)',
+              color: copied ? '#22c55e' : '#6366f1',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              minWidth: '90px'
+            }}
+          >
+            {copied ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            ) : Icons.copy}
+            <span>{copied ? 'Copied!' : 'Copy'}</span>
+          </motion.button>
         </div>
       </td>
     </motion.tr>
@@ -379,311 +654,229 @@ function VaultPage({ username, goldenKey, onLogout }) {
   // Add Entry Form View
   if (page === 'add') {
     return (
-      <div className="app-wrapper" style={{ justifyContent: 'center', alignItems: 'center', display: 'flex', minHeight: '100vh' }}>
+      <div className="app-wrapper">
+        <ParticlesBackground />
+        <AnimatedShapes />
         <FloatingOrbs />
-        <motion.div 
-          className="glass-card card-glow" 
-          style={{ padding: '50px', width: '480px', zIndex: 1 }}
-          initial={{ opacity: 0, scale: 0.9, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 30 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        >
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{ textAlign: 'center', marginBottom: '30px' }}
+        
+        <div style={{ 
+          position: 'absolute', 
+          top: '50%', 
+          left: '50%', 
+          transform: 'translate(-50%, -50%)',
+          zIndex: 10, 
+          width: '90%', 
+          maxWidth: '420px'
+        }}>
+          <div 
+            className="glass-card card-glow" 
+            style={{ padding: '30px' }}
           >
-            <motion.div
-              animate={{ 
-                rotate: [0, 10, -10, 0],
-                scale: [1, 1.1, 1]
-              }}
-              transition={{ duration: 0.5 }}
-              className="form-icon gradient-icon"
-            >
-              {Icons.lock}
-            </motion.div>
-            <h2 className="gradient-text-animated" style={{ margin: '15px 0 0 0', fontSize: '1.8rem' }}>Add New Secret</h2>
-            <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '8px' }}>
-              Encrypt and store securely in your vault
-            </p>
-          </motion.div>
-          
-          <AnimatePresence>
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <div className="form-icon gradient-icon">
+                {Icons.lock}
+              </div>
+              <h2 className="gradient-text-animated" style={{ margin: '12px 0 0 0', fontSize: '1.5rem' }}>Add New Secret</h2>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '6px' }}>
+                Encrypt and store securely in your vault
+              </p>
+            </div>
+            
             {error && (
-              <motion.div
-                className="error-message"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                style={{ marginBottom: '20px' }}
-              >
+              <div className="error-message" style={{ marginBottom: '15px' }}>
                 {error}
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
-          
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <motion.div variants={itemVariants} className="input-group">
-              <div className="input-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                  <line x1="8" y1="21" x2="16" y2="21"/>
-                  <line x1="12" y1="17" x2="12" y2="21"/>
-                </svg>
-              </div>
-              <input 
-                placeholder="Service (e.g. GitHub, Netflix)" 
-                value={newService} 
-                onChange={e => setNewService(e.target.value)}
-              />
-            </motion.div>
-            <motion.div variants={itemVariants} className="input-group">
-              <div className="input-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-              </div>
-              <input 
-                placeholder="Service Username (optional)" 
-                value={newServiceUser} 
-                onChange={e => setNewServiceUser(e.target.value)}
-              />
-            </motion.div>
-            <motion.div variants={itemVariants} className="input-group">
-              <div className="input-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-              </div>
-              <input 
-                type="password" 
-                placeholder="Password to encrypt" 
-                value={newPass} 
-                onChange={e => setNewPass(e.target.value)}
-              />
-            </motion.div>
             
-            <motion.div variants={itemVariants} style={{ marginTop: '25px' }}>
-              <motion.button 
-                onClick={handleAddPassword} 
-                disabled={loading}
-                className="btn-gradient-primary"
-                style={{ width: '100%', opacity: loading ? 0.6 : 1 }}
-                whileHover={{ scale: loading ? 1 : 1.02 }}
-                whileTap={{ scale: loading ? 1 : 0.98 }}
-              >
-                {loading ? (
-                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                    <motion.span
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      style={{ display: 'flex' }}
-                    >
+            <div>
+              <div className="input-group">
+                <div className="input-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                    <line x1="8" y1="21" x2="16" y2="21"/>
+                    <line x1="12" y1="17" x2="12" y2="21"/>
+                  </svg>
+                </div>
+                <input 
+                  placeholder="Service (e.g. GitHub, Netflix)" 
+                  value={newService} 
+                  onChange={e => setNewService(e.target.value)}
+                />
+              </div>
+              <div className="input-group">
+                <div className="input-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
+                <input 
+                  placeholder="Service Username (optional)" 
+                  value={newServiceUser} 
+                  onChange={e => setNewServiceUser(e.target.value)}
+                />
+              </div>
+              <div className="input-group">
+                <div className="input-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </div>
+                <input 
+                  type="password" 
+                  placeholder="Password to encrypt" 
+                  value={newPass} 
+                  onChange={e => setNewPass(e.target.value)}
+                />
+              </div>
+              
+              <div style={{ marginTop: '20px' }}>
+                <button 
+                  onClick={handleAddPassword} 
+                  disabled={loading}
+                  className="btn-gradient-primary"
+                  style={{ width: '100%', opacity: loading ? 0.6 : 1 }}
+                >
+                  {loading ? (
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                       {Icons.refresh}
-                    </motion.span>
-                    Encrypting...
-                  </span>
-                ) : (
-                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                    {Icons.lock}
-                    Store in Vault
-                  </span>
-                )}
-              </motion.button>
-            </motion.div>
-            
-            <motion.div variants={itemVariants} style={{ marginTop: '12px' }}>
-              <motion.button 
-                onClick={() => { setError(''); setPage('view'); }} 
-                className="btn-ghost"
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {Icons.back}
-                Back to Vault
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+                      Encrypting...
+                    </span>
+                  ) : (
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                      {Icons.lock}
+                      Store in Vault
+                    </span>
+                  )}
+                </button>
+              </div>
+              
+              <div style={{ marginTop: '10px' }}>
+                <button 
+                  onClick={() => { setError(''); setPage('view'); }} 
+                  className="btn-ghost"
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  {Icons.back}
+                  Back to Vault
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   // Main Vault View
   return (
-    <div className="app-wrapper" style={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-wrapper">
       <ParticlesBackground />
+      <AnimatedShapes />
       <FloatingOrbs />
-      <FlowingWaves />
       
-      <motion.header 
-        className="vault-header"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        style={{ padding: 'clamp(10px, 2vw, 20px) clamp(15px, 3vw, 30px)', flexWrap: 'wrap', gap: 'clamp(10px, 2vw, 15px)' }}
-      >
-        <motion.div 
-          style={{ display: 'flex', alignItems: 'center', gap: 'clamp(8px, 2vw, 15px)' }}
-          whileHover={{ scale: 1.02 }}
-        >
-          <motion.div
-            animate={{ scale: [1, 1.03, 1] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="header-icon"
-            style={{ width: 'clamp(36px, 8vw, 48px)', height: 'clamp(36px, 8vw, 48px)' }}
-          >
-            {Icons.vault}
-          </motion.div>
-          <div>
-            <h2 className="gradient-text-animated" style={{ margin: 0, fontSize: 'clamp(1rem, 4vw, 1.3rem)' }}>{username}'s Vault</h2>
-            <p style={{ margin: 0, color: '#64748b', fontSize: 'clamp(0.7rem, 2vw, 0.8rem)' }}>
-              {vaultData.length} secret{vaultData.length !== 1 ? 's' : ''} stored securely
-            </p>
-          </div>
-        </motion.div>
-        
-        <motion.div 
-          style={{ display: 'flex', gap: 'clamp(6px, 2vw, 12px)', flexWrap: 'wrap' }}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <motion.button 
-            onClick={() => setPage('add')} 
-            className="btn-gradient-rainbow"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {Icons.plus}
-            <span style={{ marginLeft: '8px' }}>Add New</span>
-          </motion.button>
-          <motion.button 
-            onClick={() => fetchVault(true)} 
-            className="btn-gradient-cyan"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            disabled={refreshing}
-          >
-            <motion.span 
-              animate={refreshing ? { rotate: 360 } : {}}
-              transition={{ duration: 1, repeat: refreshing ? Infinity : 0, ease: "linear" }}
-              style={{ display: 'flex' }}
-            >
-              {Icons.refresh}
-            </motion.span>
-            <span style={{ marginLeft: '8px' }}>{refreshing ? 'Syncing...' : 'Refresh'}</span>
-          </motion.button>
-          <motion.button 
-            onClick={onLogout} 
-            className="btn-gradient-pink"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {Icons.logout}
-            <span style={{ marginLeft: '8px' }}>Logout</span>
-          </motion.button>
-        </motion.div>
-      </motion.header>
+      <div style={{ 
+        position: 'fixed', 
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 10, 
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '30px',
+        boxSizing: 'border-box',
+        overflow: 'auto'
+      }}>
+        <div className="glass-card" style={{ 
+          padding: '30px 40px', 
+          width: '95vw', 
+          maxWidth: '1400px', 
+          margin: '0 auto',
+          minWidth: '900px'
+        }}>
+          <header style={{ marginBottom: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div className="header-icon" style={{ width: 48, height: 48 }}>
+                {Icons.vault}
+              </div>
+              <div>
+                <h2 className="gradient-text-animated" style={{ margin: 0, fontSize: '1.5rem' }}>{username}'s Vault</h2>
+                <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>
+                  {vaultData.length} secret{vaultData.length !== 1 ? 's' : ''} stored
+                </p>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button onClick={() => setPage('add')} className="btn-gradient-rainbow" style={{ padding: '12px 20px', fontSize: '0.9rem' }}>
+                {Icons.plus}
+                <span style={{ marginLeft: '8px' }}>Add</span>
+              </button>
+              <button onClick={() => fetchVault(true)} className="btn-gradient-cyan" disabled={refreshing} style={{ padding: '12px 20px', fontSize: '0.9rem' }}>
+                {Icons.refresh}
+              </button>
+              <button onClick={onLogout} className="btn-gradient-pink" style={{ padding: '12px 20px', fontSize: '0.9rem' }}>
+                {Icons.logout}
+              </button>
+            </div>
+          </header>
 
-      <main style={{ padding: 'clamp(15px, 4vw, 40px) clamp(15px, 5vw, 50px)', position: 'relative', zIndex: 1, flex: 1, overflow: 'auto' }}>
-        <AnimatePresence>
           {error && (
-            <motion.div
-              className="error-message"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              style={{ marginBottom: '25px' }}
-            >
+            <div className="error-message" style={{ marginBottom: '20px' }}>
               {error}
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-        
-        <AnimatePresence mode="wait">
+          
           {loading ? (
             <LoadingSpinner key="loading" text="Decrypting your vault..." />
+          ) : vaultData.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '50px 20px' }}>
+              <div className="empty-state-icon">
+                {Icons.key}
+              </div>
+              <h3 style={{ color: '#94a3b8', fontWeight: 500, marginBottom: '10px', marginTop: '20px', fontSize: '1.1rem' }}>
+                Your vault is empty
+              </h3>
+              <p style={{ color: '#64748b', marginBottom: '20px', fontSize: '0.9rem' }}>
+                Start by adding your first secret
+              </p>
+              <button onClick={() => setPage('add')} className="btn-gradient-success" style={{ padding: '12px 24px' }}>
+                {Icons.plus}
+                <span style={{ marginLeft: '8px' }}>Add Your First Secret</span>
+              </button>
+            </div>
           ) : (
-            <motion.div 
-              key="content"
-              className="glass-card" 
-              style={{ overflow: 'hidden' }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            >
-              {vaultData.length === 0 ? (
-                <motion.div 
-                  style={{ textAlign: 'center', padding: '80px 40px' }}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                >
-                  <motion.div
-                    animate={{ 
-                      y: [0, -10, 0],
-                    }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    className="empty-state-icon"
-                  >
-                    {Icons.key}
-                  </motion.div>
-                  <h3 style={{ color: '#94a3b8', fontWeight: 500, marginBottom: '10px', marginTop: '20px' }}>
-                    Your vault is empty
-                  </h3>
-                  <p style={{ color: '#64748b', marginBottom: '25px' }}>
-                    Start by adding your first secret
-                  </p>
-                  <motion.button
-                    onClick={() => setPage('add')}
-                    className="btn-gradient-success"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {Icons.plus}
-                    <span style={{ marginLeft: '8px' }}>Add Your First Secret</span>
-                  </motion.button>
-                </motion.div>
-              ) : (
-                <table className="vault-table">
-                  <thead>
-                    <tr>
-                      <th>Service</th>
-                      <th>Username</th>
-                      <th>Password</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <AnimatePresence>
-                      {vaultData.map((item, i) => (
-                        <PasswordRow
-                          key={`${item.service}-${i}`}
-                          item={item}
-                          index={i}
-                          isVisible={visiblePasswords[i]}
-                          onToggleVisibility={(idx) => 
-                            setVisiblePasswords({...visiblePasswords, [idx]: !visiblePasswords[idx]})
-                          }
-                        />
-                      ))}
-                    </AnimatePresence>
-                  </tbody>
-                </table>
-              )}
-            </motion.div>
+            <div style={{ width: '100%' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.1)' }}>
+                    <th style={{ padding: '18px 20px', textAlign: 'left', color: '#94a3b8', fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px', width: '25%' }}>Service</th>
+                    <th style={{ padding: '18px 20px', textAlign: 'left', color: '#94a3b8', fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px', width: '25%' }}>Username</th>
+                    <th style={{ padding: '18px 20px', textAlign: 'left', color: '#94a3b8', fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px', width: '25%' }}>Password</th>
+                    <th style={{ padding: '18px 20px', textAlign: 'center', color: '#94a3b8', fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px', width: '25%' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vaultData.map((item, i) => (
+                    <PasswordRow
+                      key={`${item.service}-${i}`}
+                      item={item}
+                      index={i}
+                      isVisible={visiblePasswords[i]}
+                      onToggleVisibility={(idx) => 
+                        setVisiblePasswords({...visiblePasswords, [idx]: !visiblePasswords[idx]})
+                      }
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </AnimatePresence>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }
