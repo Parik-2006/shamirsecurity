@@ -433,6 +433,16 @@ def get_passwords():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+@app.route('/')
+def index():
+    """Root route - confirms backend is running"""
+    return jsonify({
+        "status": "ok",
+        "message": "Shamir Vault Backend is running!",
+        "endpoints": ["/api/register/init", "/api/login", "/api/add_password", "/api/get_passwords", "/api/health"]
+    })
+
+
 @app.route('/api/health', methods=['GET'])
 def health():
     """Health check endpoint for deployment platforms"""
