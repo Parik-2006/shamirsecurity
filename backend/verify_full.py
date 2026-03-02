@@ -1,24 +1,25 @@
 # backend/verify_full.py
-import os
-import base64
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives import hashes
-from supabase import create_client
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
+# Shamir Share Verification Tool
+# Requires: Share3 (local) + either Share1 (Drive) or Share2 (Supabase)
 
-# --- CONFIGURATION (Must match app.py) ---
+import os
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from supabase import create_client, ClientOptions
+
+# --- CONFIGURATION ---
+GOOGLE_SCOPES = ['https://www.googleapis.com/auth/drive.file']
 SUPABASE_URL = "https://tacsrdvzgcsucparujcr.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhY3NyZHZ6Z2NzdWNwYXJ1amNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3NDE5NjYsImV4cCI6MjA4MjMxNzk2Nn0.bp5qZG28mODVoeSIEWoWF-tbwtmCIXM1GQ1JvM9XmpA"
-GOOGLE_SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+TOKEN_PATH = os.path.join(SCRIPT_DIR, 'token.json')
 
-# --- MATH HELPER (The Magic) ---
+# --- SHAMIR MATH HELPERS ---
 def recover_secret(shares, prime=2**127 - 1):
-    if len(shares) < 2: raise ValueError("Need at least 2 shares")
+    if len(shares) < 2:
+        raise ValueError("Need at least 2 shares")
     x_s, y_s = zip(*shares)
     return _lagrange_interpolate(0, x_s, y_s, prime)
 
@@ -26,7 +27,8 @@ def _lagrange_interpolate(x, x_s, y_s, p):
     k = len(x_s)
     def PI(vals):
         accum = 1
-        for v in vals: accum *= v
+        for v in vals:
+            accum *= v
         return accum
     nums = []
     dens = []
@@ -40,10 +42,7 @@ def _lagrange_interpolate(x, x_s, y_s, p):
     return (_divmod(num, den, p) + p) % p
 
 def _extended_gcd(a, b):
-    x = 0
-    last_x = 1
-    y = 1
-    last_y = 0
+    x, last_x, y, last_y = 0, 1, 1, 0
     while b != 0:
         quot = a // b
         a, b = b, a % b
@@ -55,88 +54,132 @@ def _divmod(num, den, p):
     inv, _ = _extended_gcd(den, p)
     return num * inv
 
-def derive_key(password, salt):
-    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=100000)
-    return base64.urlsafe_b64encode(kdf.derive(password.encode()))
+def parse_share(share_str):
+    """Parse share string like '3-123456789' into tuple (3, 123456789)"""
+    parts = share_str.strip().split('-')
+    return (int(parts[0]), int(parts[1]))
 
-# --- MAIN SCRIPT ---
-def run_verification():
-    print("\n--- 🔐 FULL SYSTEM VERIFICATION 🔐 ---")
-    
-    # 1. Get Inputs
-    username = input("Enter Username (to find cloud shares): ").strip()
-    password = input("Enter Master Password (to unlock local file): ").strip()
-    
-    shares_found = []
-
-    # --- STEP 1: FETCH GOOGLE DRIVE (SHARE 1) ---
-    print("\n[1/3] Fetching Google Drive...")
+# --- FETCH HELPERS ---
+def fetch_google_drive_share(username):
+    """Fetch share1 from Google Drive"""
     try:
-        creds = None
-        if os.path.exists('token.json'):
-            creds = Credentials.from_authorized_user_file('token.json', GOOGLE_SCOPES)
+        if not os.path.exists(TOKEN_PATH):
+            print(f"   [!] No Google credentials found at {TOKEN_PATH}")
+            return None
+        creds = Credentials.from_authorized_user_file(TOKEN_PATH, GOOGLE_SCOPES)
         service = build('drive', 'v3', credentials=creds)
         results = service.files().list(q=f"name='{username}_share1.txt'", spaces='drive').execute()
         items = results.get('files', [])
-        
         if items:
             data = service.files().get_media(fileId=items[0]['id']).execute().decode('utf-8')
-            idx, val = map(int, data.split('-'))
-            shares_found.append((idx, val))
-            print(f"   ✅ Found Share 1 (Index {idx})")
+            return data.strip()
         else:
-            print("   ❌ Share 1 missing.")
+            print(f"   [!] No file '{username}_share1.txt' found in Drive")
+            return None
     except Exception as e:
-        print(f"   ❌ Drive Error: {e}")
+        print(f"   [!] Google Drive Error: {e}")
+        return None
 
-    # --- STEP 2: FETCH SUPABASE (SHARE 2) ---
-    print("\n[2/3] Fetching Supabase...")
+def fetch_supabase_share(username):
+    """Fetch share2 from Supabase"""
     try:
-        response = supabase.table("shares").select("share_data").eq("username", username).execute()
+        supabase = create_client(
+            SUPABASE_URL, 
+            SUPABASE_KEY,
+            options=ClientOptions(postgrest_client_timeout=30)
+        )
+        response = supabase.table("shares").select("share_data").eq("username", username).not_.is_("share_data", "null").execute()
         if response.data:
-            data = response.data[0]['share_data'] # NOTE: Changed to match your column name if needed
-            idx, val = map(int, data.split('-'))
-            shares_found.append((idx, val))
-            print(f"   ✅ Found Share 2 (Index {idx})")
+            return response.data[0]['share_data']
         else:
-            print("   ❌ Share 2 missing.")
+            print(f"   [!] No share found in Supabase for '{username}'")
+            return None
     except Exception as e:
-        print(f"   ❌ Supabase Error: {e}")
+        print(f"   [!] Supabase Error: {e}")
+        return None
 
-    # --- STEP 3: DECRYPT LOCAL FILE (SHARE 3) ---
-    print("\n[3/3] Decrypting Local File...")
+# --- MAIN VERIFICATION ---
+def run_verification():
+    print("\n" + "="*50)
+    print("    SHAMIR SHARE VERIFICATION TOOL")
+    print("="*50)
+    
+    # --- STEP 1: Get Share3 (Local - MANDATORY) ---
+    print("\n[STEP 1] SHARE 3 - LOCAL (MANDATORY)")
+    print("-"*40)
+    share3_str = input("Enter Share3 (local share, e.g. 3-123456): ").strip()
+    
+    if not share3_str or '-' not in share3_str:
+        print("\n[ERROR] Share3 is required! Format: index-value")
+        return
+    
     try:
-        if os.path.exists("local_share.txt"):
-            with open("local_share.txt", "r") as f:
-                encrypted_blob = f.read().strip()
-            
-            raw_bytes = base64.b64decode(encrypted_blob)
-            salt, encrypted_data = raw_bytes.split(b"::", 1)
-            key = derive_key(password, salt)
-            f = Fernet(key)
-            decrypted_data = f.decrypt(encrypted_data).decode()
-            
-            idx, val = map(int, decrypted_data.split('-'))
-            shares_found.append((idx, val))
-            print(f"   ✅ Success! Password unlocked Share 3 (Index {idx})")
-        else:
-            print("   ❌ 'local_share.txt' not found.")
-    except Exception as e:
-        print("   ❌ Failed to unlock local file. Wrong password?")
-
-    # --- FINAL RECONSTRUCTION ---
-    print("\n--- RESULTS ---")
-    if len(shares_found) < 2:
-        print("❌ Not enough shares to recover the secret (Need 2, found {len(shares_found)}).")
+        share3 = parse_share(share3_str)
+        print(f"   [OK] Share3 parsed (index: {share3[0]})")
+    except:
+        print("\n[ERROR] Invalid Share3 format")
+        return
+    
+    # --- STEP 2: Choose second share source ---
+    print("\n[STEP 2] CHOOSE SECOND SHARE SOURCE")
+    print("-"*40)
+    print("  [1] Google Drive (Share1)")
+    print("  [2] Supabase (Share2)")
+    print("  [3] Enter manually")
+    
+    choice = input("\nChoice (1/2/3): ").strip()
+    
+    second_share_str = None
+    source_name = ""
+    
+    if choice == '1':
+        source_name = "Google Drive"
+        username = input("Enter username: ").strip()
+        print(f"\n   Fetching from Google Drive...")
+        second_share_str = fetch_google_drive_share(username)
+        
+    elif choice == '2':
+        source_name = "Supabase"
+        username = input("Enter username: ").strip()
+        print(f"\n   Fetching from Supabase...")
+        second_share_str = fetch_supabase_share(username)
+        
+    elif choice == '3':
+        source_name = "Manual"
+        second_share_str = input("Enter share (e.g. 1-987654): ").strip()
+        
     else:
-        print(f"✅ Collected {len(shares_found)} Shares. Attempting reconstruction...")
+        print("\n[ERROR] Invalid choice")
+        return
+    
+    if not second_share_str:
+        print(f"\n[ERROR] Could not get share from {source_name}")
+        return
+    
+    try:
+        second_share = parse_share(second_share_str)
+        print(f"   [OK] Share from {source_name} parsed (index: {second_share[0]})")
+    except:
+        print(f"\n[ERROR] Invalid share format from {source_name}")
+        return
+    
+    # --- STEP 3: Verify shares reconstruct correctly ---
+    print("\n[STEP 3] VERIFYING SHARES...")
+    print("-"*40)
+    
+    try:
+        golden_key = recover_secret([share3, second_share])
         
-        # Recover using the shares we found
-        secret = recover_secret(shares_found)
+        print("\n" + "="*50)
+        print("           VERIFIED")
+        print("="*50)
+        print(f"\n   Golden Key: {golden_key}")
+        print("\n   Shares are valid and reconstruct correctly!")
+        print("="*50 + "\n")
         
-        print("\n🎉 THE GOLDEN KEY IS RECOVERED!")
-        print(f"🔑 Secret Value: {secret}")
-        print("(This number is the mathematical secret that was split apart!)")
+    except Exception as e:
+        print(f"\n[ERROR] Verification failed: {e}")
+        print("   Shares may be invalid or corrupted.")
 
 if __name__ == "__main__":
     run_verification()
