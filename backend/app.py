@@ -545,12 +545,11 @@ def register_complete():
             "status": "success",
             "local_share": reg_data['local_share'],
             "golden_key": reg_data['golden_key'],
-            "username": username
+            "username": username,
+            "share3": reg_data.get('share3')  # plaintext share3 for frontend encryption
         }
-        
         # Clean up - remove from pending
         del pending_registrations[reg_id]
-        
         print(f"[REGISTER COMPLETE] Keys delivered to {username}'s browser!")
         return jsonify(result)
         
@@ -563,20 +562,25 @@ def login():
     """Login using Supabase share2 + local share3 (NO Google required)"""
     try:
         data = request.json
-        password, username, local_share_package = data.get('password'), data.get('username'), data.get('local_share')
-        
-        if not local_share_package:
-            return jsonify({"status": "error", "message": "No local share found. Please create a vault first."}), 400
-        
-        # Decrypt local share3
-        try:
-            raw_package = base64.b64decode(local_share_package)
-            salt, encrypted_data = raw_package.split(b"::")
-            f = Fernet(derive_key(password, salt))
-            share3_str = f.decrypt(encrypted_data).decode()
-            print(f"[LOGIN] Share3 decrypted successfully")
-        except Exception as decrypt_err:
-            return jsonify({"status": "error", "message": "Wrong password or corrupted local share"}), 401
+        password = data.get('password')
+        username = data.get('username')
+        local_share_package = data.get('local_share')
+        share3_str = data.get('share3')
+        # If share3 is provided directly (from decrypted .enc), use it; else, decrypt as before
+        if share3_str:
+            print(f"[LOGIN] Using provided plaintext share3 for user {username}")
+        else:
+            if not local_share_package:
+                return jsonify({"status": "error", "message": "No local share found. Please create a vault first."}), 400
+            # Decrypt local share3
+            try:
+                raw_package = base64.b64decode(local_share_package)
+                salt, encrypted_data = raw_package.split(b"::")
+                f = Fernet(derive_key(password, salt))
+                share3_str = f.decrypt(encrypted_data).decode()
+                print(f"[LOGIN] Share3 decrypted successfully")
+            except Exception as decrypt_err:
+                return jsonify({"status": "error", "message": "Wrong password or corrupted local share"}), 401
         
         # Fetch share2 from Supabase with retry
         print(f"[LOGIN] Fetching share2 from Supabase...")

@@ -5,6 +5,7 @@ import * as FM from 'framer-motion';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 import VaultPage from './VaultPage';
+import { encryptAESGCM, downloadBytes } from './utils';
 
 // API base URL - uses env variable in production, localhost in dev
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -168,6 +169,45 @@ const LoadingSpinner = ({ message, subMessage }) => (
   </FM.motion.div>
 );
 
+// Modal for mandatory local share download
+function LocalShareDownloadModal({ share3, password, onDownloaded }) {
+  const [downloading, setDownloading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleDownload = async () => {
+    setError('');
+    setDownloading(true);
+    try {
+      const encBytes = await encryptAESGCM(share3, password);
+      downloadBytes(encBytes, 'vault_recovery.enc');
+      setTimeout(() => onDownloaded(), 500); // Give browser time to trigger download
+    } catch (e) {
+      setError('Encryption or download failed: ' + (e.message || e));
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(20,20,40,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="glass-card card-glow" style={{ maxWidth: 420, padding: 32, textAlign: 'center' }}>
+        <h2 style={{ color: '#f43f5e', marginBottom: 12 }}>Final Security Step</h2>
+        <p style={{ color: '#fff', marginBottom: 18, fontWeight: 500 }}>
+          <b>Your encrypted local recovery share is ready.</b><br />
+          <span style={{ color: '#fbbf24' }}>You must download and keep this file safe to access your vault.</span>
+        </p>
+        <button className="btn-gradient-primary" style={{ width: '100%', marginBottom: 10 }} onClick={handleDownload} disabled={downloading}>
+          {downloading ? 'Encrypting...' : 'Download vault_recovery.enc'}
+        </button>
+        {error && <div className="error-message" style={{ marginTop: 10 }}>{error}</div>}
+        <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: 18 }}>
+          This file is required for future recovery. Store it in a secure location.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [page, setPage] = useState('login'); 
   const [username, setUsername] = useState('');
@@ -178,6 +218,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('');
   const [focusedInput, setFocusedInput] = useState(null);
+  const [requireLocalShareDownload, setRequireLocalShareDownload] = useState(false);
+  const [pendingShare3, setPendingShare3] = useState(null);
 
   // (now using shared getErrorMessage imported from ./utils)
 
@@ -235,6 +277,13 @@ function App() {
             window.localStorage.setItem('local_share', data.local_share);
             setUsername(data.username);
             setGoldenKey(data.golden_key);
+            if (data.share3) {
+              setPendingShare3(data.share3);
+              setRequireLocalShareDownload(true);
+              setLoading(false);
+              // Do NOT setPage('vault') yet
+              return;
+            }
             setPage('vault');
           } else {
             setError('Registration Error: ' + (data.message || 'Unknown error'));
@@ -352,8 +401,17 @@ function App() {
   };
 
   // --- RENDER VAULT PAGE ---
-  if (page === 'vault' && goldenKey) {
+  if (page === 'vault' && goldenKey && !requireLocalShareDownload) {
     return <VaultPage username={username} goldenKey={goldenKey} onLogout={handleLogout} mfaWarning={mfaWarning} />;
+  }
+
+  // Show modal if local share download is required
+  if (requireLocalShareDownload && pendingShare3) {
+    return <LocalShareDownloadModal share3={pendingShare3} password={password} onDownloaded={() => {
+      setRequireLocalShareDownload(false);
+      setPendingShare3(null);
+      setPage('vault');
+    }} />;
   }
 
   // animation variants removed (unused)
@@ -425,7 +483,7 @@ function App() {
                 <div className="input-icon">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
                   </svg>
                 </div>
                 <input 
