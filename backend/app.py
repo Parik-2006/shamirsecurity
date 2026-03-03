@@ -187,7 +187,8 @@ def get_google_flow():
         flow = Flow.from_client_secrets_file(creds_path, scopes=GOOGLE_SCOPES)
     
         flow.redirect_uri = GOOGLE_REDIRECT_URI
-        flow.params['prompt'] = 'consent'  # Always require re-auth and MFA if enabled
+        # 'prompt' should be passed to authorization_url(), not set as a flow attribute
+        # All prompt/scopes/PKCE are handled in authorization_url() call
     return flow
 
 # --- SHAMIR MATH HELPERS ---
