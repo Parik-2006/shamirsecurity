@@ -265,21 +265,32 @@ def register_init():
             })
 
         # Generate Google OAuth URL -- user will sign in with THEIR Google account
-        print('[REGISTER INIT] Google credentials present; generating OAuth URL...')
-        flow = get_google_flow()
-        auth_url, _ = flow.authorization_url(
-            access_type='offline',
-            include_granted_scopes='true',
-            prompt='consent',
-            state=reg_id  # Pass reg_id so we can match it in callback
-        )
-        
-        print(f"[REGISTER INIT] OAuth URL generated. Waiting for user to sign in...")
-        return jsonify({
-            "status": "redirect",
-            "auth_url": auth_url,
-            "reg_id": reg_id
-        })
+        try:
+            print('[REGISTER INIT] Google credentials present; generating OAuth URL...')
+            flow = get_google_flow()
+            auth_url, _ = flow.authorization_url(
+                access_type='offline',
+                include_granted_scopes='true',
+                prompt='consent',
+                state=reg_id  # Pass reg_id so we can match it in callback
+            )
+            print(f"[REGISTER INIT] OAuth URL generated. Waiting for user to sign in...")
+            return jsonify({
+                "status": "redirect",
+                "auth_url": auth_url,
+                "reg_id": reg_id
+            })
+        except Exception as e:
+            # Common cause: redirect_uri_mismatch when OAuth client not configured
+            err_msg = str(e)
+            print(f"[REGISTER INIT] Google OAuth error: {err_msg}")
+            expected = GOOGLE_REDIRECT_URI
+            user_msg = (
+                "Google OAuth error when generating authorization URL. "
+                "Most likely the OAuth client in your Google Cloud Console does not have the redirect URI registered. "
+                f"Expected redirect URI: {expected}"
+            )
+            return jsonify({"status": "error", "message": user_msg, "expected_redirect": expected, "raw_error": err_msg}), 500
         
     except Exception as e:
         print(f"[REGISTER INIT] Error: {e}")
@@ -336,7 +347,18 @@ def google_callback():
     except Exception as e:
         print(f"[GOOGLE CALLBACK] Error: {e}")
         error_msg = str(e)[:200].replace(' ', '+')
+        # Provide a readable redirect error message for developer debugging
+        print(f"[GOOGLE CALLBACK] Redirecting with error: {error_msg}")
         return redirect(f"{FRONTEND_URL}?reg_error={error_msg}")
+
+
+@app.route('/api/google/expected_redirect', methods=['GET'])
+def google_expected_redirect():
+    """Return the expected redirect URI and a short instruction message."""
+    return jsonify({
+        "expected_redirect": GOOGLE_REDIRECT_URI,
+        "message": "Add this exact URL to your OAuth client's Authorized redirect URIs in Google Cloud Console. Use a Web OAuth client and include this URI."
+    })
 
 
 @app.route('/api/register/complete', methods=['POST'])
