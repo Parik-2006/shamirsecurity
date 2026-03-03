@@ -310,14 +310,65 @@ function App() {
   }, []);
 
   // Handle Login (unchanged - no Google needed)
+  // MFA-aware login flow
+  const [mfaReady, setMfaReady] = useState(false);
+  const [mfaChecked, setMfaChecked] = useState(false);
+  const [mfaError, setMfaError] = useState('');
+
   const handleLogin = async () => {
     setError('');
+    setMfaError('');
+    setMfaReady(false);
+    setMfaChecked(false);
+    // Step 1: Start Google OAuth for login
+    setLoading(true);
+    setLoadingMsg('Verifying Google MFA...');
+    try {
+      const res = await fetch(`${API_URL}/api/login/google`);
+      const data = await res.json();
+      if (data.status === 'redirect' && data.auth_url) {
+        window.location.href = data.auth_url;
+        return;
+      } else {
+        setError('Failed to initiate Google login: ' + (data.message || 'Unknown error'));
+      }
+    } catch (e) {
+      setError('Failed to initiate Google login: ' + getErrorMessage(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // After Google OAuth callback, check MFA result
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const loginMfa = params.get('login_mfa');
+    const loginError = params.get('login_error');
+    if (loginError) {
+      setError('Google login error: ' + loginError);
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+    if (loginMfa) {
+      window.history.replaceState({}, '', window.location.pathname);
+      setMfaChecked(true);
+      if (loginMfa === '1') {
+        setMfaReady(true);
+        // Now do the actual vault unlock
+        doVaultUnlock();
+      } else {
+        setMfaError('Please enable Google MFA (2-Step Verification) to unlock your vault.');
+      }
+    }
+    // eslint-disable-next-line
+  }, []);
+
+  // Actual vault unlock after MFA
+  const doVaultUnlock = async () => {
     const localShare = window.localStorage.getItem('local_share');
     if (!localShare) return setError('No local secret key found on this browser! Please use the device where you created the vault.');
-    
     setLoading(true);
     setLoadingMsg('Unlocking your vault...');
-    
     try {
       const res = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
@@ -326,7 +377,6 @@ function App() {
       });
       const text = await res.text();
       const data = safeJSONParse(text) || { status: 'error', message: 'Invalid JSON response', raw: text };
-      console.info('[FRONTEND] /api/login status=', res.status, 'ok=', res.ok, 'body=', data);
       if (!res.ok) {
         setError('Login Error: ' + (data.message || text || res.statusText));
       } else if (data.status === 'success') {
@@ -336,13 +386,7 @@ function App() {
         setError('Login Error: ' + (data.message || 'Unknown error'));
       }
     } catch (e) {
-      const msg = getErrorMessage(e);
-      console.error('Login error:', e);
-      if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
-        setError("Cannot connect to backend. Make sure the server is running.");
-      } else {
-        setError("Login failed: " + msg);
-      }
+      setError('Login failed: ' + getErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -535,6 +579,7 @@ function App() {
                   onClick={handleLogin} 
                   className="btn-gradient-cyan"
                   style={{ width: '100%' }}
+                  disabled={loading}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '10px' }}>
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -542,6 +587,9 @@ function App() {
                   </svg>
                   Unlock Vault
                 </button>
+                {mfaError && (
+                  <div className="error-message" style={{ marginTop: 10, color: '#f43f5e' }}>{mfaError}</div>
+                )}
               </div>
               
               <div style={{ marginTop: '18px', textAlign: 'center' }}>
