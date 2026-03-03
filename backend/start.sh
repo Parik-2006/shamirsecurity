@@ -6,5 +6,5 @@ elif [ ! -z "$GOOGLE_CREDENTIALS_JSON" ]; then
     echo "$GOOGLE_CREDENTIALS_JSON" > credentials.json
 fi
 
-# Start the Flask app with Gunicorn
-gunicorn backend.app:app --bind 0.0.0.0:10000
+cd backend
+gunicorn app:app --bind 0.0.0.0:10000

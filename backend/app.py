@@ -448,6 +448,10 @@ def health():
     """Health check endpoint for deployment platforms"""
     return jsonify({"status": "ok", "frontend": FRONTEND_URL, "backend": BACKEND_URL})
 
+@app.route("/")
+def home():
+    return "Backend is running!"
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
