@@ -13,12 +13,9 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from supabase import create_client, ClientOptions
-import httpx
 
 # Google Imports (web OAuth flow - works for ALL users)
-from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
-from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
@@ -47,15 +44,24 @@ if 'localhost' in BACKEND_URL:
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 # Create Supabase client with timeout settings
-supabase = create_client(
-    SUPABASE_URL, 
-    SUPABASE_KEY,
-    options=ClientOptions(
-        postgrest_client_timeout=120,
-        storage_client_timeout=120
-    )
-)
-print(f"[INIT] Supabase client created")
+supabase = None
+try:
+    if SUPABASE_URL and SUPABASE_KEY:
+        supabase = create_client(
+            SUPABASE_URL,
+            SUPABASE_KEY,
+            options=ClientOptions(
+                postgrest_client_timeout=120,
+                storage_client_timeout=120
+            )
+        )
+        print(f"[INIT] Supabase client created")
+    else:
+        print('[INIT] Supabase URL/KEY not provided; supabase client not created')
+except Exception as e:
+    supabase = None
+    print(f"[INIT] Failed to create Supabase client: {e}")
+
 print(f"[INIT] Frontend: {FRONTEND_URL}")
 print(f"[INIT] Backend:  {BACKEND_URL}")
 print(f"[INIT] Google redirect: {GOOGLE_REDIRECT_URI}")
@@ -88,6 +94,8 @@ pending_registrations = {}
 def supabase_retry(operation, max_retries=3, delay=2):
     """Execute a Supabase operation with retries"""
     last_error = None
+    if supabase is None:
+        raise RuntimeError('Supabase client not configured')
     for attempt in range(max_retries):
         try:
             result = operation()
@@ -212,6 +220,9 @@ def register_init():
 
         # Store share2 in Supabase
         print(f"[REGISTER INIT] Storing share2 in Supabase...")
+        if supabase is None:
+            print('[REGISTER INIT] Supabase client not configured; cannot store share2')
+            return jsonify({"status": "error", "message": "Supabase not configured on server"}), 500
         supabase_retry(lambda: supabase.table("shares").delete().eq("username", username).execute())
         supabase_retry(lambda: supabase.table("shares").insert({"username": username, "share_data": share2}).execute())
         print(f"[REGISTER INIT] Share2 stored")
@@ -385,6 +396,8 @@ def login():
         
         # Fetch share2 from Supabase with retry
         print(f"[LOGIN] Fetching share2 from Supabase...")
+        if supabase is None:
+            return jsonify({"status": "error", "message": "Supabase not configured on server"}), 500
         response = supabase_retry(lambda: supabase.table("shares").select("share_data").eq("username", username).not_.is_("share_data", "null").execute())
         
         if not response.data:
@@ -424,6 +437,8 @@ def add_password():
         encrypted_pass = f.encrypt(s_pass.encode()).decode()
 
         # Store in Supabase with retry
+        if supabase is None:
+            return jsonify({"status": "error", "message": "Supabase not configured on server"}), 500
         supabase_retry(lambda: supabase.table("shares").insert({
             "username": username,
             "service_name": s_name,
@@ -452,6 +467,8 @@ def get_passwords():
         f = Fernet(golden_int_to_fernet(int(golden_key)))
         
         # Fetch from Supabase with retry
+        if supabase is None:
+            return jsonify({"status": "error", "message": "Supabase not configured on server"}), 500
         response = supabase_retry(lambda: supabase.table("shares").select("*").eq("username", username).not_.is_("encrypted_password", "null").execute())
         
         decrypted_list = []
