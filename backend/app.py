@@ -1,6 +1,31 @@
-from flask import send_from_directory
-# --- STATIC FILE SERVING FOR FRONTEND (PRODUCTION) ---
+# backend/app.py
+import os
+import json
+import base64
+import random
+import hashlib 
+import io
+import time
+import secrets
+from flask import Flask, request, jsonify, redirect, send_from_directory
+from flask_cors import CORS
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import hashes
+from supabase import create_client, ClientOptions
+import httpx
 
+# Google Imports (web OAuth flow - works for ALL users)
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+
+app = Flask(__name__)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
+
+# --- STATIC FILE SERVING FOR FRONTEND (PRODUCTION) ---
 # Serve static assets (JS, CSS, images, etc.) from frontend/dist/assets
 @app.route('/assets/<path:filename>')
 def serve_assets(filename):
