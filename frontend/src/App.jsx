@@ -192,6 +192,8 @@ function App() {
     }
     
     if (regError) {
+      console.warn('[FRONTEND] reg_error from backend:', regError);
+      setLoading(false);
       setError('Registration failed: ' + regError);
       return;
     }
@@ -210,7 +212,8 @@ function App() {
           const data = safeJSONParse(text) || { status: 'error', message: 'Invalid JSON response', raw: text };
           console.info('[FRONTEND] /api/register/complete status=', res.status, 'ok=', res.ok, 'body=', data);
           if (!res.ok) {
-            setError(`Registration complete failed: ${data.message || text || res.statusText}`);
+            setLoading(false);
+            setError('Registration complete failed: ' + (data.message || text || res.statusText));
             return;
           }
           if (data.status === 'success') {
@@ -294,6 +297,7 @@ function App() {
         console.info('[FRONTEND] /api/register/init status=', res.status, 'ok=', res.ok, 'body=', data);
 
         if (!res.ok) {
+          setLoading(false);
           setError('Registration Error: ' + (data.message || text || res.statusText));
           return;
         }
