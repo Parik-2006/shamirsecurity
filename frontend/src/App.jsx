@@ -1,6 +1,6 @@
 // frontend/src/App.jsx
 import React, { useState, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import * as FM from 'framer-motion';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 import VaultPage from './VaultPage';
@@ -104,12 +104,12 @@ const ShieldIcon = () => (
     >
       <defs>
         <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <motion.stop
+          <FM.motion.stop
             offset="0%"
             animate={{ stopColor: ['#6366f1', '#8b5cf6', '#06b6d4', '#6366f1'] }}
             transition={{ duration: 6, repeat: Infinity }}
           />
-          <motion.stop
+          <FM.motion.stop
             offset="100%"
             animate={{ stopColor: ['#8b5cf6', '#06b6d4', '#10b981', '#8b5cf6'] }}
             transition={{ duration: 6, repeat: Infinity }}
@@ -126,25 +126,25 @@ const ShieldIcon = () => (
 
 // Loading spinner component
 const LoadingSpinner = ({ message, subMessage }) => (
-  <motion.div
+  <FM.motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     style={{ textAlign: 'center', padding: '40px 20px' }}
   >
     <div className="spinner-container">
-      <motion.div
+      <FM.motion.div
         className="spinner-ring"
         animate={{ rotate: 360 }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
       />
-      <motion.div
+      <FM.motion.div
         className="spinner-ring spinner-ring-2"
         animate={{ rotate: -360 }}
         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
       />
     </div>
-    <motion.p
+    <FM.motion.p
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
@@ -152,18 +152,18 @@ const LoadingSpinner = ({ message, subMessage }) => (
       style={{ fontSize: '1rem', marginBottom: '10px', marginTop: '25px' }}
     >
       {message}
-    </motion.p>
+    </FM.motion.p>
     {subMessage && (
-      <motion.p
+      <FM.motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
         style={{ color: '#94a3b8', fontSize: '0.8rem' }}
       >
         {subMessage}
-      </motion.p>
+      </FM.motion.p>
     )}
-  </motion.div>
+  </FM.motion.div>
 );
 
 function App() {
@@ -356,7 +356,7 @@ function App() {
           className="glass-card card-glow" 
           style={{ padding: '20px', width: '100%' }}
         >
-        <AnimatePresence mode="wait">
+        <FM.AnimatePresence mode="wait">
           {loading ? (
             <LoadingSpinner 
               key="loading"
@@ -453,7 +453,7 @@ function App() {
               </div>
             </div>
           )}
-        </AnimatePresence>
+        </FM.AnimatePresence>
       </div>
       </div>
     </div>
