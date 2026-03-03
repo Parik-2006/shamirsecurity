@@ -1,13 +1,24 @@
 from flask import send_from_directory
 # --- STATIC FILE SERVING FOR FRONTEND (PRODUCTION) ---
+
+# Serve static assets (JS, CSS, images, etc.) from frontend/dist/assets
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    dist_assets = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist', 'assets')
+    return send_from_directory(dist_assets, filename)
+
+# Serve favicon if present
+@app.route('/favicon.ico')
+def favicon():
+    dist_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
+    return send_from_directory(dist_dir, 'favicon.ico') if os.path.exists(os.path.join(dist_dir, 'favicon.ico')) else ('', 204)
+
+# Serve index.html for all other routes (SPA fallback)
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_frontend(path):
     dist_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
-    if path != "" and os.path.exists(os.path.join(dist_dir, path)):
-        return send_from_directory(dist_dir, path)
-    else:
-        return send_from_directory(dist_dir, 'index.html')
+    return send_from_directory(dist_dir, 'index.html')
 # backend/app.py
 import os
 import json
@@ -531,5 +542,4 @@ def debug_google_creds():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('FLASK_DEBUG', 'true').lower() == 'true'
-    app.run(debug=debug, port=port, host='0.0.0.0')
+    app.run(debug=False, host='0.0.0.0', port=port)
