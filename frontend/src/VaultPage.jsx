@@ -556,13 +556,14 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
   );
 };
 
-function VaultPage({ username, goldenKey, onLogout }) {
+function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
   const [vaultData, setVaultData] = useState([]);
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState('view');
   const [refreshing, setRefreshing] = useState(false);
+  const [showMfaBanner, setShowMfaBanner] = useState(!!mfaWarning);
   
   const [newService, setNewService] = useState('');
   const [newServiceUser, setNewServiceUser] = useState('');
@@ -787,6 +788,24 @@ function VaultPage({ username, goldenKey, onLogout }) {
           margin: '0 auto',
           minWidth: '900px'
         }}>
+          {showMfaBanner && (
+            <div style={{ marginBottom: '12px' }}>
+              <div className="info-message" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 8v4"/>
+                    <circle cx="12" cy="16" r="1"/>
+                  </svg>
+                  <div>
+                    <strong>Warning:</strong> Your Google account does not appear to have 2-step verification (MFA) enabled. For better security, enable MFA in your Google account settings.
+                  </div>
+                </div>
+                <button onClick={() => setShowMfaBanner(false)} className="btn-ghost" style={{ padding: '6px 10px' }}>Dismiss</button>
+              </div>
+            </div>
+          )}
+
           <header style={{ marginBottom: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div className="header-icon" style={{ width: 48, height: 48 }}>

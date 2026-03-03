@@ -174,6 +174,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [goldenKey, setGoldenKey] = useState(null);
   const [error, setError] = useState('');
+  const [mfaWarning, setMfaWarning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('');
   const [focusedInput, setFocusedInput] = useState(null);
@@ -206,10 +207,10 @@ function App() {
 
     const regMfa = params.get('reg_mfa');
     if (regMfa) {
-      setLoading(false);
+      // Mark MFA warning but do NOT block the registration completion flow.
+      setMfaWarning(true);
       setError('Warning: Your Google account does not appear to have 2-step verification (MFA) enabled. For better security, enable MFA in your Google account settings before continuing.');
-      // allow user to continue registration flow after addressing MFA
-      return;
+      // continue — if reg_complete is present we'll finish registration below
     }
 
     if (regComplete) {
@@ -352,7 +353,7 @@ function App() {
 
   // --- RENDER VAULT PAGE ---
   if (page === 'vault' && goldenKey) {
-    return <VaultPage username={username} goldenKey={goldenKey} onLogout={handleLogout} />;
+    return <VaultPage username={username} goldenKey={goldenKey} onLogout={handleLogout} mfaWarning={mfaWarning} />;
   }
 
   // animation variants removed (unused)
