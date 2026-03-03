@@ -1,3 +1,7 @@
+# --- HEALTH CHECK ENDPOINT FOR RENDER ---
+@app.route('/healthz')
+def healthz():
+    return 'OK', 200
 import logging
 def check_frontend_build():
     dist_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
@@ -52,7 +56,12 @@ def favicon():
 @app.route('/<path:path>')
 def serve_frontend(path):
     dist_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
-    return send_from_directory(dist_dir, 'index.html')
+    index_path = os.path.join(dist_dir, 'index.html')
+    if os.path.exists(index_path):
+        return send_from_directory(dist_dir, 'index.html')
+    else:
+        # Return a simple message and 200 OK if frontend build is missing
+        return '<h1>Backend is running. Frontend build missing.</h1>', 200
 # backend/app.py
 import os
 import json
