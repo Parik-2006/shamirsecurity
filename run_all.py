@@ -58,6 +58,33 @@ def start_project():
             t.start()
             threads.append(t)
 
+        # Wait for backend and frontend to become reachable (quick port detection)
+        import urllib.request
+        def wait_for_url(url, timeout=10.0, interval=0.5):
+            start = time.time()
+            while True:
+                try:
+                    with urllib.request.urlopen(url, timeout=2) as r:
+                        return True
+                except Exception:
+                    if time.time() - start > timeout:
+                        return False
+                    time.sleep(interval)
+
+        backend_health = 'http://127.0.0.1:5000/api/health'
+        frontend_url = 'http://127.0.0.1:5174'
+        print('Waiting for backend to respond...')
+        if wait_for_url(backend_health, timeout=12):
+            print('Backend is up')
+        else:
+            print('Warning: backend did not respond within timeout')
+
+        print('Waiting for frontend to respond...')
+        if wait_for_url(frontend_url, timeout=12):
+            print('Frontend is up')
+        else:
+            print('Warning: frontend did not respond within timeout')
+
         # Wait for both processes; exit when either exits or on Ctrl+C
         while True:
             for p, name in procs:
