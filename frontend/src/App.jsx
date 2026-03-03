@@ -8,6 +8,7 @@ import VaultPage from './VaultPage';
 
 // API base URL - uses env variable in production, localhost in dev
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+console.info('[FRONTEND INIT] API_URL =', API_URL);
 
 // Particles configuration - flowing dots moving gently
 const particlesConfig = {
@@ -204,10 +205,15 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reg_id: regComplete }),
       })
-        .then(res => res.json())
-        .then(data => {
+        .then(async (res) => {
+          const text = await res.text();
+          const data = safeJSONParse(text) || { status: 'error', message: 'Invalid JSON response', raw: text };
+          console.info('[FRONTEND] /api/register/complete status=', res.status, 'ok=', res.ok, 'body=', data);
+          if (!res.ok) {
+            setError(`Registration complete failed: ${data.message || text || res.statusText}`);
+            return;
+          }
           if (data.status === 'success') {
-            // Store share3 in browser localStorage
             window.localStorage.setItem('local_share', data.local_share);
             setUsername(data.username);
             setGoldenKey(data.golden_key);
@@ -237,12 +243,15 @@ function App() {
     try {
       const res = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ username, password, local_share: localShare }),
       });
-      const data = await res.json();
-      
-      if (data.status === 'success') {
+      const text = await res.text();
+      const data = safeJSONParse(text) || { status: 'error', message: 'Invalid JSON response', raw: text };
+      console.info('[FRONTEND] /api/login status=', res.status, 'ok=', res.ok, 'body=', data);
+      if (!res.ok) {
+        setError('Login Error: ' + (data.message || text || res.statusText));
+      } else if (data.status === 'success') {
         setGoldenKey(data.golden_key);
         setPage('vault');
       } else {
@@ -274,24 +283,26 @@ function App() {
     
     try {
           console.log('[FRONTEND] register:init ->', { API_URL, username });
-          const res = await fetch(`${API_URL}/api/register/init`, {
+        const res = await fetch(`${API_URL}/api/register/init`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({ username, password })
         });
-        
-          const text = await res.text();
-          let data = safeJSONParse(text) || { status: 'error', message: 'Invalid JSON response', raw: text };
-          console.log('[FRONTEND] register:init response ->', data);
-        
+
+        const text = await res.text();
+        const data = safeJSONParse(text) || { status: 'error', message: 'Invalid JSON response', raw: text };
+        console.info('[FRONTEND] /api/register/init status=', res.status, 'ok=', res.ok, 'body=', data);
+
+        if (!res.ok) {
+          setError('Registration Error: ' + (data.message || text || res.statusText));
+          return;
+        }
+
         if (data.status === 'redirect') {
-          // Redirect user to Google sign-in (THEIR account, THEIR Drive)
           setLoadingMsg('Redirecting to Google sign-in...');
           window.location.href = data.auth_url;
-          // Page will redirect - don't set loading to false
           return;
         } else if (data.status === 'success') {
-          // Fallback for old-style direct registration (localhost dev)
           window.localStorage.setItem('local_share', data.local_share);
           setGoldenKey(data.golden_key);
           setPage('vault');
