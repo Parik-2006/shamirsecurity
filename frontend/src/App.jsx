@@ -1,5 +1,6 @@
 // frontend/src/App.jsx
 import React, { useState, useCallback, useEffect } from 'react';
+import { getErrorMessage, safeJSONParse } from './utils';
 import * as FM from 'framer-motion';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
@@ -176,6 +177,8 @@ function App() {
   const [loadingMsg, setLoadingMsg] = useState('');
   const [focusedInput, setFocusedInput] = useState(null);
 
+  // (now using shared getErrorMessage imported from ./utils)
+
   // ===== Handle Google OAuth callback (after redirect back from Google) =====
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -214,8 +217,9 @@ function App() {
           }
         })
         .catch(e => {
+          const msg = getErrorMessage(e);
           console.error('Registration complete error:', e);
-          setError('Failed to complete registration: ' + e.message);
+          setError('Failed to complete registration: ' + msg);
         })
         .finally(() => setLoading(false));
     }
@@ -245,11 +249,12 @@ function App() {
         setError('Login Error: ' + (data.message || 'Unknown error'));
       }
     } catch (e) {
+      const msg = getErrorMessage(e);
       console.error('Login error:', e);
-      if (e.message.includes('Failed to fetch')) {
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
         setError("Cannot connect to backend. Make sure the server is running.");
       } else {
-        setError("Login failed: " + (e.message || "Unknown error"));
+        setError("Login failed: " + msg);
       }
     } finally {
       setLoading(false);
@@ -268,13 +273,16 @@ function App() {
     setLoadingMsg('Setting up your vault...');
     
     try {
-        const res = await fetch(`${API_URL}/api/register/init`, {
+          console.log('[FRONTEND] register:init ->', { API_URL, username });
+          const res = await fetch(`${API_URL}/api/register/init`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
         
-        const data = await res.json();
+          const text = await res.text();
+          let data = safeJSONParse(text) || { status: 'error', message: 'Invalid JSON response', raw: text };
+          console.log('[FRONTEND] register:init response ->', data);
         
         if (data.status === 'redirect') {
           // Redirect user to Google sign-in (THEIR account, THEIR Drive)
@@ -293,12 +301,13 @@ function App() {
           setLoading(false);
         }
     } catch (e) {
+      const msg = getErrorMessage(e);
       console.error('Registration error:', e);
       setLoading(false);
-      if (e.message.includes('Failed to fetch')) {
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
         setError("Cannot connect to backend. Make sure the server is running.");
       } else {
-        setError("Registration failed: " + (e.message || "Unknown error"));
+        setError("Registration failed: " + msg);
       }
     }
   };

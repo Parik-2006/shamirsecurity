@@ -1,13 +1,25 @@
 # run_all.py
 import subprocess
 import os
+import sys
+import signal
+import shutil
+from threading import Thread
+import time
 
 def start_project():
     root_dir = os.path.dirname(os.path.abspath(__file__))
     
-    backend_cmd = f'cd /d "{root_dir}\\backend" && python app.py'
-    # Force the port to 5174 here
-    frontend_cmd = f'cd /d "{root_dir}\\frontend" && npm run dev -- --port 5174'
+    backend_dir = os.path.join(root_dir, 'backend')
+    frontend_dir = os.path.join(root_dir, 'frontend')
+
+    # Prefer the current Python executable (honors venv)
+    python_exe = sys.executable or 'python'
+    backend_cmd = [python_exe, 'app.py']
+
+    # Frontend: use npm (must be on PATH)
+    npm = shutil.which('npm') or 'npm'
+    frontend_cmd = [npm, 'run', 'dev', '--', '--port', '5174']
 
     print("\n" + "="*30)
     print("   SHAMIR VAULT SYSTEM   ")
@@ -17,13 +29,74 @@ def start_project():
     print("Frontend URL: http://localhost:5174") # Updated output link
     print("-" * 30)
     
+    procs = []
+
+    def stream_proc(proc, prefix):
+        for line in iter(proc.stdout.readline, b''):
+            if not line:
+                break
+            try:
+                print(f"{prefix}: " + line.decode(errors='replace').rstrip())
+            except Exception:
+                pass
+
     try:
-        command = f'concurrently "{backend_cmd}" "{frontend_cmd}"'
-        subprocess.run(command, shell=True)
-    except Exception as e:
-        print(f"Error: {e}")
+        # Start backend
+        print(f"Starting backend in: {backend_dir}")
+        p_backend = subprocess.Popen(backend_cmd, cwd=backend_dir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        procs.append((p_backend, 'BACKEND'))
+
+        # Start frontend
+        print(f"Starting frontend in: {frontend_dir}")
+        p_frontend = subprocess.Popen(frontend_cmd, cwd=frontend_dir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=(os.name=='nt'))
+        procs.append((p_frontend, 'FRONTEND'))
+
+        # Spawn threads to stream output
+        threads = []
+        for p, name in procs:
+            t = Thread(target=stream_proc, args=(p, name), daemon=True)
+            t.start()
+            threads.append(t)
+
+        # Wait for both processes; exit when either exits or on Ctrl+C
+        while True:
+            for p, name in procs:
+                ret = p.poll()
+                if ret is not None:
+                    print(f"{name} exited with code {ret}")
+                    raise SystemExit(0)
+            # Sleep a bit
+            try:
+                if hasattr(signal, 'pause'):
+                    signal.pause()
+                else:
+                    time.sleep(0.5)
+            except KeyboardInterrupt:
+                print("\nStopping servers...")
+                raise
     except KeyboardInterrupt:
-        print("\nStopping servers...")
+        pass
+    except SystemExit:
+        pass
+    except Exception as e:
+        print(f"Error launching processes: {e}")
+    finally:
+        # Terminate children
+        for p, name in procs:
+            try:
+                if p.poll() is None:
+                    print(f"Terminating {name}...")
+                    p.terminate()
+            except Exception:
+                pass
+        for p, name in procs:
+            try:
+                p.wait(timeout=5)
+            except Exception:
+                try:
+                    p.kill()
+                except Exception:
+                    pass
 
 if __name__ == "__main__":
     start_project()

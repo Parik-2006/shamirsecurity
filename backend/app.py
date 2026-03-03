@@ -106,9 +106,15 @@ def get_google_flow():
     Works with both 'web' and 'installed' type credentials.json.
     Each user signs in with THEIR OWN Google account."""
     creds_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'credentials.json')
-    
-    with open(creds_path, 'r') as f:
-        creds_data = json.load(f)
+    try:
+        with open(creds_path, 'r') as f:
+            creds_data = json.load(f)
+    except FileNotFoundError:
+        print(f"[GOOGLE] credentials.json not found at {creds_path}")
+        raise
+    except Exception as e:
+        print(f"[GOOGLE] Error reading credentials.json: {e}")
+        raise
     
     if 'installed' in creds_data:
         # Convert "installed" (Desktop) credentials to work as web flow
@@ -234,7 +240,21 @@ def register_init():
         for k in expired:
             del pending_registrations[k]
 
+        # If Google credentials are not configured, fall back to a direct local registration
+        creds_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'credentials.json')
+        google_b64 = os.environ.get('GOOGLE_CREDENTIALS_B64')
+        google_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
+        if not os.path.exists(creds_path) and not (google_b64 or google_json):
+            print('[REGISTER INIT] No Google credentials configured; returning local_share directly (no Google OAuth).')
+            return jsonify({
+                "status": "success",
+                "local_share": local_share_package,
+                "golden_key": str(golden_key_int),
+                "username": username
+            })
+
         # Generate Google OAuth URL -- user will sign in with THEIR Google account
+        print('[REGISTER INIT] Google credentials present; generating OAuth URL...')
         flow = get_google_flow()
         auth_url, _ = flow.authorization_url(
             access_type='offline',

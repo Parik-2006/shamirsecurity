@@ -1,5 +1,6 @@
 // frontend/src/VaultPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { getErrorMessage } from './utils';
 import * as FM from 'framer-motion';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
@@ -585,8 +586,9 @@ function VaultPage({ username, goldenKey, onLogout }) {
         setError('Failed to load vault: ' + (data.message || 'Unknown error'));
       }
     } catch (e) {
+      const msg = getErrorMessage(e);
       console.error("Vault Fetch Error", e);
-      setError('Network error loading vault');
+      setError('Network error loading vault: ' + msg);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -629,8 +631,9 @@ function VaultPage({ username, goldenKey, onLogout }) {
         setError("Save Error: " + (data.message || "Unknown error"));
       }
     } catch (e) {
+      const msg = getErrorMessage(e);
       console.error("Storage Error:", e);
-      setError("Save failed: " + (e.message || "Network error"));
+      setError("Save failed: " + msg);
     } finally {
       setLoading(false);
     }
