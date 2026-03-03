@@ -204,9 +204,23 @@ def register_init():
     - Return Google OAuth URL so user signs in with THEIR account
     """
     try:
-        data = request.json
-        password, username = data.get('password'), data.get('username')
-        
+        # Robust JSON parsing: accept JSON body, or attempt to parse raw text.
+        data = request.get_json(silent=True)
+        if data is None:
+            raw = request.get_data(as_text=True)
+            if not raw:
+                return jsonify({"status": "error", "message": "Request body is empty or not valid JSON"}), 400
+            try:
+                data = json.loads(raw)
+            except Exception as parse_err:
+                return jsonify({
+                    "status": "error",
+                    "message": f"Invalid JSON body: {str(parse_err)}"
+                }), 400
+
+        password = data.get('password') if isinstance(data, dict) else None
+        username = data.get('username') if isinstance(data, dict) else None
+
         if not username or not password:
             return jsonify({"status": "error", "message": "Username and password required"}), 400
         
@@ -274,6 +288,16 @@ def register_init():
                 prompt='consent',
                 state=reg_id  # Pass reg_id so we can match it in callback
             )
+            # Persist the PKCE code_verifier so we can exchange the code later.
+            try:
+                code_verifier = getattr(flow, 'code_verifier', None)
+                if code_verifier:
+                    pending_registrations[reg_id]['code_verifier'] = code_verifier
+                    print(f"[REGISTER INIT] Saved code_verifier for reg_id={reg_id}")
+                else:
+                    print(f"[REGISTER INIT] No code_verifier generated for reg_id={reg_id}")
+            except Exception as pv_err:
+                print(f"[REGISTER INIT] Failed to persist code_verifier: {pv_err}")
             print(f"[REGISTER INIT] OAuth URL generated. Waiting for user to sign in...")
             return jsonify({
                 "status": "redirect",
@@ -326,6 +350,16 @@ def google_callback():
         
         # Exchange authorization code for user's Google credentials
         flow = get_google_flow()
+        # Restore PKCE code_verifier if we saved it during /api/register/init
+        try:
+            saved_verifier = pending_registrations.get(state, {}).get('code_verifier')
+            if saved_verifier:
+                setattr(flow, 'code_verifier', saved_verifier)
+                print(f"[GOOGLE CALLBACK] Restored code_verifier for reg_id={state}")
+            else:
+                print(f"[GOOGLE CALLBACK] No saved code_verifier for reg_id={state}; proceeding without it")
+        except Exception as verr:
+            print(f"[GOOGLE CALLBACK] Error restoring code_verifier: {verr}")
         flow.fetch_token(code=code)
         credentials = flow.credentials
         
