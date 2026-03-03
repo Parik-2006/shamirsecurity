@@ -18,6 +18,8 @@ from supabase import create_client, ClientOptions
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
+from googleapiclient.errors import HttpError
+from urllib.parse import quote_plus
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
@@ -368,8 +370,24 @@ def google_callback():
         service = build('drive', 'v3', credentials=credentials)
         file_metadata = {'name': f'{username}_share1.txt'}
         media = MediaIoBaseUpload(io.BytesIO(share1.encode()), mimetype='text/plain')
-        service.files().create(body=file_metadata, media_body=media).execute()
-        print(f"[GOOGLE CALLBACK] Share1 uploaded to {username}'s Drive!")
+        try:
+            service.files().create(body=file_metadata, media_body=media).execute()
+            print(f"[GOOGLE CALLBACK] Share1 uploaded to {username}'s Drive!")
+        except HttpError as he:
+            # Provide a clear error message and guidance
+            status = getattr(he, 'status_code', None) or getattr(he, 'resp', None)
+            body = getattr(he, 'content', None) or str(he)
+            print(f"[GOOGLE CALLBACK] Drive upload HttpError ({status}): {body}")
+            user_msg = (
+                "Drive upload failed. HTTP error from Google Drive API. "
+                "Ensure Drive API is enabled for the OAuth project, the OAuth client has the correct scopes (https://www.googleapis.com/auth/drive.file), "
+                "and the signed-in account allows file uploads."
+            )
+            full_msg = f"{user_msg} ({str(he)})"
+            return redirect(f"{FRONTEND_URL}?reg_error={quote_plus(full_msg[:400])}")
+        except Exception as e:
+            print(f"[GOOGLE CALLBACK] Drive upload error: {e}")
+            return redirect(f"{FRONTEND_URL}?reg_error={quote_plus(str(e)[:200])}")
         
         # Mark registration as complete
         pending_registrations[state]['completed'] = True
