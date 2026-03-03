@@ -65,63 +65,7 @@ const FloatingOrbs = () => (
   </>
 );
 
-// Animated floating shapes that move around the screen
-const AnimatedShapes = () => (
-  <>
-    {/* Rotating rings */}
-    <motion.div
-      style={{ position: 'fixed', top: '15%', left: '10%', width: 80, height: 80, border: '2px solid rgba(99, 102, 241, 0.3)', borderRadius: '50%', pointerEvents: 'none' }}
-      animate={{ rotate: 360, scale: [1, 1.2, 1] }}
-      transition={{ rotate: { duration: 20, repeat: Infinity, ease: 'linear' }, scale: { duration: 4, repeat: Infinity } }}
-    />
-    <motion.div
-      style={{ position: 'fixed', bottom: '20%', right: '8%', width: 60, height: 60, border: '2px solid rgba(236, 72, 153, 0.3)', borderRadius: '50%', pointerEvents: 'none' }}
-      animate={{ rotate: -360, scale: [1, 0.8, 1] }}
-      transition={{ rotate: { duration: 15, repeat: Infinity, ease: 'linear' }, scale: { duration: 3, repeat: Infinity } }}
-    />
-    
-    {/* Floating dots */}
-    <motion.div
-      style={{ position: 'fixed', top: '30%', right: '15%', width: 12, height: 12, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', borderRadius: '50%', pointerEvents: 'none' }}
-      animate={{ y: [0, -30, 0], x: [0, 15, 0], opacity: [0.6, 1, 0.6] }}
-      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-    />
-    <motion.div
-      style={{ position: 'fixed', top: '60%', left: '12%', width: 8, height: 8, background: 'linear-gradient(135deg, #06b6d4, #10b981)', borderRadius: '50%', pointerEvents: 'none' }}
-      animate={{ y: [0, 25, 0], x: [0, -20, 0], opacity: [0.5, 1, 0.5] }}
-      transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-    />
-    <motion.div
-      style={{ position: 'fixed', bottom: '30%', left: '20%', width: 10, height: 10, background: 'linear-gradient(135deg, #ec4899, #f472b6)', borderRadius: '50%', pointerEvents: 'none' }}
-      animate={{ y: [0, -20, 0], x: [0, 10, 0], opacity: [0.7, 1, 0.7] }}
-      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-    />
-    <motion.div
-      style={{ position: 'fixed', top: '20%', right: '25%', width: 6, height: 6, background: '#facc15', borderRadius: '50%', pointerEvents: 'none' }}
-      animate={{ y: [0, 35, 0], opacity: [0.4, 0.9, 0.4] }}
-      transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-    />
-    
-    {/* Floating squares */}
-    <motion.div
-      style={{ position: 'fixed', top: '45%', right: '5%', width: 20, height: 20, border: '2px solid rgba(6, 182, 212, 0.4)', borderRadius: 4, pointerEvents: 'none' }}
-      animate={{ rotate: [0, 90, 180, 270, 360], y: [0, -15, 0] }}
-      transition={{ rotate: { duration: 8, repeat: Infinity, ease: 'linear' }, y: { duration: 4, repeat: Infinity } }}
-    />
-    <motion.div
-      style={{ position: 'fixed', bottom: '15%', left: '8%', width: 16, height: 16, border: '2px solid rgba(139, 92, 246, 0.4)', borderRadius: 3, pointerEvents: 'none' }}
-      animate={{ rotate: [0, -180, -360], x: [0, 20, 0] }}
-      transition={{ rotate: { duration: 12, repeat: Infinity, ease: 'linear' }, x: { duration: 5, repeat: Infinity } }}
-    />
-    
-    {/* Pulsing circle */}
-    <motion.div
-      style={{ position: 'fixed', top: '70%', right: '20%', width: 40, height: 40, border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '50%', pointerEvents: 'none' }}
-      animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0.2, 0.5] }}
-      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-    />
-  </>
-);
+// AnimatedShapes removed (unused) to fix lint/errors
 
 // Animated flowing wave at bottom
 const FlowingWaves = () => (
@@ -247,12 +191,11 @@ function App() {
       setError('Registration failed: ' + regError);
       return;
     }
-    
+
     if (regComplete) {
-      // Google auth succeeded - now fetch the keys from backend
       setLoading(true);
       setLoadingMsg('Finalizing your vault...');
-      
+
       fetch(`${API_URL}/api/register/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -374,29 +317,12 @@ function App() {
     return <VaultPage username={username} goldenKey={goldenKey} onLogout={handleLogout} />;
   }
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { type: "spring", stiffness: 300, damping: 24 }
-    }
-  };
+  // animation variants removed (unused)
 
   // --- RENDER LOGIN PAGE ---
   return (
     <div className="app-wrapper">
       <ParticlesBackground />
-      <AnimatedShapes />
       <FloatingOrbs />
       
       <div style={{ 
