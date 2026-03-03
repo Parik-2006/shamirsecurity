@@ -170,7 +170,8 @@ const LoadingSpinner = ({ message, subMessage }) => (
 );
 
 // Modal for mandatory local share download
-function LocalShareDownloadModal({ share3, password, onDownloaded }) {
+
+function LocalShareDownloadModal({ localShare, password, onDownloaded }) {
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   const [error, setError] = useState('');
@@ -179,7 +180,7 @@ function LocalShareDownloadModal({ share3, password, onDownloaded }) {
     setError('');
     setDownloading(true);
     try {
-      const encBytes = await encryptAESGCM(share3, password);
+      const encBytes = await encryptAESGCM(localShare, password);
       downloadBytes(encBytes, 'vault_recovery.enc');
       setDownloaded(true);
     } catch (e) {
@@ -225,7 +226,7 @@ function App() {
   const [loadingMsg, setLoadingMsg] = useState('');
   const [focusedInput, setFocusedInput] = useState(null);
   const [requireLocalShareDownload, setRequireLocalShareDownload] = useState(false);
-  const [pendingShare3, setPendingShare3] = useState(null);
+  const [pendingLocalShare, setPendingLocalShare] = useState(null);
 
   // (now using shared getErrorMessage imported from ./utils)
 
@@ -284,14 +285,14 @@ function App() {
             setUsername(data.username);
             setGoldenKey(data.golden_key);
             console.log('[FRONTEND] Registration complete response:', data);
-            if (typeof data.share3 === 'string' && data.share3.length > 0) {
-              setPendingShare3(data.share3);
+            if (typeof data.local_share_plain === 'string' && data.local_share_plain.length > 0) {
+              setPendingLocalShare(data.local_share_plain);
               setRequireLocalShareDownload(true);
               setLoading(false);
               // Do NOT setPage('vault') yet
               return;
             } else {
-              setError('Critical error: Recovery share (share3) missing from server response. Please contact support.');
+              setError('Critical error: Recovery share (local_share) missing from server response. Please contact support.');
               setLoading(false);
               return;
             }
@@ -416,10 +417,10 @@ function App() {
   }
 
   // Show modal if local share download is required
-  if (requireLocalShareDownload && pendingShare3) {
-    return <LocalShareDownloadModal share3={pendingShare3} password={password} onDownloaded={() => {
+  if (requireLocalShareDownload && pendingLocalShare) {
+    return <LocalShareDownloadModal localShare={pendingLocalShare} password={password} onDownloaded={() => {
       setRequireLocalShareDownload(false);
-      setPendingShare3(null);
+      setPendingLocalShare(null);
       setPage('vault');
     }} />;
   }

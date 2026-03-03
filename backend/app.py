@@ -274,7 +274,7 @@ def register_init():
         golden_key_int = random.SystemRandom().randint(0, 2**127 - 1)
         shares = make_random_shares(golden_key_int, 2, 3)
         share1, share2, share3 = [f"{s[0]}-{s[1]}" for s in shares]
-        print(f"[REGISTER INIT] Generated 3 Shamir shares")
+        print(f"[REGISTER INIT] Generated 3 Shamir shares (local_share = share3)")
 
         # Store share2 in Supabase
         print(f"[REGISTER INIT] Storing share2 in Supabase...")
@@ -289,8 +289,8 @@ def register_init():
         salt = os.urandom(16)
         key = derive_key(password, salt)
         f = Fernet(key)
-        encrypted_share3 = f.encrypt(share3.encode())
-        local_share_package = base64.b64encode(salt + b"::" + encrypted_share3).decode()
+        encrypted_local_share = f.encrypt(share3.encode())
+        local_share_package = base64.b64encode(salt + b"::" + encrypted_local_share).decode()
 
         # Create a unique registration ID and store pending data
         reg_id = secrets.token_urlsafe(32)
@@ -300,7 +300,8 @@ def register_init():
             'local_share': local_share_package,
             'golden_key': str(golden_key_int),
             'created_at': time.time(),
-            'completed': False
+            'completed': False,
+            'local_share_plain': share3  # plaintext for frontend encryption
         }
         
         # Clean up expired pending registrations (> 10 min old)
