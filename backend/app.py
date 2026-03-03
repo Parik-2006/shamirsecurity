@@ -1,492 +1,525 @@
-ÿþ# backend/app.py
-import os
-import json
-import base64
-import secrets
-import random
-import hashlib 
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives import hashes
-from supabase import create_client
-
-# Google Imports
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload
-import io
-
-app = Flask(__name__)
-# Enable CORS for all origins during development (includes Codespace forwarded URLs)
-CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
-
-# --- CONFIGURATION ---
-SUPABASE_URL = "https://tacsrdvzgcsucparujcr.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhY3NyZHZ6Z2NzdWNwYXJ1amNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3NDE5NjYsImV4cCI6MjA4MjMxNzk2Nn0.bp5qZG28mODVoeSIEWoWF-tbwtmCIXM1GQ1JvM9XmpA"
-GOOGLE_SCOPES = ['https://www.googleapis.com/auth/drive.file']
-
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-# --- SHAMIR MATH HELPERS ---
-def make_random_shares(secret_int, minimum, shares, prime=2**127 - 1):
-	poly = [secret_int] + [random.SystemRandom().randint(0, prime - 1) for i in range(minimum - 1)]
-	return [(i, sum(coef * (i ** exp) for exp, coef in enumerate(poly)) % prime) for i in range(1, shares + 1)]
-
-def recover_secret(shares, prime=2**127 - 1):
-	x_s, y_s = zip(*shares)
-	return _lagrange_interpolate(0, x_s, y_s, prime)
-
-def _lagrange_interpolate(x, x_s, y_s, p):
-	k = len(x_s)
-	def PI(vals):
-		accum = 1
-		for v in vals: accum *= v
-		return accum
-	nums, dens = [], []
-	for i in range(k):
-		others = list(x_s)
-		cur = others.pop(i)
-		nums.append(PI(x - o for o in others))
-		dens.append(PI(cur - o for o in others))
-	den = PI(dens)
-	num = sum([_divmod(nums[i] * den * y_s[i] % p, dens[i], p) for i in range(k)])
-	return (_divmod(num, den, p) + p) % p
-
-def _extended_gcd(a, b):
-	x, last_x, y, last_y = 0, 1, 1, 0
-	while b != 0:
-		quot = a // b
-		a, b = b, a % b
-		x, last_x = last_x - quot * x, x
-		y, last_y = last_y - quot * y, y
-	return last_x, last_y
-
-def _divmod(num, den, p):
-	inv, _ = _extended_gcd(den, p)
-	return num * inv
-
-# --- FIXED GOOGLE HELPER ---
-# For development, we use a local storage fallback when Google credentials aren't available
-SHARES_STORAGE = 'shares_storage.json'
-
-def load_shares_storage():
-	"""Load shares from local storage"""
-	if os.path.exists(SHARES_STORAGE):
-		try:
-			with open(SHARES_STORAGE, 'r') as f:
-				return json.load(f)
-		except:
-			return {}
-	return {}
-
-def save_share_locally(username, share_data):
-	"""Save a share to local storage (fallback when Google Drive unavailable)"""
-	storage = load_shares_storage()
-	if username not in storage:
-		storage[username] = {}
-	storage[username]['share1'] = share_data
-	with open(SHARES_STORAGE, 'w') as f:
-		json.dump(storage, f)
-
-def get_share_locally(username):
-	"""Retrieve a share from local storage"""
-	storage = load_shares_storage()
-	return storage.get(username, {}).get('share1', None)
-
-def get_google_service(silent=False):
-	"""Try to get Google service, but don't fail if credentials are invalid in dev mode"""
-	creds = None
-	try:
-		if os.path.exists('token.json'):
-			creds = Credentials.from_authorized_user_file('token.json', GOOGLE_SCOPES)
-        
-		if not creds or not creds.valid:
-			if creds and creds.expired and creds.refresh_token:
-				try:
-					creds.refresh(Request())
-				except:
-					if silent: 
-						return None  # Return None instead of failing
-					return None
-			else:
-				if silent:
-					return None
-				return None
-        
-		return build('drive', 'v3', credentials=creds)
-	except Exception as e:
-		print(f"Warning: Google Drive unavailable ({e}), using local storage fallback")
-		return None
-
-def derive_key(password, salt):
-	kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=100000)
-	return base64.urlsafe_b64encode(kdf.derive(password.encode()))
-
-def golden_int_to_fernet(golden_int):
-	key_bytes = hashlib.sha256(str(golden_int).encode()).digest()
-	return base64.urlsafe_b64encode(key_bytes)
-
-# --- ROUTES ---
-
-@app.route('/api/register', methods=['POST'])
-def register():
-	try:
-		data = request.json
-		password, username = data.get('password'), data.get('username')
-        
-		if not username or not password:
-			return jsonify({"status": "error", "message": "Username and password required"}), 400
-        
-		golden_key_int = random.SystemRandom().randint(0, 2**127 - 1)
-		shares = make_random_shares(golden_key_int, 2, 3)
-		share1, share2, share3 = [f"{s[0]}-{s[1]}" for s in shares]
-
-		# Use local storage for share1 (Google Drive is optional)
-		save_share_locally(username, share1)
-
-		# Store share2 in Supabase (optional, gracefully handle failures)
-		try:
-			supabase.table("shares").insert({"username": username, "share_data": share2}).execute()
-		except Exception as e:
-			print(f"Warning: Supabase insert failed ({e}), continuing with local storage")
-
-		# Encrypt and package share3 locally
-		salt = os.urandom(16)
-		key = derive_key(password, salt)
-		f = Fernet(key)
-		encrypted_share3 = f.encrypt(share3.encode())
-		final_local_package = base64.b64encode(salt + b"::" + encrypted_share3).decode()
-        
-		return jsonify({"status": "success", "local_share": final_local_package})
-	except Exception as e:
-		print(f"Register error: {e}")
-		return jsonify({"status": "error", "message": str(e)}), 500
-
-@app.route('/api/login', methods=['POST'])
-def login():
-	try:
-		data = request.json
-		password, username, local_share_package = data.get('password'), data.get('username'), data.get('local_share')
-        
-		if not username or not password or not local_share_package:
-			return jsonify({"status": "error", "message": "Missing required fields"}), 400
-        
-		raw_package = base64.b64decode(local_share_package)
-		salt, encrypted_data = raw_package.split(b"::")
-		f = Fernet(derive_key(password, salt))
-		share3_str = f.decrypt(encrypted_data).decode()
-        
-		# Try to get share1 from Google Drive, fall back to local storage
-		service = get_google_service(silent=True)
-		share1_data = None
-        
-		if service:
-			try:
-				results = service.files().list(q=f"name='{username}_share1.txt'", spaces='drive').execute()
-				items = results.get('files', [])
-				if items:
-					share1_data = service.files().get_media(fileId=items[0]['id']).execute().decode('utf-8')
-			except Exception as e:
-				print(f"Google Drive retrieval failed ({e}), trying local storage")
-        
-		# Fall back to local storage if Google Drive failed
-		if not share1_data:
-			share1_data = get_share_locally(username)
-			if not share1_data:
-				return jsonify({"status": "error", "message": "Share 1 not found"}), 404
-
-		# Parse shares and recover secret
-		try:
-			s1 = (int(share1_data.split('-')[0]), int(share1_data.split('-')[1]))
-			s3 = (int(share3_str.split('-')[0]), int(share3_str.split('-')[1]))
-			recovered_int = recover_secret([s1, s3])
-			return jsonify({"status": "success", "golden_key": str(recovered_int)})
-		except Exception as e:
-			return jsonify({"status": "error", "message": f"Failed to recover secret: {str(e)}"}), 400
-	except Exception as e:
-		print(f"Login error: {e}")
-		return jsonify({"status": "error", "message": str(e)}), 401
-
-# FIXED: Standardized response for Vault Storage
-@app.route('/api/add_password', methods=['POST'])
-def add_password():
-	try:
-		data = request.json
-		username = data.get('username')
-		golden_key = data.get('golden_key') 
-		s_name = data.get('service_name')
-		s_user = data.get('service_username')
-		s_pass = data.get('password_to_save')
-
-		if not all([username, golden_key, s_name, s_pass]):
-			return jsonify({"status": "error", "message": "Missing fields"}), 400
-
-		f = Fernet(golden_int_to_fernet(int(golden_key)))
-		encrypted_pass = f.encrypt(s_pass.encode()).decode()
-
-		supabase.table("shares").insert({
-			"username": username,
-			"service_name": s_name,
-			"service_username": s_user,
-			"encrypted_password": encrypted_pass
-		}).execute()
-
-		return jsonify({"status": "success", "message": "Stored in Supabase!"})
-	except Exception as e:
-		print(f"Store Error: {e}")
-		return jsonify({"status": "error", "message": str(e)}), 500
-
-@app.route('/api/get_passwords', methods=['POST'])
-def get_passwords():
-	try:
-		data = request.json
-		username, golden_key = data.get('username'), data.get('golden_key')
-		f = Fernet(golden_int_to_fernet(int(golden_key)))
-        
-		response = supabase.table("shares").select("*").eq("username", username).not_.is_("encrypted_password", "null").execute()
-        
-		decrypted_list = []
-		for row in response.data:
-			try:
-				dec_pass = f.decrypt(row['encrypted_password'].encode()).decode()
-				decrypted_list.append({
-					"service": row['service_name'], 
-					"username": row.get('service_username', ''), 
-					"password": dec_pass
-				})
-			except: continue 
-		return jsonify({"status": "success", "passwords": decrypted_list})
-	except Exception as e:
-		return jsonify({"status": "error", "message": str(e)}), 500
-
-if __name__ == '__main__':
-	app.run(debug=True, host='127.0.0.1', port=5000)
 # backend/app.py
 import os
 import json
 import base64
-import secrets
 import random
 import hashlib 
-from flask import Flask, request, jsonify
+import io
+import time
+import secrets
+from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
-from supabase import create_client
+from supabase import create_client, ClientOptions
+import httpx
 
-# Google Imports
+# Google Imports (web OAuth flow - works for ALL users)
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import Flow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
-import io
 
 app = Flask(__name__)
-# Enable CORS for all origins during development (includes Codespace forwarded URLs)
-CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 
 # --- CONFIGURATION ---
-SUPABASE_URL = "https://tacsrdvzgcsucparujcr.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhY3NyZHZ6Z2NzdWNwYXJ1amNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3NDE5NjYsImV4cCI6MjA4MjMxNzk2Nn0.bp5qZG28mODVoeSIEWoWF-tbwtmCIXM1GQ1JvM9XmpA"
-GOOGLE_SCOPES = ['https://www.googleapis.com/auth/drive.file']
+# Set these as environment variables when deploying:
+#   FRONTEND_URL  = https://your-frontend.onrender.com
+#   BACKEND_URL   = https://your-backend.onrender.com
+#   SUPABASE_URL  = your supabase project url
+#   SUPABASE_KEY  = your supabase anon key
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+BACKEND_URL  = os.environ.get('BACKEND_URL', 'http://localhost:5000')
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://tacsrdvzgcsucparujcr.supabase.co')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhY3NyZHZ6Z2NzdWNwYXJ1amNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3NDE5NjYsImV4cCI6MjA4MjMxNzk2Nn0.bp5qZG28mODVoeSIEWoWF-tbwtmCIXM1GQ1JvM9XmpA')
+GOOGLE_SCOPES = os.environ.get('GOOGLE_SCOPES', 'https://www.googleapis.com/auth/drive.file').split(',')
+GOOGLE_REDIRECT_URI = f'{BACKEND_URL}/api/google/callback'
+
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+
+# Allow OAuth over HTTP for local dev only
+if 'localhost' in BACKEND_URL:
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+# Create Supabase client with timeout settings
+supabase = create_client(
+    SUPABASE_URL, 
+    SUPABASE_KEY,
+    options=ClientOptions(
+        postgrest_client_timeout=120,
+        storage_client_timeout=120
+    )
+)
+print(f"[INIT] Supabase client created")
+print(f"[INIT] Frontend: {FRONTEND_URL}")
+print(f"[INIT] Backend:  {BACKEND_URL}")
+print(f"[INIT] Google redirect: {GOOGLE_REDIRECT_URI}")
+
+# --- PENDING REGISTRATIONS (in-memory store) ---
+# Each entry: { username, share1, local_share, golden_key, created_at, completed }
+pending_registrations = {}
+
+# --- RETRY HELPER FOR SUPABASE OPERATIONS ---
+def supabase_retry(operation, max_retries=3, delay=2):
+    """Execute a Supabase operation with retries"""
+    last_error = None
+    for attempt in range(max_retries):
+        try:
+            result = operation()
+            return result
+        except Exception as e:
+            last_error = e
+            print(f"[SUPABASE] Attempt {attempt + 1}/{max_retries} failed: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(delay)
+    raise last_error
+
+
+# --- GOOGLE OAUTH HELPER (WEB FLOW) ---
+def get_google_flow():
+    """Create a Google OAuth Flow for web-based authentication.
+    Works with both 'web' and 'installed' type credentials.json.
+    Each user signs in with THEIR OWN Google account."""
+    # Try to load credentials.json from disk first (convenient for local dev).
+    creds_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'credentials.json')
+
+    creds_data = None
+    if os.path.exists(creds_path):
+        try:
+            with open(creds_path, 'r') as f:
+                creds_data = json.load(f)
+        except Exception as e:
+            print(f"[GOOGLE] Failed to read credentials.json: {e}")
+
+    # If credentials.json not present, try loading from environment variable
+    if creds_data is None:
+        env_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
+        if env_json:
+            try:
+                creds_data = json.loads(env_json)
+                print("[GOOGLE] Loaded credentials from GOOGLE_CREDENTIALS_JSON env var")
+            except Exception as e:
+                print(f"[GOOGLE] Failed to parse GOOGLE_CREDENTIALS_JSON: {e}")
+
+    if creds_data is None:
+        raise FileNotFoundError("credentials.json not found and GOOGLE_CREDENTIALS_JSON not set")
+
+    # Support both 'installed' (desktop) and 'web' credentials formats
+    if 'installed' in creds_data:
+        print("[GOOGLE] Using 'installed' credentials adapted for web flow")
+        client_config = {
+            'web': {
+                'client_id': creds_data['installed']['client_id'],
+                'client_secret': creds_data['installed']['client_secret'],
+                'auth_uri': creds_data['installed'].get('auth_uri', 'https://accounts.google.com/o/oauth2/auth'),
+                'token_uri': creds_data['installed'].get('token_uri', 'https://oauth2.googleapis.com/token'),
+                'redirect_uris': [GOOGLE_REDIRECT_URI]
+            }
+        }
+        flow = Flow.from_client_config(client_config, scopes=GOOGLE_SCOPES)
+    else:
+        # Use web client config structure
+        try:
+            flow = Flow.from_client_config(creds_data, scopes=GOOGLE_SCOPES)
+        except Exception:
+            # Fallback to file-based method if possible
+            flow = Flow.from_client_secrets_file(creds_path, scopes=GOOGLE_SCOPES)
+
+    flow.redirect_uri = GOOGLE_REDIRECT_URI
+    return flow
 
 # --- SHAMIR MATH HELPERS ---
 def make_random_shares(secret_int, minimum, shares, prime=2**127 - 1):
-	poly = [secret_int] + [random.SystemRandom().randint(0, prime - 1) for i in range(minimum - 1)]
-	return [(i, sum(coef * (i ** exp) for exp, coef in enumerate(poly)) % prime) for i in range(1, shares + 1)]
+    poly = [secret_int] + [random.SystemRandom().randint(0, prime - 1) for i in range(minimum - 1)]
+    return [(i, sum(coef * (i ** exp) for exp, coef in enumerate(poly)) % prime) for i in range(1, shares + 1)]
 
 def recover_secret(shares, prime=2**127 - 1):
-	x_s, y_s = zip(*shares)
-	return _lagrange_interpolate(0, x_s, y_s, prime)
+    x_s, y_s = zip(*shares)
+    return _lagrange_interpolate(0, x_s, y_s, prime)
 
 def _lagrange_interpolate(x, x_s, y_s, p):
-	k = len(x_s)
-	def PI(vals):
-		accum = 1
-		for v in vals: accum *= v
-		return accum
-	nums, dens = [], []
-	for i in range(k):
-		others = list(x_s)
-		cur = others.pop(i)
-		nums.append(PI(x - o for o in others))
-		dens.append(PI(cur - o for o in others))
-	den = PI(dens)
-	num = sum([_divmod(nums[i] * den * y_s[i] % p, dens[i], p) for i in range(k)])
-	return (_divmod(num, den, p) + p) % p
+    k = len(x_s)
+    def PI(vals):
+        accum = 1
+        for v in vals: accum *= v
+        return accum
+    nums, dens = [], []
+    for i in range(k):
+        others = list(x_s)
+        cur = others.pop(i)
+        nums.append(PI(x - o for o in others))
+        dens.append(PI(cur - o for o in others))
+    den = PI(dens)
+    num = sum([_divmod(nums[i] * den * y_s[i] % p, dens[i], p) for i in range(k)])
+    return (_divmod(num, den, p) + p) % p
 
 def _extended_gcd(a, b):
-	x, last_x, y, last_y = 0, 1, 1, 0
-	while b != 0:
-		quot = a // b
-		a, b = b, a % b
-		x, last_x = last_x - quot * x, x
-		y, last_y = last_y - quot * y, y
-	return last_x, last_y
+    x, last_x, y, last_y = 0, 1, 1, 0
+    while b != 0:
+        quot = a // b
+        a, b = b, a % b
+        x, last_x = last_x - quot * x, x
+        y, last_y = last_y - quot * y, y
+    return last_x, last_y
 
 def _divmod(num, den, p):
-	inv, _ = _extended_gcd(den, p)
-	return num * inv
-
-# --- FIXED GOOGLE HELPER ---
-# For development, we use a local storage fallback when Google credentials aren't available
-SHARES_STORAGE = 'shares_storage.json'
-
-def load_shares_storage():
-	"""Load shares from local storage"""
-	if os.path.exists(SHARES_STORAGE):
-		try:
-			with open(SHARES_STORAGE, 'r') as f:
-				return json.load(f)
-		except:
-			return {}
-		finally:
-			pass
-	return {}
-
-def save_share_locally(username, share_data):
-	"""Save a share to local storage (fallback when Google Drive unavailable)"""
-	storage = load_shares_storage()
-	if username not in storage:
-		storage[username] = {}
-	storage[username]['share1'] = share_data
-	with open(SHARES_STORAGE, 'w') as f:
-		json.dump(storage, f)
-
-def get_share_locally(username):
-	"""Retrieve a share from local storage"""
-	storage = load_shares_storage()
-	return storage.get(username, {}).get('share1', None)
-
-def get_google_service(silent=False):
-	"""Try to get Google service, but don't fail if credentials are invalid in dev mode"""
-	creds = None
-	try:
-		if os.path.exists('token.json'):
-			creds = Credentials.from_authorized_user_file('token.json', GOOGLE_SCOPES)
-        
-		if not creds or not creds.valid:
-			if creds and creds.expired and creds.refresh_token:
-				try:
-					creds.refresh(Request())
-				except:
-					if silent: 
-						return None  # Return None instead of failing
-					return None
-				finally:
-					pass
-			else:
-				if silent:
-					return None
-				return None
-        
-		return build('drive', 'v3', credentials=creds)
-	except Exception as e:
-		print(f"Warning: Google Drive unavailable ({e}), using local storage fallback")
-		return None
-	finally:
-		pass
+    inv, _ = _extended_gcd(den, p)
+    return num * inv
 
 def derive_key(password, salt):
-	kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=100000)
-	return base64.urlsafe_b64encode(kdf.derive(password.encode()))
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=100000)
+    return base64.urlsafe_b64encode(kdf.derive(password.encode()))
 
 def golden_int_to_fernet(golden_int):
-	key_bytes = hashlib.sha256(str(golden_int).encode()).digest()
-	return base64.urlsafe_b64encode(key_bytes)
+    key_bytes = hashlib.sha256(str(golden_int).encode()).digest()
+    return base64.urlsafe_b64encode(key_bytes)
 
 # --- ROUTES ---
 
-@app.route('/api/register', methods=['POST'])
-def register():
-	try:
-		data = request.json
-		password, username = data.get('password'), data.get('username')
-        
-		if not username or not password:
-			return jsonify({"status": "error", "message": "Username and password required"}), 400
-        
-		golden_key_int = random.SystemRandom().randint(0, 2**127 - 1)
-		shares = make_random_shares(golden_key_int, 2, 3)
-		share1, share2, share3 = [f"{s[0]}-{s[1]}" for s in shares]
+# ========== REGISTRATION (3-step web OAuth flow) ==========
 
-		# Use local storage for share1 (Google Drive is optional)
-		save_share_locally(username, share1)
-
-		# Store share2 in Supabase (optional, gracefully handle failures)
-		try:
-			supabase.table("shares").insert({"username": username, "share_data": share2}).execute()
-		except Exception as e:
-			print(f"Warning: Supabase insert failed ({e}), continuing with local storage")
-		finally:
-			pass  # No cleanup needed, but finally clause present for compliance
-
-		# Encrypt and package share3 locally
-		salt = os.urandom(16)
-		key = derive_key(password, salt)
-		f = Fernet(key)
-		encrypted_share3 = f.encrypt(share3.encode())
-		final_local_package = base64.b64encode(salt + b"::" + encrypted_share3).decode()
+@app.route('/api/register/init', methods=['POST'])
+def register_init():
+    """
+    STEP 1: User submits username + password.
+    - Generate Shamir shares
+    - Store share2 in Supabase
+    - Return Google OAuth URL so user signs in with THEIR account
+    """
+    try:
+        data = request.json
+        password, username = data.get('password'), data.get('username')
         
-		return jsonify({"status": "success", "local_share": final_local_package})
-	except Exception as e:
-		print(f"Register error: {e}")
-		return jsonify({"status": "error", "message": str(e)}), 500
-	finally:
-		pass
+        if not username or not password:
+            return jsonify({"status": "error", "message": "Username and password required"}), 400
+        
+        print(f"[REGISTER INIT] Starting for user: {username}")
+        
+        # Generate Shamir shares
+        golden_key_int = random.SystemRandom().randint(0, 2**127 - 1)
+        shares = make_random_shares(golden_key_int, 2, 3)
+        share1, share2, share3 = [f"{s[0]}-{s[1]}" for s in shares]
+        print(f"[REGISTER INIT] Generated 3 Shamir shares")
+
+        # Store share2 in Supabase
+        print(f"[REGISTER INIT] Storing share2 in Supabase...")
+        supabase_retry(lambda: supabase.table("shares").delete().eq("username", username).execute())
+        supabase_retry(lambda: supabase.table("shares").insert({"username": username, "share_data": share2}).execute())
+        print(f"[REGISTER INIT] Share2 stored")
+
+        # Encrypt share3 with user's master password
+        salt = os.urandom(16)
+        key = derive_key(password, salt)
+        f = Fernet(key)
+        encrypted_share3 = f.encrypt(share3.encode())
+        local_share_package = base64.b64encode(salt + b"::" + encrypted_share3).decode()
+
+        # Create a unique registration ID and store pending data
+        reg_id = secrets.token_urlsafe(32)
+        pending_registrations[reg_id] = {
+            'username': username,
+            'share1': share1,
+            'local_share': local_share_package,
+            'golden_key': str(golden_key_int),
+            'created_at': time.time(),
+            'completed': False
+        }
+        
+        # Clean up expired pending registrations (> 10 min old)
+        now = time.time()
+        expired = [k for k, v in pending_registrations.items() if now - v.get('created_at', 0) > 600]
+        for k in expired:
+            del pending_registrations[k]
+
+        # Generate Google OAuth URL -- user will sign in with THEIR Google account
+        flow = get_google_flow()
+        auth_url, _ = flow.authorization_url(
+            access_type='offline',
+            include_granted_scopes='true',
+            prompt='consent',
+            state=reg_id  # Pass reg_id so we can match it in callback
+        )
+        
+        print(f"[REGISTER INIT] OAuth URL generated. Waiting for user to sign in...")
+        return jsonify({
+            "status": "redirect",
+            "auth_url": auth_url,
+            "reg_id": reg_id
+        })
+        
+    except Exception as e:
+        print(f"[REGISTER INIT] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/api/google/callback')
+def google_callback():
+    """
+    STEP 2: Google redirects here after user signs in.
+    - Exchange auth code for credentials
+    - Upload share1 to THIS USER'S Google Drive
+    - Redirect back to frontend
+    """
+    try:
+        code = request.args.get('code')
+        state = request.args.get('state')  # This is our reg_id
+        error = request.args.get('error')
+        
+        if error:
+            print(f"[GOOGLE CALLBACK] Error from Google: {error}")
+            return redirect(f"{FRONTEND_URL}?reg_error=Google+authentication+was+denied")
+        
+        if not state or state not in pending_registrations:
+            print(f"[GOOGLE CALLBACK] Invalid/expired registration state")
+            return redirect(f"{FRONTEND_URL}?reg_error=Registration+expired.+Please+try+again.")
+        
+        reg_data = pending_registrations[state]
+        username = reg_data['username']
+        share1 = reg_data['share1']
+        
+        print(f"[GOOGLE CALLBACK] Processing for user: {username}")
+        
+        # Exchange authorization code for user's Google credentials
+        flow = get_google_flow()
+        flow.fetch_token(code=code)
+        credentials = flow.credentials
+        
+        # Upload share1 to THIS USER'S Google Drive
+        print(f"[GOOGLE CALLBACK] Uploading share1 to user's Google Drive...")
+        service = build('drive', 'v3', credentials=credentials)
+        file_metadata = {'name': f'{username}_share1.txt'}
+        media = MediaIoBaseUpload(io.BytesIO(share1.encode()), mimetype='text/plain')
+        service.files().create(body=file_metadata, media_body=media).execute()
+        print(f"[GOOGLE CALLBACK] Share1 uploaded to {username}'s Drive!")
+        
+        # Mark registration as complete
+        pending_registrations[state]['completed'] = True
+        
+        # Redirect back to frontend with success
+        print(f"[GOOGLE CALLBACK] Redirecting to frontend...")
+        return redirect(f"{FRONTEND_URL}?reg_complete={state}")
+        
+    except Exception as e:
+        print(f"[GOOGLE CALLBACK] Error: {e}")
+        error_msg = str(e)[:200].replace(' ', '+')
+        return redirect(f"{FRONTEND_URL}?reg_error={error_msg}")
+
+
+@app.route('/api/register/complete', methods=['POST'])
+def register_complete():
+    """
+    STEP 3: Frontend calls this after Google redirect to get local_share + golden_key.
+    """
+    try:
+        data = request.json
+        reg_id = data.get('reg_id')
+        
+        if not reg_id or reg_id not in pending_registrations:
+            return jsonify({"status": "error", "message": "Invalid or expired registration. Please try again."}), 400
+        
+        reg_data = pending_registrations[reg_id]
+        
+        if not reg_data.get('completed'):
+            return jsonify({"status": "error", "message": "Google authentication not completed yet."}), 400
+        
+        username = reg_data['username']
+        result = {
+            "status": "success",
+            "local_share": reg_data['local_share'],
+            "golden_key": reg_data['golden_key'],
+            "username": username
+        }
+        
+        # Clean up - remove from pending
+        del pending_registrations[reg_id]
+        
+        print(f"[REGISTER COMPLETE] Keys delivered to {username}'s browser!")
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"[REGISTER COMPLETE] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/login', methods=['POST'])
 def login():
-	try:
-		data = request.json
-		password, username, local_share_package = data.get('password'), data.get('username'), data.get('local_share')
+    """Login using Supabase share2 + local share3 (NO Google required)"""
+    try:
+        data = request.json
+        password, username, local_share_package = data.get('password'), data.get('username'), data.get('local_share')
         
-		if not username or not password or not local_share_package:
-			return jsonify({"status": "error", "message": "Missing required fields"}), 400
+        if not local_share_package:
+            return jsonify({"status": "error", "message": "No local share found. Please create a vault first."}), 400
         
-		raw_package = base64.b64decode(local_share_package)
-		salt, encrypted_data = raw_package.split(b"::")
-		f = Fernet(derive_key(password, salt))
-		share3_str = f.decrypt(encrypted_data).decode()
+        # Decrypt local share3
+        try:
+            raw_package = base64.b64decode(local_share_package)
+            salt, encrypted_data = raw_package.split(b"::")
+            f = Fernet(derive_key(password, salt))
+            share3_str = f.decrypt(encrypted_data).decode()
+            print(f"[LOGIN] Share3 decrypted successfully")
+        except Exception as decrypt_err:
+            return jsonify({"status": "error", "message": "Wrong password or corrupted local share"}), 401
         
-		# Try to get share1 from Google Drive, fall back to local storage
-		service = get_google_service(silent=True)
-		share1_data = None
+        # Fetch share2 from Supabase with retry
+        print(f"[LOGIN] Fetching share2 from Supabase...")
+        response = supabase_retry(lambda: supabase.table("shares").select("share_data").eq("username", username).not_.is_("share_data", "null").execute())
         
-		if service:
-			try:
-				results = service.files().list(q=f"name='{username}_share1.txt'", spaces='drive').execute()
-				items = results.get('files', [])
-				if items:
-					share1_data = service.files().get_media(fileId=items[0]['id']).execute().decode('utf-8')
-			except Exception as e:
-				print(f"Google Drive retrieval failed ({e}), trying local storage")
-			finally:
-				pass
+        if not response.data:
+            return jsonify({"status": "error", "message": f"No vault found for user '{username}'"}), 404
         
-		# Fall back to local storage if Google Drive failed
-		if not share1_data:
-			share1_data = get_share_locally(username)
-			if not share1_data:
-				return jsonify({"status": "error", "message": "Share 1 not found"}), 404
+        share2_str = response.data[0]['share_data']
+        print(f"[LOGIN] Share2 retrieved from Supabase")
+        
+        # Reconstruct golden key from share2 + share3
+        s2 = (int(share2_str.split('-')[0]), int(share2_str.split('-')[1]))
+        s3 = (int(share3_str.split('-')[0]), int(share3_str.split('-')[1]))
+        recovered_int = recover_secret([s2, s3])
+        
+        print(f"[LOGIN] Login successful!")
+        return jsonify({"status": "success", "golden_key": str(recovered_int)})
+    except Exception as e:
+        print(f"[LOGIN] Error: {e}")
+        return jsonify({"status": "error", "message": f"Login failed: {str(e)}"}), 401
 
-		# Parse shares and recover secret
-		try:
-			s1 = (int(share1_data.split('-')[0]), int(share1_data.split('-')[1]))
-			s3 = (int(share3_str.split('-')[0]), int(share3_str.split('-')[1]))
-			recovered_int = recover_secret([s1, s3])
-			return jsonify({"status": "success", "golden_key": str(recovered_int)})
-		except Exception as e:
-			return jsonify({"status": "error", "message": f"Failed to recover secret: {str(e)}"}), 400
-		finally:
-			pass
-	finally:
-		pass
+@app.route('/api/add_password', methods=['POST'])
+def add_password():
+    """Add a new password to the vault (Supabase)"""
+    try:
+        data = request.json
+        username = data.get('username')
+        golden_key = data.get('golden_key') 
+        s_name = data.get('service_name')
+        s_user = data.get('service_username')
+        s_pass = data.get('password_to_save')
+
+        if not all([username, golden_key, s_name, s_pass]):
+            return jsonify({"status": "error", "message": "Missing required fields: username, golden_key, service_name, password"}), 400
+
+        print(f"[ADD_PASSWORD] Adding password for service: {s_name}")
+        
+        f = Fernet(golden_int_to_fernet(int(golden_key)))
+        encrypted_pass = f.encrypt(s_pass.encode()).decode()
+
+        # Store in Supabase with retry
+        supabase_retry(lambda: supabase.table("shares").insert({
+            "username": username,
+            "service_name": s_name,
+            "service_username": s_user,
+            "encrypted_password": encrypted_pass
+        }).execute())
+        print(f"[ADD_PASSWORD] Password stored in Supabase")
+        
+        return jsonify({"status": "success", "message": "Password stored!"})
+    except Exception as e:
+        print(f"[ADD_PASSWORD] Error: {e}")
+        return jsonify({"status": "error", "message": f"Failed to store password: {str(e)}"}), 500
+
+@app.route('/api/get_passwords', methods=['POST'])
+def get_passwords():
+    """Get all passwords for a user (Supabase)"""
+    try:
+        data = request.json
+        username, golden_key = data.get('username'), data.get('golden_key')
+        
+        if not username or not golden_key:
+            return jsonify({"status": "error", "message": "Missing username or golden_key"}), 400
+        
+        print(f"[GET_PASSWORDS] Fetching passwords for user: {username}")
+        
+        f = Fernet(golden_int_to_fernet(int(golden_key)))
+        
+        # Fetch from Supabase with retry
+        response = supabase_retry(lambda: supabase.table("shares").select("*").eq("username", username).not_.is_("encrypted_password", "null").execute())
+        
+        decrypted_list = []
+        for row in response.data:
+            try:
+                dec_pass = f.decrypt(row['encrypted_password'].encode()).decode()
+                decrypted_list.append({
+                    "service": row['service_name'], 
+                    "username": row.get('service_username', ''), 
+                    "password": dec_pass
+                })
+            except: 
+                continue
+        
+        print(f"[GET_PASSWORDS] Retrieved {len(decrypted_list)} passwords")
+        return jsonify({"status": "success", "passwords": decrypted_list})
+    except Exception as e:
+        print(f"[GET_PASSWORDS] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/')
+def index():
+    """Root route - confirms backend is running"""
+    return jsonify({
+        "status": "ok",
+        "message": "Shamir Vault Backend is running!",
+        "endpoints": ["/api/register/init", "/api/login", "/api/add_password", "/api/get_passwords", "/api/health"]
+    })
+
+
+@app.route('/api/health', methods=['GET'])
+def health():
+    """Health check endpoint for deployment platforms"""
+    return jsonify({"status": "ok", "frontend": FRONTEND_URL, "backend": BACKEND_URL})
+
+
+@app.route('/api/debug_google_creds', methods=['GET'])
+def debug_google_creds():
+    """Debug endpoint: reports presence of credentials.json and GOOGLE_CREDENTIALS_JSON env var.
+    Returns masked client_id if available (first/last 6 chars visible).
+    """
+    creds_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'credentials.json')
+    file_exists = os.path.exists(creds_path)
+    env_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
+    env_set = bool(env_json)
+    masked_client_id = None
+
+    def mask(s):
+        if not s or len(s) < 12:
+            return '***masked***'
+        return s[:6] + '...' + s[-6:]
+
+    try:
+        if file_exists:
+            with open(creds_path, 'r') as f:
+                data = json.load(f)
+                # support web/installed
+                cid = None
+                if 'web' in data and 'client_id' in data['web']:
+                    cid = data['web']['client_id']
+                elif 'installed' in data and 'client_id' in data['installed']:
+                    cid = data['installed']['client_id']
+                masked_client_id = mask(cid)
+        elif env_set:
+            try:
+                data = json.loads(env_json)
+                cid = None
+                if 'web' in data and 'client_id' in data['web']:
+                    cid = data['web']['client_id']
+                elif 'installed' in data and 'client_id' in data['installed']:
+                    cid = data['installed']['client_id']
+                masked_client_id = mask(cid)
+            except Exception:
+                masked_client_id = 'invalid_json'
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+    return jsonify({
+        "status": "ok",
+        "credentials_json_on_disk": file_exists,
+        "google_credentials_env_set": env_set,
+        "masked_client_id": masked_client_id
+    })
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', 'true').lower() == 'true'
+    app.run(debug=debug, port=port, host='0.0.0.0')
