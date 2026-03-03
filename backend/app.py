@@ -415,12 +415,32 @@ def google_callback():
             print(f"[GOOGLE CALLBACK] Error restoring code_verifier: {verr}")
         flow.fetch_token(code=code)
         credentials = flow.credentials
-        
+
+        # Inspect ID token for MFA hints (amr claim)
+        mfa_missing = False
+        try:
+            id_token = getattr(flow, 'credentials', None) and getattr(flow.credentials, 'id_token', None)
+            if id_token:
+                try:
+                    # Decode JWT payload without verifying to inspect 'amr' claim
+                    parts = id_token.split('.')
+                    if len(parts) >= 2:
+                        import base64 as _b64, json as _json
+                        padded = parts[1] + '=' * (-len(parts[1]) % 4)
+                        payload = _json.loads(_b64.urlsafe_b64decode(padded).decode('utf-8'))
+                        amr = payload.get('amr', [])
                         if not amr or not any(x in amr for x in ['mfa', 'otp']):
                             mfa_missing = True
                             print(f"[GOOGLE CALLBACK] MFA appears missing for user payload amr={amr}")
                         else:
                             print(f"[GOOGLE CALLBACK] MFA/auth methods present: {amr}")
+                except Exception as idec:
+                    print(f"[GOOGLE CALLBACK] Failed to decode id_token for MFA check: {idec}")
+            else:
+                print("[GOOGLE CALLBACK] No id_token available to inspect MFA status")
+                mfa_missing = True
+        except Exception as e:
+            print(f"[GOOGLE CALLBACK] Error while checking MFA: {e}")
                 try:
                     # Decode JWT payload without verifying to inspect 'amr' claim
                     parts = id_token.split('.')
