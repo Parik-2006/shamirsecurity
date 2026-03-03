@@ -704,6 +704,17 @@ def home():
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('FLASK_DEBUG', 'true').lower() == 'true'
-    app.run(debug=debug, port=port, host='0.0.0.0')
+    try:
+        port = int(os.environ.get('PORT', 5000))
+        debug = os.environ.get('FLASK_DEBUG', 'true').lower() == 'true'
+        app.run(debug=debug, port=port, host='0.0.0.0')
+    except Exception as e:
+        print(f"Error running app: {e}")
+        import socket
+        open_ports = []
+        for port in range(5000, 5100):
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                if s.connect_ex(("localhost", port)) != 0:
+                    open_ports.append(port)
+        print(f"No open ports to detect. Tried 5000-5100. Open ports: {open_ports}")
+        raise
