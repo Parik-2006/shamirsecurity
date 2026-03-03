@@ -36,7 +36,12 @@ BACKEND_URL  = os.environ.get('BACKEND_URL', 'http://localhost:5000')
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://tacsrdvzgcsucparujcr.supabase.co')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhY3NyZHZ6Z2NzdWNwYXJ1amNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3NDE5NjYsImV4cCI6MjA4MjMxNzk2Nn0.bp5qZG28mODVoeSIEWoWF-tbwtmCIXM1GQ1JvM9XmpA')
 
-GOOGLE_SCOPES = ['https://www.googleapis.com/auth/drive.file']
+GOOGLE_SCOPES = [
+    'openid',
+    'email',
+    'profile',
+    'https://www.googleapis.com/auth/drive.file'
+]
 GOOGLE_REDIRECT_URI = f'{BACKEND_URL}/api/google/callback'
 
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
@@ -365,6 +370,32 @@ def google_callback():
         flow.fetch_token(code=code)
         credentials = flow.credentials
         
+        # Inspect ID token for MFA hints (amr claim)
+        mfa_missing = False
+        try:
+            id_token = getattr(flow, 'credentials', None) and getattr(flow.credentials, 'id_token', None)
+            if id_token:
+                try:
+                    # Decode JWT payload without verifying to inspect 'amr' claim
+                    parts = id_token.split('.')
+                    if len(parts) >= 2:
+                        import base64 as _b64, json as _json
+                        padded = parts[1] + '=' * (-len(parts[1]) % 4)
+                        payload = _json.loads(_b64.urlsafe_b64decode(padded).decode('utf-8'))
+                        amr = payload.get('amr', [])
+                        if not amr:
+                            mfa_missing = True
+                            print(f"[GOOGLE CALLBACK] MFA appears missing for user payload amr={amr}")
+                        else:
+                            print(f"[GOOGLE CALLBACK] MFA/auth methods present: {amr}")
+                except Exception as idec:
+                    print(f"[GOOGLE CALLBACK] Failed to decode id_token for MFA check: {idec}")
+            else:
+                print("[GOOGLE CALLBACK] No id_token available to inspect MFA status")
+                mfa_missing = True
+        except Exception as e:
+            print(f"[GOOGLE CALLBACK] Error while checking MFA: {e}")
+
         # Upload share1 to THIS USER'S Google Drive
         print(f"[GOOGLE CALLBACK] Uploading share1 to user's Google Drive...")
         service = build('drive', 'v3', credentials=credentials)
@@ -384,17 +415,23 @@ def google_callback():
                 "and the signed-in account allows file uploads."
             )
             full_msg = f"{user_msg} ({str(he)})"
-            return redirect(f"{FRONTEND_URL}?reg_error={quote_plus(full_msg[:400])}")
+            # include MFA flag if missing
+            suffix = f"&reg_mfa=1" if mfa_missing else ""
+            return redirect(f"{FRONTEND_URL}?reg_error={quote_plus(full_msg[:400])}{suffix}")
         except Exception as e:
             print(f"[GOOGLE CALLBACK] Drive upload error: {e}")
-            return redirect(f"{FRONTEND_URL}?reg_error={quote_plus(str(e)[:200])}")
+            suffix = f"&reg_mfa=1" if mfa_missing else ""
+            return redirect(f"{FRONTEND_URL}?reg_error={quote_plus(str(e)[:200])}{suffix}")
         
         # Mark registration as complete
         pending_registrations[state]['completed'] = True
-        
-        # Redirect back to frontend with success
+
+        # Redirect back to frontend with success, include MFA warning if detected
         print(f"[GOOGLE CALLBACK] Redirecting to frontend...")
-        return redirect(f"{FRONTEND_URL}?reg_complete={state}")
+        redirect_url = f"{FRONTEND_URL}?reg_complete={state}"
+        if mfa_missing:
+            redirect_url += "&reg_mfa=1"
+        return redirect(redirect_url)
         
     except Exception as e:
         print(f"[GOOGLE CALLBACK] Error: {e}")
