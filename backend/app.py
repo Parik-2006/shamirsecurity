@@ -441,7 +441,7 @@ def google_callback():
                 mfa_missing = True
         except Exception as e:
             print(f"[GOOGLE CALLBACK] Error while checking MFA: {e}")
-                mfa_missing = True
+            mfa_missing = True
         except Exception as e:
             print(f"[GOOGLE CALLBACK] Error while checking MFA: {e}")
 
