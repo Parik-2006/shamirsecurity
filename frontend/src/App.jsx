@@ -277,14 +277,18 @@ function App() {
             window.localStorage.setItem('local_share', data.local_share);
             setUsername(data.username);
             setGoldenKey(data.golden_key);
-            if (data.share3) {
+            console.log('[FRONTEND] Registration complete response:', data);
+            if (typeof data.share3 === 'string' && data.share3.length > 0) {
               setPendingShare3(data.share3);
               setRequireLocalShareDownload(true);
               setLoading(false);
               // Do NOT setPage('vault') yet
               return;
+            } else {
+              setError('Critical error: Recovery share (share3) missing from server response. Please contact support.');
+              setLoading(false);
+              return;
             }
-            setPage('vault');
           } else {
             setError('Registration Error: ' + (data.message || 'Unknown error'));
           }
