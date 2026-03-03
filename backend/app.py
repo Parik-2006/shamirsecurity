@@ -547,7 +547,7 @@ def register_complete():
             "local_share": reg_data['local_share'],
             "golden_key": reg_data['golden_key'],
             "username": username,
-            "share3": reg_data.get('share3')  # plaintext share3 for frontend encryption
+            "local_share_plain": reg_data.get('local_share_plain')  # plaintext for frontend encryption
         }
         # Clean up - remove from pending
         del pending_registrations[reg_id]
