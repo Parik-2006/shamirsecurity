@@ -1,3 +1,13 @@
+from flask import send_from_directory
+# --- STATIC FILE SERVING FOR FRONTEND (PRODUCTION) ---
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    dist_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
+    if path != "" and os.path.exists(os.path.join(dist_dir, path)):
+        return send_from_directory(dist_dir, path)
+    else:
+        return send_from_directory(dist_dir, 'index.html')
 # backend/app.py
 import os
 import json
