@@ -243,6 +243,7 @@ def golden_int_to_fernet(golden_int):
 
 @app.route('/api/register/init', methods=['POST'])
 def register_init():
+    try:
     """
     STEP 1: User submits username + password.
     - Generate Shamir shares
@@ -373,6 +374,9 @@ def register_init():
     except Exception as e:
         print(f"[REGISTER INIT] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+    except Exception as e:
+        print(f"[REGISTER INIT] Fatal error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route('/api/google/callback')
@@ -417,6 +421,7 @@ def google_callback():
         flow.fetch_token(code=code)
         credentials = flow.credentials
 
+                    print(f"Error running app: {e}")
         # Inspect ID token for MFA hints (amr claim)
         mfa_missing = False
         try:
