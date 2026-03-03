@@ -194,7 +194,21 @@ function App() {
     if (regError) {
       console.warn('[FRONTEND] reg_error from backend:', regError);
       setLoading(false);
+      // Handle Drive quota-specific error messages
+      const lower = regError.toLowerCase();
+      if (lower.includes('drive storage quota') || lower.includes('storagequotaexceeded') || lower.includes('quota')) {
+        setError('Registration failed: Your Google Drive is full. Please free up space or sign in with a different Google account.');
+        return;
+      }
       setError('Registration failed: ' + regError);
+      return;
+    }
+
+    const regMfa = params.get('reg_mfa');
+    if (regMfa) {
+      setLoading(false);
+      setError('Warning: Your Google account does not appear to have 2-step verification (MFA) enabled. For better security, enable MFA in your Google account settings before continuing.');
+      // allow user to continue registration flow after addressing MFA
       return;
     }
 
