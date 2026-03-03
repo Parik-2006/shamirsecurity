@@ -172,6 +172,7 @@ const LoadingSpinner = ({ message, subMessage }) => (
 // Modal for mandatory local share download
 function LocalShareDownloadModal({ share3, password, onDownloaded }) {
   const [downloading, setDownloading] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
   const [error, setError] = useState('');
 
   const handleDownload = async () => {
@@ -180,7 +181,7 @@ function LocalShareDownloadModal({ share3, password, onDownloaded }) {
     try {
       const encBytes = await encryptAESGCM(share3, password);
       downloadBytes(encBytes, 'vault_recovery.enc');
-      setTimeout(() => onDownloaded(), 500); // Give browser time to trigger download
+      setDownloaded(true);
     } catch (e) {
       setError('Encryption or download failed: ' + (e.message || e));
     } finally {
@@ -196,9 +197,14 @@ function LocalShareDownloadModal({ share3, password, onDownloaded }) {
           <b>Your encrypted local recovery share is ready.</b><br />
           <span style={{ color: '#fbbf24' }}>You must download and keep this file safe to access your vault.</span>
         </p>
-        <button className="btn-gradient-primary" style={{ width: '100%', marginBottom: 10 }} onClick={handleDownload} disabled={downloading}>
-          {downloading ? 'Encrypting...' : 'Download vault_recovery.enc'}
+        <button className="btn-gradient-primary" style={{ width: '100%', marginBottom: 10 }} onClick={handleDownload} disabled={downloading || downloaded}>
+          {downloading ? 'Encrypting...' : (downloaded ? 'Downloaded!' : 'Download vault_recovery.enc')}
         </button>
+        {downloaded && (
+          <button className="btn-gradient-cyan" style={{ width: '100%', marginTop: 10 }} onClick={onDownloaded}>
+            Download Complete - Continue to Vault
+          </button>
+        )}
         {error && <div className="error-message" style={{ marginTop: 10 }}>{error}</div>}
         <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: 18 }}>
           This file is required for future recovery. Store it in a secure location.
