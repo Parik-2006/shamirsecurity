@@ -60,6 +60,26 @@ print(f"[INIT] Frontend: {FRONTEND_URL}")
 print(f"[INIT] Backend:  {BACKEND_URL}")
 print(f"[INIT] Google redirect: {GOOGLE_REDIRECT_URI}")
 
+# Ensure Google credentials file exists at runtime (support providing via env vars)
+try:
+    creds_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'credentials.json')
+    if not os.path.exists(creds_path):
+        # Prefer base64-encoded env var
+        google_b64 = os.environ.get('GOOGLE_CREDENTIALS_B64')
+        google_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
+        if google_b64:
+            with open(creds_path, 'wb') as cf:
+                cf.write(base64.b64decode(google_b64))
+            print('[INIT] Wrote credentials.json from GOOGLE_CREDENTIALS_B64')
+        elif google_json:
+            with open(creds_path, 'w', encoding='utf-8') as cf:
+                cf.write(google_json)
+            print('[INIT] Wrote credentials.json from GOOGLE_CREDENTIALS_JSON')
+        else:
+            print('[INIT] No credentials.json found and no GOOGLE_CREDENTIALS_* env var present')
+except Exception as e:
+    print(f'[INIT] Error ensuring credentials.json: {e}')
+
 # --- PENDING REGISTRATIONS (in-memory store) ---
 # Each entry: { username, share1, local_share, golden_key, created_at, completed }
 pending_registrations = {}
