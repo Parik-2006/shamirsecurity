@@ -36,10 +36,13 @@ BACKEND_URL  = os.environ.get('BACKEND_URL', 'http://localhost:5000')
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://tacsrdvzgcsucparujcr.supabase.co')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhY3NyZHZ6Z2NzdWNwYXJ1amNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3NDE5NjYsImV4cCI6MjA4MjMxNzk2Nn0.bp5qZG28mODVoeSIEWoWF-tbwtmCIXM1GQ1JvM9XmpA')
 
+# Use long-form userinfo scopes to avoid Google normalizing 'email'/'profile' to
+# 'https://www.googleapis.com/auth/userinfo.email' etc and causing a
+# "scope has changed" error during token exchange. Keep `openid` as-is.
 GOOGLE_SCOPES = [
     'openid',
-    'email',
-    'profile',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/drive.file'
 ]
 GOOGLE_REDIRECT_URI = f'{BACKEND_URL}/api/google/callback'
@@ -96,6 +99,40 @@ except Exception as e:
 # --- PENDING REGISTRATIONS (in-memory store) ---
 # Each entry: { username, share1, local_share, golden_key, created_at, completed }
 pending_registrations = {}
+
+
+# --- SCOPE NORMALIZATION HELPERS ---
+SCOPE_EQUIVALENTS = {
+    'email': 'https://www.googleapis.com/auth/userinfo.email',
+    'profile': 'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/userinfo.email': 'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile': 'https://www.googleapis.com/auth/userinfo.profile',
+    'openid': 'openid',
+    'https://www.googleapis.com/auth/drive.file': 'https://www.googleapis.com/auth/drive.file'
+}
+
+
+def normalize_scope_string(scope_input):
+    """Convert a scope string (space-delimited) or iterable into a set of
+    canonical scope values so comparisons ignore synonyms and ordering."""
+    if not scope_input:
+        return set()
+    if isinstance(scope_input, str):
+        parts = scope_input.split()
+    else:
+        try:
+            parts = list(scope_input)
+        except Exception:
+            parts = [str(scope_input)]
+
+    normalized = set()
+    for p in parts:
+        p = p.strip()
+        if not p:
+            continue
+        # map short forms to long-form where possible
+        normalized.add(SCOPE_EQUIVALENTS.get(p, p))
+    return normalized
 
 # --- RETRY HELPER FOR SUPABASE OPERATIONS ---
 def supabase_retry(operation, max_retries=3, delay=2):
@@ -305,6 +342,13 @@ def register_init():
                     print(f"[REGISTER INIT] No code_verifier generated for reg_id={reg_id}")
             except Exception as pv_err:
                 print(f"[REGISTER INIT] Failed to persist code_verifier: {pv_err}")
+            # Persist the requested scopes (normalized) so we can compare later.
+            try:
+                requested_norm = normalize_scope_string(getattr(flow, 'scopes', GOOGLE_SCOPES))
+                pending_registrations[reg_id]['requested_scopes'] = list(requested_norm)
+                print(f"[REGISTER INIT] Stored requested scopes for reg_id={reg_id}: {requested_norm}")
+            except Exception as se:
+                print(f"[REGISTER INIT] Failed to persist requested scopes: {se}")
             print(f"[REGISTER INIT] OAuth URL generated. Waiting for user to sign in...")
             return jsonify({
                 "status": "redirect",
@@ -398,6 +442,35 @@ def google_callback():
 
         # Upload share1 to THIS USER'S Google Drive
         print(f"[GOOGLE CALLBACK] Uploading share1 to user's Google Drive...")
+        # --- SCOPE VERIFICATION (tolerant) ---
+        try:
+            # Attempt to determine granted scopes from credentials or token_response
+            granted_raw = None
+            if hasattr(flow, 'credentials') and getattr(flow.credentials, 'scopes', None):
+                granted_raw = flow.credentials.scopes
+            else:
+                # token_response may contain a 'scope' string
+                tr = getattr(flow, 'token_response', None) or getattr(flow.credentials, 'token_response', None)
+                if isinstance(tr, dict):
+                    granted_raw = tr.get('scope') or tr.get('scopes')
+
+            requested_norm = set(pending_registrations.get(state, {}).get('requested_scopes', []))
+            granted_norm = normalize_scope_string(granted_raw)
+
+            if requested_norm and granted_norm:
+                if requested_norm == granted_norm:
+                    print(f"[GOOGLE CALLBACK] Granted scopes match requested scopes: {granted_norm}")
+                else:
+                    # Accept small normalization/order differences. If one set is subset of the other,
+                    # treat as okay. Otherwise, log a warning but continue to allow the flow.
+                    if requested_norm.issubset(granted_norm) or granted_norm.issubset(requested_norm):
+                        print(f"[GOOGLE CALLBACK] Scope sets differ but are compatible. requested={requested_norm} granted={granted_norm}")
+                    else:
+                        print(f"[GOOGLE CALLBACK] WARNING: Scope mismatch. requested={requested_norm} granted={granted_norm} — continuing anyway")
+            else:
+                print(f"[GOOGLE CALLBACK] Could not determine requested or granted scopes. requested={requested_norm} granted_raw={granted_raw}")
+        except Exception as se:
+            print(f"[GOOGLE CALLBACK] Failed to compare scopes: {se}")
         service = build('drive', 'v3', credentials=credentials)
         file_metadata = {'name': f'{username}_share1.txt'}
         media = MediaIoBaseUpload(io.BytesIO(share1.encode()), mimetype='text/plain')
