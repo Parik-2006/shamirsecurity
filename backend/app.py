@@ -1,3 +1,12 @@
+import logging
+def check_frontend_build():
+    dist_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
+    index_path = os.path.join(dist_dir, 'index.html')
+    assets_path = os.path.join(dist_dir, 'assets')
+    if not os.path.exists(index_path):
+        logging.warning('FRONTEND BUILD MISSING: index.html not found in dist folder!')
+    if not os.path.exists(assets_path):
+        logging.warning('FRONTEND BUILD MISSING: assets folder not found in dist folder!')
 # backend/app.py
 import os
 import json
@@ -566,5 +575,6 @@ def debug_google_creds():
 
 
 if __name__ == '__main__':
+    check_frontend_build()
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=False, host='0.0.0.0', port=port)
