@@ -311,6 +311,7 @@ function App() {
 
   // Handle Login (unchanged - no Google needed)
   // MFA-aware login flow
+  // MFA state for login flow
   const [mfaReady, setMfaReady] = useState(false);
   const [mfaChecked, setMfaChecked] = useState(false);
   const [mfaError, setMfaError] = useState('');
@@ -347,6 +348,8 @@ function App() {
     if (loginError) {
       setError('Google login error: ' + loginError);
       window.history.replaceState({}, '', window.location.pathname);
+      setMfaChecked(true);
+      setMfaReady(false);
       return;
     }
     if (loginMfa) {
@@ -354,9 +357,9 @@ function App() {
       setMfaChecked(true);
       if (loginMfa === '1') {
         setMfaReady(true);
-        // Now do the actual vault unlock
         doVaultUnlock();
       } else {
+        setMfaReady(false);
         setMfaError('Please enable Google MFA (2-Step Verification) to unlock your vault.');
       }
     }
@@ -579,7 +582,8 @@ function App() {
                   onClick={handleLogin} 
                   className="btn-gradient-cyan"
                   style={{ width: '100%' }}
-                  disabled={loading}
+                  disabled={loading || (mfaChecked && !mfaReady)}
+                  title={mfaChecked && !mfaReady ? 'Google MFA required' : ''}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '10px' }}>
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -587,8 +591,10 @@ function App() {
                   </svg>
                   Unlock Vault
                 </button>
-                {mfaError && (
-                  <div className="error-message" style={{ marginTop: 10, color: '#f43f5e' }}>{mfaError}</div>
+                {mfaChecked && (
+                  <div style={{ marginTop: 10, color: mfaReady ? '#10b981' : '#f43f5e' }}>
+                    {mfaReady ? 'Google MFA verified. Unlocking...' : mfaError || 'Google MFA required.'}
+                  </div>
                 )}
               </div>
               
