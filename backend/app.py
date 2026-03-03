@@ -186,7 +186,8 @@ def get_google_flow():
         # Proper "web" type credentials (production)
         flow = Flow.from_client_secrets_file(creds_path, scopes=GOOGLE_SCOPES)
     
-    flow.redirect_uri = GOOGLE_REDIRECT_URI
+        flow.redirect_uri = GOOGLE_REDIRECT_URI
+        flow.params['prompt'] = 'consent'  # Always require re-auth and MFA if enabled
     return flow
 
 # --- SHAMIR MATH HELPERS ---
@@ -415,11 +416,11 @@ def google_callback():
         flow.fetch_token(code=code)
         credentials = flow.credentials
         
-        # Inspect ID token for MFA hints (amr claim)
-        mfa_missing = False
-        try:
-            id_token = getattr(flow, 'credentials', None) and getattr(flow.credentials, 'id_token', None)
-            if id_token:
+                        if not amr or not any(x in amr for x in ['mfa', 'otp']):
+                            mfa_missing = True
+                            print(f"[GOOGLE CALLBACK] MFA appears missing for user payload amr={amr}")
+                        else:
+                            print(f"[GOOGLE CALLBACK] MFA/auth methods present: {amr}")
                 try:
                     # Decode JWT payload without verifying to inspect 'amr' claim
                     parts = id_token.split('.')
