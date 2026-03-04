@@ -11,6 +11,28 @@ import logging
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 
+# --- GLOBAL ERROR HANDLERS FOR JSON RESPONSES ---
+@app.errorhandler(404)
+def not_found_error(error):
+    return jsonify({"status": "error", "message": "Not Found", "code": 404}), 404
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # If it's an HTTPException, use its code and description
+    from werkzeug.exceptions import HTTPException
+    if isinstance(e, HTTPException):
+        return jsonify({
+            "status": "error",
+            "message": e.description,
+            "code": e.code
+        }), e.code
+    # Otherwise, it's a non-HTTP error
+    return jsonify({
+        "status": "error",
+        "message": str(e),
+        "code": 500
+    }), 500
+
 # --- GOOGLE LOGIN CALLBACK ENDPOINT ---
 @app.route('/api/login/callback')
 def login_callback():
