@@ -326,10 +326,12 @@ function App() {
     setLoading(true);
     setLoadingMsg('Verifying Google MFA...');
     try {
+      // Start Google OAuth login
       const res = await fetch(`${API_URL}/api/login/google`);
       const data = await res.json();
       if (data.status === 'redirect' && data.auth_url) {
-        window.location.href = data.auth_url;
+        // Redirect to Google, callback will hit /api/login/callback
+        window.location.href = data.auth_url.replace('/oauth2/v2/auth', '/api/login/callback');
         return;
       } else {
         setError('Failed to initiate Google login: ' + (data.message || 'Unknown error'));

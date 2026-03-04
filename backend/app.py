@@ -1,3 +1,67 @@
+# --- GOOGLE LOGIN CALLBACK ENDPOINT ---
+@app.route('/api/login/callback')
+def login_callback():
+    """
+    Google redirects here after login OAuth.
+    - Exchange code for credentials
+    - Check for MFA in ID token
+    - Redirect to frontend with login_mfa=1 (MFA) or login_mfa=0 (no MFA)
+    - On error, redirect with login_error param
+    """
+    try:
+        code = request.args.get('code')
+        error = request.args.get('error')
+        if error:
+            print(f"[LOGIN CALLBACK] Error from Google: {error}")
+            return redirect(f"{FRONTEND_URL}?login_error=Google+authentication+was+denied")
+        flow = get_google_flow()
+        code_verifier = request.args.get('code_verifier')
+        if code_verifier:
+            flow.fetch_token(code=code, code_verifier=code_verifier)
+        else:
+            flow.fetch_token(code=code)
+        credentials = flow.credentials
+        id_token = credentials.id_token
+        import jwt
+        mfa_enabled = False
+        if id_token:
+            try:
+                decoded = jwt.decode(id_token, options={"verify_signature": False})
+                amr = decoded.get('amr', [])
+                if 'mfa' in amr or 'otp' in amr or 'sms' in amr:
+                    mfa_enabled = True
+            except Exception as e:
+                print(f"[LOGIN CALLBACK] Failed to decode ID token for MFA check: {e}")
+        print(f"[LOGIN CALLBACK] MFA enabled: {mfa_enabled}")
+        # Redirect to frontend with MFA status
+        return redirect(f"{FRONTEND_URL}?login_mfa={'1' if mfa_enabled else '0'}")
+    except Exception as e:
+        print(f"[LOGIN CALLBACK] Error: {e}")
+        error_msg = str(e)[:200].replace(' ', '+')
+        return redirect(f"{FRONTEND_URL}?login_error={error_msg}")
+# --- GOOGLE LOGIN ENDPOINT (for unlocking vault) ---
+@app.route('/api/login/google')
+def login_google():
+    """
+    Initiate Google OAuth login for unlocking vault.
+    - If user has MFA, require it.
+    - If not, warn on frontend but allow login.
+    """
+    try:
+        flow = get_google_flow()
+        auth_url, _ = flow.authorization_url(
+            access_type='offline',
+            prompt='consent',
+            max_auth_age=0  # Always require fresh login and MFA if enabled
+        )
+        # Store code_verifier in session or temp store if needed (not required for login-only flow)
+        return jsonify({
+            "status": "redirect",
+            "auth_url": auth_url
+        })
+    except Exception as e:
+        print(f"[LOGIN GOOGLE] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 # --- HEALTH CHECK ENDPOINT FOR RENDER ---
 import logging
 def check_frontend_build():
