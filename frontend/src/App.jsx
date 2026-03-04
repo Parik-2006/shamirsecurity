@@ -221,7 +221,6 @@ function App() {
   const [password, setPassword] = useState('');
   const [goldenKey, setGoldenKey] = useState(null);
   const [error, setError] = useState('');
-  const [mfaWarning, setMfaWarning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('');
   const [focusedInput, setFocusedInput] = useState(null);
@@ -256,14 +255,7 @@ function App() {
       return;
     }
 
-    const regMfa = params.get('reg_mfa');
-    if (regMfa === '0') {
-      setMfaWarning(true);
-      setError('Warning: Your Google account does not appear to have 2-step verification (MFA) enabled. For better security, enable MFA in your Google account settings.');
-    } else if (regMfa === '1') {
-      setMfaWarning(false);
-      setError('');
-    }
+
 
     if (regComplete) {
       setLoading(true);
@@ -311,99 +303,18 @@ function App() {
     }
   }, []);
 
-  // Handle Login (unchanged - no Google needed)
-  // MFA-aware login flow
-  // MFA state for login flow
-  const [mfaReady, setMfaReady] = useState(false);
-  const [mfaChecked, setMfaChecked] = useState(false);
-  const [mfaError, setMfaError] = useState('');
 
+  // Simple login flow: unlock vault if credentials valid
   const handleLogin = async () => {
     setError('');
-    setMfaError('');
-    setMfaReady(false);
-    setMfaChecked(false);
-    setLoading(true);
-    setLoadingMsg('Verifying Google MFA...');
-    try {
-      // Start Google OAuth login
-      const res = await fetch(`${API_URL}/api/login/google`);
-      const data = await res.json();
-      if (data.status === 'redirect' && data.auth_url) {
-        // Open Google OAuth in a new window and poll for completion
-        const oauthWindow = window.open(data.auth_url, '_blank', 'width=500,height=700');
-        if (!oauthWindow) {
-          setError('Failed to open Google login window. Please allow popups.');
-          setLoading(false);
-          return;
-        }
-        // Poll for OAuth completion (user closes window or callback fires)
-        const pollInterval = setInterval(async () => {
-          try {
-            if (oauthWindow.closed) {
-              clearInterval(pollInterval);
-              // After OAuth, fetch callback result from backend
-              const callbackRes = await fetch(`${API_URL}/api/login/google/callback`);
-              const callbackData = await callbackRes.json();
-              if (callbackData.status === 'success') {
-                setMfaChecked(true);
-                setMfaReady(true);
-                setMfaError(callbackData.mfa_enabled ? '' : 'Warning: Your Google account does not appear to have 2-step verification (MFA) enabled. For better security, enable MFA in your Google account settings.');
-                doVaultUnlock();
-              } else {
-                setError('Google login error: ' + (callbackData.message || 'Unknown error'));
-              }
-              setLoading(false);
-            }
-          } catch {
-            // Ignore polling errors
-          }
-        }, 1000);
-        return;
-      } else {
-        setError('Failed to initiate Google login: ' + (data.message || 'Unknown error'));
-      }
-    } catch (e) {
-      setError('Failed to initiate Google login: ' + getErrorMessage(e));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // After Google OAuth callback, check MFA result
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const loginMfa = params.get('login_mfa');
-    const loginError = params.get('login_error');
-    if (loginError) {
-      setError('Google login error: ' + loginError);
-      window.history.replaceState({}, '', window.location.pathname);
-      setMfaChecked(true);
-      setMfaReady(false);
-      return;
-    }
-    if (loginMfa === '1') {
-      window.history.replaceState({}, '', window.location.pathname);
-      setMfaChecked(true);
-      setMfaReady(true);
-      setMfaError('');
-      doVaultUnlock();
-    } else if (loginMfa === '0') {
-      window.history.replaceState({}, '', window.location.pathname);
-      setMfaChecked(true);
-      setMfaReady(true);
-      setMfaError('Warning: Your Google account does not appear to have 2-step verification (MFA) enabled. For better security, enable MFA in your Google account settings.');
-      doVaultUnlock();
-    }
-    // eslint-disable-next-line
-  }, []);
-
-  // Actual vault unlock after MFA
-  const doVaultUnlock = async () => {
-    const localShare = window.localStorage.getItem('local_share');
-    if (!localShare) return setError('No local secret key found on this browser! Please use the device where you created the vault.');
     setLoading(true);
     setLoadingMsg('Unlocking your vault...');
+    const localShare = window.localStorage.getItem('local_share');
+    if (!localShare) {
+      setError('No local secret key found on this browser! Please use the device where you created the vault.');
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
@@ -426,6 +337,11 @@ function App() {
       setLoading(false);
     }
   };
+
+  // Remove Google OAuth/MFA callback logic
+
+
+  // (MFA unlock logic removed)
 
   // Handle Registration (NEW: redirects to Google for EACH user)
   const handleRegister = async () => {
@@ -497,7 +413,7 @@ function App() {
 
   // --- RENDER VAULT PAGE ---
   if (page === 'vault' && goldenKey && !requireLocalShareDownload) {
-    return <VaultPage username={username} goldenKey={goldenKey} onLogout={handleLogout} mfaWarning={mfaWarning} />;
+    return <VaultPage username={username} goldenKey={goldenKey} onLogout={handleLogout} />;
   }
 
   // Show modal if local share download is required
@@ -619,8 +535,7 @@ function App() {
                   onClick={handleLogin} 
                   className="btn-gradient-cyan"
                   style={{ width: '100%' }}
-                  disabled={loading || (mfaChecked && !mfaReady)}
-                  title={mfaChecked && !mfaReady ? 'Google MFA required' : ''}
+                  disabled={loading}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '10px' }}>
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -628,11 +543,6 @@ function App() {
                   </svg>
                   Unlock Vault
                 </button>
-                {mfaChecked && mfaError && (
-                  <div style={{ marginTop: 10, color: '#fbbf24' }}>
-                    {mfaError}
-                  </div>
-                )}
               </div>
               
               <div style={{ marginTop: '18px', textAlign: 'center' }}>
