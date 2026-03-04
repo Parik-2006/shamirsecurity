@@ -1,7 +1,4 @@
 # --- HEALTH CHECK ENDPOINT FOR RENDER ---
-@app.route('/healthz')
-def healthz():
-    return 'OK', 200
 import logging
 def check_frontend_build():
     dist_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
@@ -35,8 +32,14 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
+
+# --- HEALTH CHECK ENDPOINT FOR RENDER ---
+@app.route('/healthz')
+def healthz():
+    return 'OK', 200
 
 # --- STATIC FILE SERVING FOR FRONTEND (PRODUCTION) ---
 # Serve static assets (JS, CSS, images, etc.) from frontend/dist/assets
