@@ -622,4 +622,33 @@ function App() {
   );
 }
 
+// --- GLOBAL ERROR BOUNDARY ---
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    this.setState({ errorInfo });
+    // Optionally log to an error reporting service
+    console.error('ErrorBoundary caught:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ background: '#181c20', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <h1 style={{ color: '#ffb300' }}>Something went wrong</h1>
+          <pre style={{ color: '#f43f5e', background: '#23272b', padding: 16, borderRadius: 8, maxWidth: 600, overflowX: 'auto' }}>{String(this.state.error)}</pre>
+          {this.state.errorInfo && <details style={{ color: '#fff', marginTop: 16 }}><summary>Stack Trace</summary><pre>{this.state.errorInfo.componentStack}</pre></details>}
+          <p style={{ color: '#94a3b8', marginTop: 24 }}>Please screenshot this and contact support if you need help.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default App;
