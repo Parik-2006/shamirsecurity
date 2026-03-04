@@ -181,7 +181,7 @@ function LocalShareDownloadModal({ localShare, password, onDownloaded }) {
     setDownloading(true);
     try {
       const encBytes = await encryptAESGCM(localShare, password);
-      downloadBytes(encBytes, 'vault_recovery.enc');
+      downloadBytes(encBytes, 'local_share.enc');
       setDownloaded(true);
       // Automatically continue to vault after download
       setTimeout(() => {

@@ -301,6 +301,19 @@ def register_init():
     - Return Google OAuth URL so user signs in with THEIR account
     """
     try:
+        # Check for scope mismatch in environment and code
+        expected_scopes = set([
+            'https://www.googleapis.com/auth/drive.file',
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile',
+            'openid'
+        ])
+        actual_scopes = set(GOOGLE_SCOPES)
+        if actual_scopes != expected_scopes:
+            return jsonify({
+                "status": "error",
+                "message": "Google OAuth scope mismatch. Please ensure your Google Cloud Console OAuth consent screen and backend GOOGLE_SCOPES match exactly: " + ', '.join(expected_scopes)
+            }), 400
         data = request.json
         password, username = data.get('password'), data.get('username')
         
