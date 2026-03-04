@@ -183,6 +183,10 @@ function LocalShareDownloadModal({ localShare, password, onDownloaded }) {
       const encBytes = await encryptAESGCM(localShare, password);
       downloadBytes(encBytes, 'vault_recovery.enc');
       setDownloaded(true);
+      // Automatically continue to vault after download
+      setTimeout(() => {
+        if (onDownloaded) onDownloaded();
+      }, 1200); // 1.2s delay for UX
     } catch (e) {
       setError('Encryption or download failed: ' + (e.message || e));
     } finally {
@@ -201,11 +205,7 @@ function LocalShareDownloadModal({ localShare, password, onDownloaded }) {
         <button className="btn-gradient-primary" style={{ width: '100%', marginBottom: 10 }} onClick={handleDownload} disabled={downloading || downloaded}>
           {downloading ? 'Encrypting...' : (downloaded ? 'Downloaded!' : 'Download vault_recovery.enc')}
         </button>
-        {downloaded && (
-          <button className="btn-gradient-cyan" style={{ width: '100%', marginTop: 10 }} onClick={onDownloaded}>
-            Download Complete - Continue to Vault
-          </button>
-        )}
+        {/* Downloaded button removed: now auto-redirects after download */}
         {error && <div className="error-message" style={{ marginTop: 10 }}>{error}</div>}
         <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: 18 }}>
           This file is required for future recovery. Store it in a secure location.
