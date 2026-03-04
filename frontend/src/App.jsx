@@ -328,26 +328,37 @@ function App() {
     try {
       // Start Google OAuth login
       const res = await fetch(`${API_URL}/api/login/google`);
-      let data = null;
-      const rawText = await res.text();
-      try {
-        data = JSON.parse(rawText);
-      } catch {
-        setError('Failed to initiate Google login: Invalid JSON response from backend. Raw response: ' + rawText.slice(0, 120));
-        setLoading(false);
-        return;
-      }
+      const data = await res.json();
       if (data.status === 'redirect' && data.auth_url) {
-        // Robustly handle Google OAuth redirect URL
-        let redirectUrl = data.auth_url;
-        if (redirectUrl && redirectUrl.includes('/oauth2/v2/auth')) {
-          redirectUrl = redirectUrl.replace('/oauth2/v2/auth', '/api/login/callback');
+        // Open Google OAuth in a new window and poll for completion
+        const oauthWindow = window.open(data.auth_url, '_blank', 'width=500,height=700');
+        if (!oauthWindow) {
+          setError('Failed to open Google login window. Please allow popups.');
+          setLoading(false);
+          return;
         }
-        try {
-          window.location.href = redirectUrl;
-        } catch (e) {
-          setError('Failed to redirect to Google login: ' + getErrorMessage(e));
-        }
+        // Poll for OAuth completion (user closes window or callback fires)
+        const pollInterval = setInterval(async () => {
+          try {
+            if (oauthWindow.closed) {
+              clearInterval(pollInterval);
+              // After OAuth, fetch callback result from backend
+              const callbackRes = await fetch(`${API_URL}/api/login/google/callback`);
+              const callbackData = await callbackRes.json();
+              if (callbackData.status === 'success') {
+                setMfaChecked(true);
+                setMfaReady(true);
+                setMfaError(callbackData.mfa_enabled ? '' : 'Warning: Your Google account does not appear to have 2-step verification (MFA) enabled. For better security, enable MFA in your Google account settings.');
+                doVaultUnlock();
+              } else {
+                setError('Google login error: ' + (callbackData.message || 'Unknown error'));
+              }
+              setLoading(false);
+            }
+          } catch {
+            // Ignore polling errors
+          }
+        }, 1000);
         return;
       } else {
         setError('Failed to initiate Google login: ' + (data.message || 'Unknown error'));

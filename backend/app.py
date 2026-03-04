@@ -34,21 +34,22 @@ def handle_exception(e):
     }), 500
 
 # --- GOOGLE LOGIN CALLBACK ENDPOINT ---
-@app.route('/api/login/callback')
-def login_callback():
+
+# New: JSON callback endpoint for Google OAuth
+@app.route('/api/login/google/callback')
+def login_google_callback():
     """
     Google redirects here after login OAuth.
     - Exchange code for credentials
     - Check for MFA in ID token
-    - Redirect to frontend with login_mfa=1 (MFA) or login_mfa=0 (no MFA)
-    - On error, redirect with login_error param
+    - Return JSON with MFA status or error
     """
     try:
         code = request.args.get('code')
         error = request.args.get('error')
         if error:
             print(f"[LOGIN CALLBACK] Error from Google: {error}")
-            return redirect(f"{FRONTEND_URL}?login_error=Google+authentication+was+denied")
+            return jsonify({"status": "error", "message": "Google authentication was denied"}), 400
         flow = get_google_flow()
         code_verifier = request.args.get('code_verifier')
         if code_verifier:
@@ -68,12 +69,10 @@ def login_callback():
             except Exception as e:
                 print(f"[LOGIN CALLBACK] Failed to decode ID token for MFA check: {e}")
         print(f"[LOGIN CALLBACK] MFA enabled: {mfa_enabled}")
-        # Redirect to frontend with MFA status
-        return redirect(f"{FRONTEND_URL}?login_mfa={'1' if mfa_enabled else '0'}")
+        return jsonify({"status": "success", "mfa_enabled": mfa_enabled})
     except Exception as e:
         print(f"[LOGIN CALLBACK] Error: {e}")
-        error_msg = str(e)[:200].replace(' ', '+')
-        return redirect(f"{FRONTEND_URL}?login_error={error_msg}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # --- GOOGLE LOGIN ENDPOINT (for unlocking vault) ---
 @app.route('/api/login/google')
