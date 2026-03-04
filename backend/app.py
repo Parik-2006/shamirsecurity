@@ -348,7 +348,8 @@ def register_init():
             prompt='consent',
             state=reg_id  # Pass reg_id so we can match it in callback
         )
-        
+        # Store code_verifier in pending_registrations
+        pending_registrations[reg_id]['code_verifier'] = getattr(flow, 'code_verifier', None)
         print(f"[REGISTER INIT] OAuth URL generated. Waiting for user to sign in...")
         return jsonify({
             "status": "redirect",
@@ -390,7 +391,11 @@ def google_callback():
         
         # Exchange authorization code for user's Google credentials
         flow = get_google_flow()
-        flow.fetch_token(code=code)
+        code_verifier = reg_data.get('code_verifier')
+        if code_verifier:
+            flow.fetch_token(code=code, code_verifier=code_verifier)
+        else:
+            flow.fetch_token(code=code)
         credentials = flow.credentials
         
         # Upload share1 to THIS USER'S Google Drive
