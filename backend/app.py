@@ -303,10 +303,10 @@ def register_init():
     try:
         # Check for scope mismatch in environment and code
         expected_scopes = set([
+            'openid',
             'https://www.googleapis.com/auth/drive.file',
             'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/userinfo.profile',
-            'openid'
+            'https://www.googleapis.com/auth/userinfo.profile'
         ])
         actual_scopes = set(GOOGLE_SCOPES)
         if actual_scopes != expected_scopes:
