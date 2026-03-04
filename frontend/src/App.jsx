@@ -431,10 +431,12 @@ function App() {
         }
 
         if (data.status === 'redirect' && data.auth_url) {
-          setLoadingMsg('Redirecting to Google sign-in...');
-          setTimeout(() => {
+          try {
             window.location.href = data.auth_url;
-          }, 500);
+          } catch (e) {
+            setError('Failed to redirect to Google sign-in: ' + getErrorMessage(e));
+            setLoading(false);
+          }
           return;
         } else if (data.status === 'success') {
           window.localStorage.setItem('local_share', data.local_share);
