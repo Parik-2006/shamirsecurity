@@ -1,4 +1,4 @@
-# ...existing code...
+import secrets
 import os
 import json
 import base64
