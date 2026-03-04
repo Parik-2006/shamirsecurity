@@ -329,10 +329,10 @@ function App() {
       // Start Google OAuth login
       const res = await fetch(`${API_URL}/api/login/google`);
       let data = null;
+      const rawText = await res.text();
       try {
-        data = await res.json();
+        data = JSON.parse(rawText);
       } catch {
-        const rawText = await res.text();
         setError('Failed to initiate Google login: Invalid JSON response from backend. Raw response: ' + rawText.slice(0, 120));
         setLoading(false);
         return;
@@ -340,7 +340,7 @@ function App() {
       if (data.status === 'redirect' && data.auth_url) {
         // Robustly handle Google OAuth redirect URL
         let redirectUrl = data.auth_url;
-        if (redirectUrl && redirectUrl.inbcludes('/oauth2/v2/auth')) {
+        if (redirectUrl && redirectUrl.includes('/oauth2/v2/auth')) {
           redirectUrl = redirectUrl.replace('/oauth2/v2/auth', '/api/login/callback');
         }
         try {
