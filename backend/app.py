@@ -1,3 +1,14 @@
+import os
+import json
+import base64
+import random
+import hashlib 
+# ...existing code...
+import logging
+
+app = Flask(__name__)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
+
 # --- GOOGLE LOGIN CALLBACK ENDPOINT ---
 @app.route('/api/login/callback')
 def login_callback():
@@ -39,6 +50,7 @@ def login_callback():
         print(f"[LOGIN CALLBACK] Error: {e}")
         error_msg = str(e)[:200].replace(' ', '+')
         return redirect(f"{FRONTEND_URL}?login_error={error_msg}")
+
 # --- GOOGLE LOGIN ENDPOINT (for unlocking vault) ---
 @app.route('/api/login/google')
 def login_google():
@@ -62,8 +74,8 @@ def login_google():
     except Exception as e:
         print(f"[LOGIN GOOGLE] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
 # --- HEALTH CHECK ENDPOINT FOR RENDER ---
-import logging
 def check_frontend_build():
     dist_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
     index_path = os.path.join(dist_dir, 'index.html')
@@ -72,12 +84,7 @@ def check_frontend_build():
         logging.warning('FRONTEND BUILD MISSING: index.html not found in dist folder!')
     if not os.path.exists(assets_path):
         logging.warning('FRONTEND BUILD MISSING: assets folder not found in dist folder!')
-# backend/app.py
-import os
-import json
-import base64
-import random
-import hashlib 
+# ...existing code...
 import io
 import time
 import secrets
