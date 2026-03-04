@@ -394,6 +394,7 @@ function App() {
   // Handle Registration (NEW: redirects to Google for EACH user)
   const handleRegister = async () => {
     setError('');
+    setLoadingMsg('Contacting backend...');
     if (!username || !password) {
       setError('Please enter username and password');
       return;
@@ -414,15 +415,17 @@ function App() {
         const data = safeJSONParse(text) || { status: 'error', message: 'Invalid JSON response', raw: text };
         console.info('[FRONTEND] /api/register/init status=', res.status, 'ok=', res.ok, 'body=', data);
 
-        if (!res.ok) {
+        if (!res.ok || data.status === 'error') {
           setLoading(false);
           setError('Registration Error: ' + (data.message || text || res.statusText));
           return;
         }
 
-        if (data.status === 'redirect') {
+        if (data.status === 'redirect' && data.auth_url) {
           setLoadingMsg('Redirecting to Google sign-in...');
-          window.location.href = data.auth_url;
+          setTimeout(() => {
+            window.location.href = data.auth_url;
+          }, 500);
           return;
         } else if (data.status === 'success') {
           window.localStorage.setItem('local_share', data.local_share);
