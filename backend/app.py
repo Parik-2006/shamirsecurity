@@ -141,7 +141,12 @@ BACKEND_URL  = os.environ.get('BACKEND_URL', 'http://localhost:5000')
 
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://tacsrdvzgcsucparujcr.supabase.co')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhY3NyZHZ6Z2NzdWNwYXJ1amNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3NDE5NjYsImV4cCI6MjA4MjMxNzk2Nn0.bp5qZG28mODVoeSIEWoWF-tbwtmCIXM1GQ1JvM9XmpA')
-GOOGLE_SCOPES = os.environ.get('GOOGLE_SCOPES', 'https://www.googleapis.com/auth/drive.file').split(',')
+GOOGLE_SCOPES = [
+    'https://www.googleapis.com/auth/drive.file',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'openid'
+]
 GOOGLE_REDIRECT_URI = f'{BACKEND_URL}/api/google/callback'
 
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
@@ -344,7 +349,6 @@ def register_init():
         flow = get_google_flow()
         auth_url, _ = flow.authorization_url(
             access_type='offline',
-            include_granted_scopes='true',
             prompt='consent',
             state=reg_id,  # Pass reg_id so we can match it in callback
             login_hint=username,
