@@ -248,6 +248,10 @@ function App() {
         setError('Registration failed: Your Google Drive is full. Please free up space or sign in with a different Google account.');
         return;
       }
+      if (lower.includes('expired') || lower.includes('invalid')) {
+        setError('Registration failed: Your registration session expired or is invalid. Please try again from the beginning.');
+        return;
+      }
       setError('Registration failed: ' + regError);
       return;
     }
@@ -297,7 +301,11 @@ function App() {
         .catch(e => {
           const msg = getErrorMessage(e);
           console.error('Registration complete error:', e);
-          setError('Failed to complete registration: ' + msg);
+          if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+            setError('Cannot connect to backend. Make sure the server is running and try again.');
+          } else {
+            setError('Failed to complete registration: ' + msg);
+          }
         })
         .finally(() => setLoading(false));
     }

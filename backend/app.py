@@ -171,7 +171,23 @@ print(f"[INIT] Google redirect: {GOOGLE_REDIRECT_URI}")
 
 # --- PENDING REGISTRATIONS (in-memory store) ---
 # Each entry: { username, share1, local_share, golden_key, created_at, completed }
-pending_registrations = {}
+import json
+PENDING_REG_PATH = 'pending_registrations.json'
+def load_pending_registrations():
+    try:
+        with open(PENDING_REG_PATH, 'r') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save_pending_registrations():
+    try:
+        with open(PENDING_REG_PATH, 'w') as f:
+            json.dump(pending_registrations, f)
+    except Exception as e:
+        print(f"[PERSIST] Failed to save pending_registrations: {e}")
+
+pending_registrations = load_pending_registrations()
 
 # --- RETRY HELPER FOR SUPABASE OPERATIONS ---
 def supabase_retry(operation, max_retries=3, delay=2):
@@ -351,12 +367,12 @@ def register_init():
             'created_at': time.time(),
             'completed': False
         }
-        
         # Clean up expired pending registrations (> 10 min old)
         now = time.time()
         expired = [k for k, v in pending_registrations.items() if now - v.get('created_at', 0) > 600]
         for k in expired:
             del pending_registrations[k]
+        save_pending_registrations()
 
         # Generate Google OAuth URL -- user will sign in with THEIR Google account
         flow = get_google_flow()
@@ -431,6 +447,7 @@ def google_callback():
         # Mark registration as complete
         pending_registrations[state]['completed'] = True
         pending_registrations[state]['mfa_enabled'] = mfa_enabled
+        save_pending_registrations()
         
         # Upload share1 to THIS USER'S Google Drive
         print(f"[GOOGLE CALLBACK] Uploading share1 to user's Google Drive...")
@@ -442,6 +459,7 @@ def google_callback():
         
         # Mark registration as complete
         pending_registrations[state]['completed'] = True
+        save_pending_registrations()
         
         # Redirect back to frontend with MFA status
         print(f"[GOOGLE CALLBACK] Redirecting to frontend...")
@@ -480,6 +498,7 @@ def register_complete():
         
         # Clean up - remove from pending
         del pending_registrations[reg_id]
+        save_pending_registrations()
         
         print(f"[REGISTER COMPLETE] Keys delivered to {username}'s browser!")
         return jsonify(result)
