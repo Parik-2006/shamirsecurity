@@ -285,17 +285,12 @@ function App() {
             setUsername(data.username);
             setGoldenKey(data.golden_key);
             console.log('[FRONTEND] Registration complete response:', data);
-            if (typeof data.local_share_plain === 'string' && data.local_share_plain.length > 0) {
-              setPendingLocalShare(data.local_share_plain);
-              setRequireLocalShareDownload(true);
-              setLoading(false);
-              // Do NOT setPage('vault') yet
-              return;
-            } else {
-              setError('Critical error: Recovery share (local_share) missing from server response. Please contact support.');
-              setLoading(false);
-              return;
-            }
+            // Always prompt for download of encrypted local share
+            setPendingLocalShare(data.local_share); // Use backend-encrypted local_share
+            setRequireLocalShareDownload(true);
+            setLoading(false);
+            // Do NOT setPage('vault') yet
+            return;
           } else {
             setError('Registration Error: ' + (data.message || 'Unknown error'));
           }
