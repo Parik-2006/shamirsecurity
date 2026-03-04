@@ -212,6 +212,7 @@ function LocalShareDownloadModal({ localShare, password, onDownloaded }) {
         </p>
       </div>
     </div>
+
   );
 }
 
@@ -316,13 +317,34 @@ function App() {
       return;
     }
     try {
-      const res = await fetch(`${API_URL}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ username, password, local_share: localShare }),
-      });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      let res;
+      try {
+        res = await fetch(`${API_URL}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ username, password, local_share: localShare }),
+          signal: controller.signal
+        });
+      } catch (fetchErr) {
+        if (fetchErr.name === 'AbortError') {
+          setError('Login failed: Backend did not respond (timeout).');
+        } else {
+          setError('Login failed: Cannot connect to backend.');
+        }
+        setLoading(false);
+        clearTimeout(timeout);
+        return;
+      }
+      clearTimeout(timeout);
       const text = await res.text();
-      const data = safeJSONParse(text) || { status: 'error', message: 'Invalid JSON response', raw: text };
+      let data;
+      try {
+        data = safeJSONParse(text) || { status: 'error', message: 'Invalid JSON response', raw: text };
+      } catch {
+        data = { status: 'error', message: 'Invalid JSON response', raw: text };
+      }
       if (!res.ok) {
         setError('Login Error: ' + (data.message || text || res.statusText));
       } else if (data.status === 'success') {
