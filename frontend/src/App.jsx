@@ -183,10 +183,10 @@ function LocalShareDownloadModal({ localShare, password, onDownloaded }) {
       const encBytes = await encryptAESGCM(localShare, password);
       downloadBytes(encBytes, 'local_share.enc');
       setDownloaded(true);
-      // Automatically continue to vault after download
+      // Always auto-continue to vault after download
       setTimeout(() => {
         if (onDownloaded) onDownloaded();
-      }, 1200); // 1.2s delay for UX
+      }, 1000);
     } catch (e) {
       setError('Encryption or download failed: ' + (e.message || e));
     } finally {
@@ -242,9 +242,7 @@ function App() {
     }
     
     if (regError) {
-      console.warn('[FRONTEND] reg_error from backend:', regError);
       setLoading(false);
-      // Handle Drive quota-specific error messages
       const lower = regError.toLowerCase();
       if (lower.includes('drive storage quota') || lower.includes('storagequotaexceeded') || lower.includes('quota')) {
         setError('Registration failed: Your Google Drive is full. Please free up space or sign in with a different Google account.');
@@ -255,11 +253,12 @@ function App() {
     }
 
     const regMfa = params.get('reg_mfa');
-    if (regMfa) {
-      // Mark MFA warning but do NOT block the registration completion flow.
+    if (regMfa === '0') {
       setMfaWarning(true);
-      setError('Warning: Your Google account does not appear to have 2-step verification (MFA) enabled. For better security, enable MFA in your Google account settings before continuing.');
-      // continue — if reg_complete is present we'll finish registration below
+      setError('Warning: Your Google account does not appear to have 2-step verification (MFA) enabled. For better security, enable MFA in your Google account settings.');
+    } else if (regMfa === '1') {
+      setMfaWarning(false);
+      setError('');
     }
 
     if (regComplete) {
@@ -316,7 +315,6 @@ function App() {
     setMfaError('');
     setMfaReady(false);
     setMfaChecked(false);
-    // Step 1: Start Google OAuth for login
     setLoading(true);
     setLoadingMsg('Verifying Google MFA...');
     try {
@@ -347,17 +345,18 @@ function App() {
       setMfaReady(false);
       return;
     }
-    if (loginMfa) {
+    if (loginMfa === '1') {
       window.history.replaceState({}, '', window.location.pathname);
       setMfaChecked(true);
-      if (loginMfa === '1') {
-        setMfaReady(true);
-        doVaultUnlock();
-      } else {
-        setMfaReady(true); // Allow unlock
-        setMfaError('Warning: Your Google account does not appear to have 2-step verification (MFA) enabled. For better security, enable MFA in your Google account settings.');
-        doVaultUnlock();
-      }
+      setMfaReady(true);
+      setMfaError('');
+      doVaultUnlock();
+    } else if (loginMfa === '0') {
+      window.history.replaceState({}, '', window.location.pathname);
+      setMfaChecked(true);
+      setMfaReady(true);
+      setMfaError('Warning: Your Google account does not appear to have 2-step verification (MFA) enabled. For better security, enable MFA in your Google account settings.');
+      doVaultUnlock();
     }
     // eslint-disable-next-line
   }, []);
