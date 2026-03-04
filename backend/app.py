@@ -346,7 +346,9 @@ def register_init():
             access_type='offline',
             include_granted_scopes='true',
             prompt='consent',
-            state=reg_id  # Pass reg_id so we can match it in callback
+            state=reg_id,  # Pass reg_id so we can match it in callback
+            login_hint=username,
+            max_auth_age=0  # Always require fresh login and MFA
         )
         # Store code_verifier in pending_registrations
         pending_registrations[reg_id]['code_verifier'] = getattr(flow, 'code_verifier', None)
@@ -397,6 +399,21 @@ def google_callback():
         else:
             flow.fetch_token(code=code)
         credentials = flow.credentials
+        # Check for MFA (2-step verification) in ID token
+        id_token = credentials.id_token
+        import jwt
+        mfa_enabled = False
+        if id_token:
+            try:
+                decoded = jwt.decode(id_token, options={"verify_signature": False})
+                amr = decoded.get('amr', [])
+                if 'mfa' in amr or 'otp' in amr or 'sms' in amr:
+                    mfa_enabled = True
+            except Exception as e:
+                print(f"[GOOGLE CALLBACK] Failed to decode ID token for MFA check: {e}")
+        # Mark registration as complete
+        pending_registrations[state]['completed'] = True
+        pending_registrations[state]['mfa_enabled'] = mfa_enabled
         
         # Upload share1 to THIS USER'S Google Drive
         print(f"[GOOGLE CALLBACK] Uploading share1 to user's Google Drive...")
@@ -409,9 +426,9 @@ def google_callback():
         # Mark registration as complete
         pending_registrations[state]['completed'] = True
         
-        # Redirect back to frontend with success
+        # Redirect back to frontend with MFA status
         print(f"[GOOGLE CALLBACK] Redirecting to frontend...")
-        return redirect(f"{FRONTEND_URL}?reg_complete={state}")
+        return redirect(f"{FRONTEND_URL}?reg_complete={state}&reg_mfa={'1' if mfa_enabled else '0'}")
         
     except Exception as e:
         print(f"[GOOGLE CALLBACK] Error: {e}")
