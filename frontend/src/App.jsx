@@ -354,8 +354,9 @@ function App() {
         setMfaReady(true);
         doVaultUnlock();
       } else {
-        setMfaReady(false);
-        setMfaError('Please enable Google MFA (2-Step Verification) to unlock your vault.');
+        setMfaReady(true); // Allow unlock
+        setMfaError('Warning: Your Google account does not appear to have 2-step verification (MFA) enabled. For better security, enable MFA in your Google account settings.');
+        doVaultUnlock();
       }
     }
     // eslint-disable-next-line
@@ -586,9 +587,9 @@ function App() {
                   </svg>
                   Unlock Vault
                 </button>
-                {mfaChecked && (
-                  <div style={{ marginTop: 10, color: mfaReady ? '#10b981' : '#f43f5e' }}>
-                    {mfaReady ? 'Google MFA verified. Unlocking...' : mfaError || 'Google MFA required.'}
+                {mfaChecked && mfaError && (
+                  <div style={{ marginTop: 10, color: '#fbbf24' }}>
+                    {mfaError}
                   </div>
                 )}
               </div>
