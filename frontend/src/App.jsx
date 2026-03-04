@@ -328,10 +328,26 @@ function App() {
     try {
       // Start Google OAuth login
       const res = await fetch(`${API_URL}/api/login/google`);
-      const data = await res.json();
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        const rawText = await res.text();
+        setError('Failed to initiate Google login: Invalid JSON response from backend. Raw response: ' + rawText.slice(0, 120));
+        setLoading(false);
+        return;
+      }
       if (data.status === 'redirect' && data.auth_url) {
-        // Redirect to Google, callback will hit /api/login/callback
-        window.location.href = data.auth_url.replace('/oauth2/v2/auth', '/api/login/callback');
+        // Robustly handle Google OAuth redirect URL
+        let redirectUrl = data.auth_url;
+        if (redirectUrl && redirectUrl.inbcludes('/oauth2/v2/auth')) {
+          redirectUrl = redirectUrl.replace('/oauth2/v2/auth', '/api/login/callback');
+        }
+        try {
+          window.location.href = redirectUrl;
+        } catch (e) {
+          setError('Failed to redirect to Google login: ' + getErrorMessage(e));
+        }
         return;
       } else {
         setError('Failed to initiate Google login: ' + (data.message || 'Unknown error'));
