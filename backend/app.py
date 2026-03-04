@@ -60,8 +60,46 @@ def serve_frontend(path):
     if os.path.exists(index_path):
         return send_from_directory(dist_dir, 'index.html')
     else:
-        # Return a simple message and 200 OK if frontend build is missing
-        return '<h1>Backend is running. Frontend build missing.</h1>', 200
+        # Return a styled HTML info page with diagnostics if frontend build is missing
+        html = '''
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Shamir Vault - Backend Running</title>
+            <style>
+                body { font-family: Arial, sans-serif; background: #181c20; color: #fff; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 60px auto; background: #23272b; border-radius: 12px; box-shadow: 0 2px 16px #0008; padding: 32px; }
+                h1 { color: #ffb300; }
+                code { background: #222; color: #ffb300; padding: 2px 6px; border-radius: 4px; }
+                .diagnostics { margin-top: 24px; background: #222; padding: 16px; border-radius: 8px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Shamir Vault Backend is Running</h1>
+                <p>The backend server is up, but the frontend build (<code>frontend/dist/index.html</code>) is missing or not deployed.</p>
+                <div class="diagnostics">
+                    <h2>Deployment Diagnostics</h2>
+                    <ul>
+                        <li><b>Backend URL:</b> {backend_url}</li>
+                        <li><b>Frontend URL:</b> {frontend_url}</li>
+                        <li><b>Checked for:</b> <code>{index_path}</code></li>
+                        <li><b>Timestamp:</b> {timestamp}</li>
+                    </ul>
+                    <p style="color:#ffb300;">To fix: Build your frontend and deploy <code>dist</code> to the correct location.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        '''.format(
+            backend_url=BACKEND_URL,
+            frontend_url=FRONTEND_URL,
+            index_path=index_path,
+            timestamp=time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())
+        )
+        return html, 200, {'Content-Type': 'text/html'}
 # backend/app.py
 import os
 import json
