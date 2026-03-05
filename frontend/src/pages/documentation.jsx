@@ -74,6 +74,22 @@ export default function Documentation({ onBack }) {
             </ul>
             <p style={{ color: palette.yellow, fontWeight: 600, marginTop: 18 }}>No single point of compromise.</p>
           </motion.div>
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} style={{ background: palette.card, borderRadius: 18, padding: 32, boxShadow: '0 4px 32px #0a192f55', border: `1.5px solid ${palette.cyan}33` }}>
+            <h2 style={{ color: palette.yellow, fontWeight: 700, fontSize: 20, marginBottom: 12 }}>Centralized</h2>
+            <ul style={{ color: palette.text, fontSize: 16, lineHeight: 1.7, paddingLeft: 18 }}>
+              <li><b>Single Point of Failure:</b> One hack exposes everything.</li>
+              <li>All secrets stored in one place.</li>
+              <li>Trust is concentrated.</li>
+            </ul>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} style={{ background: palette.card, borderRadius: 18, padding: 32, boxShadow: '0 4px 32px #0a192f55', border: `1.5px solid ${palette.green}33` }}>
+            <h2 style={{ color: palette.cyan, fontWeight: 700, fontSize: 20, marginBottom: 12 }}>Decentralized (Our Project)</h2>
+            <ul style={{ color: palette.text, fontSize: 16, lineHeight: 1.7, paddingLeft: 18 }}>
+              <li><b>Distributed Trust:</b> Even if one part is hacked, the master password remains safe.</li>
+              <li>Secrets split across independent locations.</li>
+              <li>Quantum-resilient by design.</li>
+            </ul>
+          </motion.div>
         </div>
       </div>
     </div>

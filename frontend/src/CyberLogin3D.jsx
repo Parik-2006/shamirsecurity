@@ -5,30 +5,7 @@ import { motion } from 'framer-motion';
 export default function CyberLogin3D({ zIndex = 1 }) {
   return (
     <>
-      {/* Animated 3D Padlock */}
-      <motion.div
-        style={{
-          position: 'absolute', top: '10%', left: '8%', zIndex,
-          filter: 'drop-shadow(0 0 24px #FFD70099)',
-        }}
-        animate={{ rotateY: [0, 30, -30, 0], scale: [1, 1.08, 1] }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <svg width="70" height="80" viewBox="0 0 70 80" fill="none">
-          <defs>
-            <linearGradient id="cyberLockGold" x1="0" y1="0" x2="70" y2="80" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#FFD700" />
-              <stop offset="1" stopColor="#FFF8DC" />
-            </linearGradient>
-          </defs>
-          <rect x="15" y="35" width="40" height="30" rx="10" fill="url(#cyberLockGold)" stroke="#FFD700" strokeWidth="3" />
-          <ellipse cx="35" cy="50" rx="10" ry="12" fill="#fff2" />
-          <path d="M25 35v-10a10 10 0 0 1 20 0v10" stroke="#FFD700" strokeWidth="3" fill="none" />
-          {/* Circuit lines */}
-          <path d="M35 65 Q40 70 45 65" stroke="#00F5D4" strokeWidth="2" fill="none" />
-          <circle cx="45" cy="65" r="2.5" fill="#00F5D4" />
-        </svg>
-      </motion.div>
+      {/* Removed animated 3D Padlock (lock) as requested */}
       {/* Animated 3D Shield with binary */}
       <motion.div
         style={{
@@ -49,6 +26,45 @@ export default function CyberLogin3D({ zIndex = 1 }) {
           {/* Binary code */}
           <text x="16" y="38" fontSize="10" fill="#00F5D4" fontFamily="monospace">101010</text>
           <text x="16" y="50" fontSize="10" fill="#00F5D4" fontFamily="monospace">011011</text>
+        </svg>
+      </motion.div>
+      {/* Animated 3D Rotating Network Node */}
+      <motion.div
+        style={{
+          position: 'absolute', top: '12%', left: '12%', zIndex,
+          filter: 'drop-shadow(0 0 18px #00fff799)',
+        }}
+        animate={{ rotate: [0, 360], scale: [1, 1.1, 1] }}
+        transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}
+      >
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+          <circle cx="30" cy="30" r="24" stroke="#00fff7" strokeWidth="3" fill="#0a192f" />
+          <circle cx="30" cy="30" r="8" fill="#00fff7" opacity="0.7" />
+          <circle cx="12" cy="30" r="4" fill="#FFD700" />
+          <circle cx="48" cy="30" r="4" fill="#FFD700" />
+          <circle cx="30" cy="12" r="4" fill="#FFD700" />
+          <circle cx="30" cy="48" r="4" fill="#FFD700" />
+          <line x1="30" y1="12" x2="30" y2="48" stroke="#00fff7" strokeWidth="2" />
+          <line x1="12" y1="30" x2="48" y2="30" stroke="#00fff7" strokeWidth="2" />
+        </svg>
+      </motion.div>
+      {/* Animated 3D Floating Bug (Virus) Icon */}
+      <motion.div
+        style={{
+          position: 'absolute', top: '22%', right: '18%', zIndex,
+          filter: 'drop-shadow(0 0 12px #ef4444cc)',
+        }}
+        animate={{ y: [0, -18, 0], scale: [1, 1.08, 1] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
+          <ellipse cx="19" cy="22" rx="10" ry="8" fill="#ef4444" stroke="#FFD700" strokeWidth="2" />
+          <ellipse cx="19" cy="22" rx="5" ry="4" fill="#FFD700" opacity="0.5" />
+          <rect x="17" y="10" width="4" height="10" rx="2" fill="#FFD700" />
+          <line x1="9" y1="30" x2="5" y2="36" stroke="#FFD700" strokeWidth="2" />
+          <line x1="29" y1="30" x2="33" y2="36" stroke="#FFD700" strokeWidth="2" />
+          <line x1="9" y1="14" x2="3" y2="10" stroke="#FFD700" strokeWidth="2" />
+          <line x1="29" y1="14" x2="35" y2="10" stroke="#FFD700" strokeWidth="2" />
         </svg>
       </motion.div>
       {/* Animated 3D Key with pulse */}

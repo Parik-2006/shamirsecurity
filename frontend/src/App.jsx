@@ -1,6 +1,6 @@
 // frontend/src/App.jsx
-import React, { useState, useRef } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import FloatingShapes from './FloatingShapes';
@@ -58,7 +58,7 @@ export default function App() {
   const [goldenKey, setGoldenKey] = useState(null);
   const [vaultUser, setVaultUser] = useState(null);
   const [vaultPage, setVaultPage] = useState(false);
-  // const [regId, setRegId] = useState(null); // No longer used
+  // Registration ID logic removed (setRegId not used)
   const [localShare, setLocalShare] = useState(null);
   // const fileInputRef = useRef(); // No longer used
 
@@ -78,13 +78,12 @@ export default function App() {
       });
       const data = await res.json();
       if (data.status === 'redirect' && data.auth_url && data.reg_id) {
-        setRegId(data.reg_id);
         setSuccess('Redirecting to Google for authentication...');
         window.location.href = data.auth_url;
       } else {
         setError(data.message || 'Vault creation failed.');
       }
-    } catch (e) {
+    } catch {
       setError('Network error creating vault.');
     } finally {
       setLoading(false);
@@ -149,7 +148,7 @@ export default function App() {
       } else {
         setError(data.message || 'Unlock failed.');
       }
-    } catch (e) {
+    } catch {
       setError('Network error unlocking vault.');
     } finally {
       setLoading(false);
@@ -179,16 +178,29 @@ export default function App() {
           >
             <CyberLogin3D zIndex={2} />
             <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
-                {/* Lock SVG left of heading, fixed vertical alignment */}
-                <span style={{ display: 'flex', alignItems: 'center', height: 40, marginRight: 6 }}>
-                  <svg width="38" height="38" viewBox="0 0 54 64" fill="none" style={{ display: 'block', verticalAlign: 'middle' }}>
-                    <rect x="7" y="28" width="40" height="28" rx="8" fill="#FFD700" stroke="#FFF8DC" strokeWidth="3" />
-                    <rect x="20" y="38" width="14" height="10" rx="5" fill="#FFF8DC" />
-                    <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
-                  </svg>
-                </span>
-                <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', margin: 0, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55', lineHeight: 1, verticalAlign: 'middle' }}>Shamir Vault</h1>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 24, gap: 18, flexWrap: 'nowrap' }}>
+                {/* 3D Lock SVG Logo */}
+                <motion.svg
+                  width="48" height="48" viewBox="0 0 54 64" fill="none"
+                  style={{ marginRight: 10, verticalAlign: 'middle', display: 'inline-block', flexShrink: 0 }}
+                  initial={{ rotate: 0, scale: 1 }}
+                  animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.08, 1] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <defs>
+                    <radialGradient id="lock3dGlow" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="#FFF8DC" stopOpacity="0.9" />
+                      <stop offset="100%" stopColor="#FFD700" stopOpacity="0.7" />
+                    </radialGradient>
+                  </defs>
+                  <rect x="7" y="28" width="40" height="28" rx="8" fill="url(#lock3dGlow)" stroke="#FFD700" strokeWidth="3" />
+                  <rect x="20" y="38" width="14" height="10" rx="5" fill="#FFF8DC" />
+                  <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
+                  {/* 3D effect: shadow and highlight */}
+                  <ellipse cx="27" cy="54" rx="12" ry="4" fill="#FFD70033" />
+                  <ellipse cx="27" cy="32" rx="10" ry="3" fill="#FFF8DC44" />
+                </motion.svg>
+                <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 38, textAlign: 'center', margin: 0, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55', lineHeight: 1, verticalAlign: 'middle', display: 'inline-block', whiteSpace: 'nowrap' }}>Shamir Vault</h1>
               </div>
               <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
                 Secure Multi-Key Secret Management
@@ -231,16 +243,16 @@ export default function App() {
                 <button
                   className="floating"
                   style={{
-                    width: '100%',
-                    padding: '16px',
-                    fontSize: 20,
+                    width: '95%',
+                    padding: '12px',
+                    fontSize: 16,
                     fontWeight: 800,
                     background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
                     color: '#FFD66B',
                     border: '2px solid #23272f',
                     borderRadius: 14,
                     cursor: 'pointer',
-                    marginBottom: 18,
+                    marginBottom: 14,
                     boxShadow: '0 2px 8px #23272f55',
                     letterSpacing: 1.1,
                     transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
@@ -254,9 +266,9 @@ export default function App() {
                 <button
                   className="floating"
                   style={{
-                    width: '100%',
-                    padding: '16px',
-                    fontSize: 20,
+                    width: '95%',
+                    padding: '12px',
+                    fontSize: 16,
                     fontWeight: 800,
                     background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
                     color: '#FFD66B',
@@ -305,12 +317,6 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
-      {page === 'documentation' && (
-        <Documentation onBack={() => setPage('login')} />
-      )}
-      {page === 'verification' && (
-        <Verification onBack={() => setPage('login')} />
-      )}
     </div>
   );
 }

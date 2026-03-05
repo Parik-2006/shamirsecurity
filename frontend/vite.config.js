@@ -7,8 +7,9 @@ export default defineConfig({
     chunkSizeWarningLimit: 1500, // Increase limit to suppress warning for large bundles
   },
   server: {
+    port: 3000,
     proxy: {
-      '/api': 'http://localhost:10000', // Proxy API requests to Flask backend
+      '/api': 'http://localhost:5000', // Proxy API requests to Flask backend (hosted/prod)
     },
   },
 })
