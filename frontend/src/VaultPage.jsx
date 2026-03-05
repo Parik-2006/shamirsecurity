@@ -7,7 +7,8 @@ import { loadSlim } from '@tsparticles/slim';
 import FloatingShapes from './FloatingShapes';
 
 // API base URL - uses env variable in production, localhost in dev
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Use VITE_API_URL for API requests (supports dev/prod)
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 // Particles configuration for vault page
 const particlesConfig = {

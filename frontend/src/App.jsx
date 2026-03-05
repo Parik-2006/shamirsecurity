@@ -13,6 +13,8 @@ function TopRightNav({ onNavigate }) {
   const btn3D = {
     background: 'linear-gradient(145deg, #151A21 60%, #23272f 100%)',
     color: '#FFD700',
+    // Use VITE_API_URL for API requests (supports dev/prod)
+    const API_URL = import.meta.env.VITE_API_URL || '';
     border: '2.5px solid #FFD700',
     borderRadius: 14,
     fontWeight: 800,
@@ -35,7 +37,7 @@ function TopRightNav({ onNavigate }) {
     transformStyle: 'preserve-3d',
   };
   return (
-    <div style={{ display: 'flex', gap: 16 }}>
+          const res = await fetch(`${API_URL}/api/register/init`, {
       <button onClick={() => onNavigate('documentation')} style={btn3D}>
         <span style={{ color: '#FFD700' }}>Documentation</span>
       </button>
@@ -64,7 +66,7 @@ export default function App() {
 
   const handleNavigate = (target) => setPage(target);
 
-  // Step 1: Start registration, get Google OAuth URL
+          fetch(`${API_URL}/api/register/complete`, {
   const handleCreateVault = async () => {
     setError(''); setSuccess(''); setLoading(true);
     try {
@@ -97,7 +99,7 @@ export default function App() {
   };
 
   // Step 2: After Google OAuth, complete registration and download local_share
-  React.useEffect(() => {
+          const res = await fetch(`${API_URL}/api/login`, {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
     if (regComplete) {
