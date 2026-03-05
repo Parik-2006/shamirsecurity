@@ -110,40 +110,44 @@ export default function App() {
                 }}
               />
             </div>
-            <button
-              style={{
-                width: '100%',
-                padding: '12px',
-                fontSize: 18,
-                fontWeight: 700,
-                background: 'linear-gradient(90deg, #00fff7, #00ff85)',
-                color: '#181c20',
-                border: 'none',
-                borderRadius: 10,
-                cursor: 'pointer',
-                marginBottom: 12,
-                boxShadow: '0 2px 16px #00fff799',
-              }}
-            >
-              Unlock Vault
-            </button>
-            <button
-              style={{
-                width: '100%',
-                padding: '12px',
-                fontSize: 18,
-                fontWeight: 700,
-                background: 'linear-gradient(90deg, #00ff85, #00fff7)',
-                color: '#181c20',
-                border: 'none',
-                borderRadius: 10,
-                cursor: 'pointer',
-                marginBottom: 8,
-                boxShadow: '0 2px 16px #00fff799',
-              }}
-            >
-              Create New Vault
-            </button>
+              <button
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  fontSize: 18,
+                  fontWeight: 700,
+                  background: 'linear-gradient(90deg, #151A21 60%, #00F5D4 100%)',
+                  color: '#00F5D4',
+                  border: '2px solid #00F5D4',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  marginBottom: 14,
+                  boxShadow: '0 2px 24px #00F5D455',
+                  letterSpacing: 1.1,
+                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                }}
+              >
+                Create New Vault
+              </button>
+              <button
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  fontSize: 18,
+                  fontWeight: 700,
+                  background: 'linear-gradient(90deg, #151A21 60%, #40E0FF 100%)',
+                  color: '#40E0FF',
+                  border: '2px solid #40E0FF',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  marginBottom: 8,
+                  boxShadow: '0 2px 24px #40E0FF55',
+                  letterSpacing: 1.1,
+                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                }}
+              >
+                Unlock Vault
+              </button>
           </div>
         )}
         {page === 'documentation' && (
