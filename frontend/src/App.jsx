@@ -68,6 +68,7 @@ export default function App() {
   const handleCreateVault = async () => {
     setError(''); setSuccess(''); setLoading(true);
     try {
+      console.log('[CreateVault] Attempting to create vault with:', { username, password });
       if (!username || !password) {
         setError('Please enter username and password.'); setLoading(false); return;
       }
@@ -76,15 +77,20 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
+      console.log('[CreateVault] /api/register/init response status:', res.status);
       const data = await res.json();
+      console.log('[CreateVault] /api/register/init response data:', data);
       if (data.status === 'redirect' && data.auth_url && data.reg_id) {
         setSuccess('Redirecting to Google for authentication...');
+        console.log('[CreateVault] Redirecting to:', data.auth_url);
         window.location.href = data.auth_url;
       } else {
         setError(data.message || 'Vault creation failed.');
+        console.error('[CreateVault] Error in response:', data.message || 'Vault creation failed.');
       }
-    } catch {
+    } catch (err) {
       setError('Network error creating vault.');
+      console.error('[CreateVault] Network or unexpected error:', err);
     } finally {
       setLoading(false);
     }
