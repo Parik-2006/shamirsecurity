@@ -6,50 +6,38 @@ import FloatingShapes from './FloatingShapes';
 
 
 function TopRightNav({ onNavigate }) {
+  const gold = '#FFD66B';
+  const btnStyle = {
+    background: 'rgba(21, 26, 33, 0.98)',
+    color: gold,
+    border: `2px solid ${gold}`,
+    borderRadius: 7,
+    fontWeight: 800,
+    fontSize: 13,
+    padding: '5px 13px',
+    margin: 0,
+    boxShadow: `0 1.5px 8px ${gold}55`,
+    cursor: 'pointer',
+    outline: 'none',
+    transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+    textShadow: `0 1px 6px ${gold}99`,
+    letterSpacing: 0.5,
+    minWidth: 0,
+    minHeight: 0,
+    lineHeight: 1.2,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+  };
   return (
-    <div style={{
-      position: 'absolute',
-      top: 32,
-      right: 32,
-      display: 'flex',
-      gap: 18,
-      zIndex: 10
-    }}>
-      <button
-        onClick={() => onNavigate('documentation')}
-        style={{
-          background: 'rgba(10,25,47,0.92)',
-          color: '#00fff7',
-          border: '2px solid #00fff7',
-          borderRadius: 12,
-          fontWeight: 700,
-          fontSize: 18,
-          padding: '12px 28px',
-          boxShadow: '0 2px 16px #0a192f99',
-          cursor: 'pointer',
-          outline: 'none',
-          transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-        }}
-      >
-        📘 Documentation
+    <div style={{ display: 'flex', gap: 8 }}>
+      <button onClick={() => onNavigate('documentation')} style={btnStyle}>
+        <span style={{ color: gold, fontSize: 15 }}>📘</span>
+        <span style={{ color: gold }}>Documentation</span>
       </button>
-      <button
-        onClick={() => onNavigate('verification')}
-        style={{
-          background: 'rgba(10,25,47,0.92)',
-          color: '#00ff85',
-          border: '2px solid #00ff85',
-          borderRadius: 12,
-          fontWeight: 700,
-          fontSize: 18,
-          padding: '12px 28px',
-          boxShadow: '0 2px 16px #0a192f99',
-          cursor: 'pointer',
-          outline: 'none',
-          transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-        }}
-      >
-        ⚙️ Verification
+      <button onClick={() => onNavigate('verification')} style={btnStyle}>
+        <span style={{ color: gold, fontSize: 15 }}>⚙️</span>
+        <span style={{ color: gold }}>Verification</span>
       </button>
     </div>
   );
