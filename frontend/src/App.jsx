@@ -5,7 +5,7 @@ import Verification from './pages/verification';
 import FloatingShapes from './FloatingShapes';
 import Cyber3DShapes from './Cyber3DShapes';
 import VaultPage from './VaultPage';
-import logoLock from './assets/shamir_logo_lock.png';
+
 
 
 function TopRightNav({ onNavigate }) {
@@ -57,9 +57,9 @@ export default function App() {
   const [goldenKey, setGoldenKey] = useState(null);
   const [vaultUser, setVaultUser] = useState(null);
   const [vaultPage, setVaultPage] = useState(false);
-  const [regId, setRegId] = useState(null);
+  // const [regId, setRegId] = useState(null); // No longer used
   const [localShare, setLocalShare] = useState(null);
-  const fileInputRef = useRef();
+  // const fileInputRef = useRef(); // No longer used
 
   const handleNavigate = (target) => setPage(target);
 
@@ -126,15 +126,7 @@ export default function App() {
   }, []);
 
   // Step 3: Unlock vault (user uploads local_share.enc)
-  const handleLocalShareUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      setLocalShare(evt.target.result);
-    };
-    reader.readAsText(file);
-  };
+  // const handleLocalShareUpload = (e) => { /* removed with file upload */ };
 
   const handleUnlockVault = async () => {
     setError(''); setSuccess(''); setLoading(true);
@@ -169,13 +161,25 @@ export default function App() {
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <FloatingShapes zIndex={0} />
-      <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
-        <TopRightNav onNavigate={handleNavigate} />
-      </div>
+      {(page === 'login' || page === 'verification') && (
+        <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
+          <TopRightNav onNavigate={handleNavigate} />
+        </div>
+      )}
       {page === 'login' && (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
           <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #00F5D422', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', marginBottom: 8, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55' }}>Shamir Vault</h1>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
+              {/* 3D Lock SVG (smaller, left of heading) */}
+              <span style={{ display: 'flex', alignItems: 'center', height: 38 }}>
+                <svg width="38" height="38" viewBox="0 0 54 64" fill="none" style={{ display: 'block' }}>
+                  <rect x="7" y="28" width="40" height="28" rx="8" fill="#FFD700" stroke="#FFF8DC" strokeWidth="3" />
+                  <rect x="20" y="38" width="14" height="10" rx="5" fill="#FFF8DC" />
+                  <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
+                </svg>
+              </span>
+              <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', margin: 0, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55', lineHeight: 1 }}>Shamir Vault</h1>
+            </div>
             <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
               Secure Multi-Key Secret Management
             </p>
@@ -214,6 +218,7 @@ export default function App() {
                   marginBottom: 22,
                 }}
               />
+              {/* Removed duplicate lock + heading row */}
               <button
                 className="floating"
                 style={{
@@ -236,15 +241,6 @@ export default function App() {
               >
                 Create New Vault
               </button>
-              <div style={{ width: '100%', margin: '12px 0' }}>
-                <input
-                  type="file"
-                  accept=".enc,.txt"
-                  ref={fileInputRef}
-                  onChange={handleLocalShareUpload}
-                  style={{ width: '100%', marginBottom: 10, color: '#eaf6fb', background: '#181c20', border: '1.5px solid #00F5D4', borderRadius: 10, padding: 8 }}
-                />
-              </div>
               <button
                 className="floating"
                 style={{
