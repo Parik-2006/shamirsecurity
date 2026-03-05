@@ -4,6 +4,7 @@ import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import FloatingShapes from './FloatingShapes';
 import Cyber3DShapes from './Cyber3DShapes';
+import logoLock from './assets/shamir_logo_lock.png';
 
 
 function TopRightNav({ onNavigate }) {
@@ -223,27 +224,14 @@ export default function App() {
               >
                 Unlock Vault
               </button>
-              {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
-              {success && <div style={{ color: '#22c55e', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
-            </div>
-          </div>
-        </div>
-      )}
-      {page === 'documentation' && (
-        <Documentation onBack={() => setPage('login')} />
-      )}
-      {page === 'verification' && (
-        <Verification onBack={() => setPage('login')} />
-      )}
-=======
-      {page === 'login' && (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-          <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #00F5D422', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', marginBottom: 8, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55' }}>Shamir Vault</h1>
-            <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
-              Secure Multi-Key Secret Management
-            </p>
->>>>>>> fe4979e (UI/UX: Add back button, full background, and 3D grid animations to Documentation and Verification pages)
+                    {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
+                    {success && <div style={{ color: '#22c55e', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
+          <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', marginBottom: 8, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55' }}>Shamir Vault</h1>
+      <Cyber3DShapes zIndex={1} />
+          <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
+            Secure Multi-Key Secret Management
+          </p>
+          {page === 'login' && (
             <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <input
                 type="text"
