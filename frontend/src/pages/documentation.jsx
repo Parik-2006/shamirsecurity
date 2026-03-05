@@ -56,7 +56,7 @@ export default function Documentation({ onBack }) {
       <AnimatedGrid position={{ bottom: 40, left: 40 }} color={palette.green} />
       <AnimatedGrid position={{ bottom: 40, right: 40 }} color={palette.cyan} />
       {/* Back Button */}
-      <button onClick={onBack} style={{ position: 'fixed', top: 32, left: 32, zIndex: 20, background: palette.card, color: palette.cyan, border: `2px solid ${palette.cyan}`, borderRadius: 12, fontWeight: 700, fontSize: 18, padding: '10px 24px', boxShadow: '0 2px 16px #00fff755', cursor: 'pointer', outline: 'none', transition: 'all 0.18s cubic-bezier(.4,2,.6,1)' }}>⟵ Back</button>
+      <button onClick={onBack} style={{ position: 'fixed', top: 32, left: 32, zIndex: 20, background: 'linear-gradient(145deg, #151A21 60%, #23272f 100%)', color: palette.cyan, border: `2.5px solid #00fff7`, borderRadius: 14, fontWeight: 800, fontSize: 18, padding: '12px 28px', boxShadow: '4px 4px 16px #0a192f99, -4px -4px 16px #23272f55, 0 2px 8px #00fff733', cursor: 'pointer', outline: 'none', transition: 'all 0.18s cubic-bezier(.4,2,.6,1)', textShadow: '0 2px 8px #00fff744', letterSpacing: 0.7, minWidth: 0, minHeight: 0, lineHeight: 1.2, display: 'flex', alignItems: 'center', gap: 0, perspective: 400, transformStyle: 'preserve-3d' }}>⟵ Back</button>
       {/* Main content, always on top */}
       <div style={{ position: 'relative', zIndex: 10, maxWidth: 1100, margin: '0 auto', padding: '64px 24px 32px 24px' }}>
         <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: 'anticipate' }} style={{ color: palette.cyan, fontSize: 38, fontWeight: 800, letterSpacing: 1.5, marginBottom: 32, textAlign: 'center', textShadow: '0 2px 24px #00fff755' }}>
