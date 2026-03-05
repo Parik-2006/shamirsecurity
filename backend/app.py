@@ -136,17 +136,42 @@ def healthz():
     return 'OK', 200
 
 # --- STATIC FILE SERVING FOR FRONTEND (PRODUCTION) ---
+
 # Serve static assets (JS, CSS, images, etc.) from frontend/dist/assets
 @app.route('/assets/<path:filename>')
 def serve_assets(filename):
     dist_assets = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist', 'assets')
-    return send_from_directory(dist_assets, filename)
+    try:
+        if not os.path.exists(dist_assets):
+            print(f"[STATIC SERVE] Assets directory missing: {dist_assets}")
+            return jsonify({"status": "error", "message": "Assets directory missing", "path": dist_assets}), 500
+        asset_path = os.path.join(dist_assets, filename)
+        if not os.path.exists(asset_path):
+            print(f"[STATIC SERVE] Asset not found: {asset_path}")
+            return jsonify({"status": "error", "message": "Asset not found", "path": asset_path}), 404
+        print(f"[STATIC SERVE] Serving asset: {asset_path}")
+        return send_from_directory(dist_assets, filename)
+    except Exception as e:
+        print(f"[STATIC SERVE] Exception: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 # Serve favicon if present
 @app.route('/favicon.ico')
 def favicon():
     dist_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
-    return send_from_directory(dist_dir, 'favicon.ico') if os.path.exists(os.path.join(dist_dir, 'favicon.ico')) else ('', 204)
+    favicon_path = os.path.join(dist_dir, 'favicon.ico')
+    try:
+        if os.path.exists(favicon_path):
+            print(f"[FAVICON] Serving favicon: {favicon_path}")
+            return send_from_directory(dist_dir, 'favicon.ico')
+        else:
+            print(f"[FAVICON] Favicon not found: {favicon_path}")
+            return ('', 204)
+    except Exception as e:
+        print(f"[FAVICON] Exception: {e}")
+        return ('', 204)
+
 
 # Serve index.html for all other routes (SPA fallback)
 @app.route('/', defaults={'path': ''})
@@ -154,49 +179,56 @@ def favicon():
 def serve_frontend(path):
     dist_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
     index_path = os.path.join(dist_dir, 'index.html')
-    if os.path.exists(index_path):
-        return send_from_directory(dist_dir, 'index.html')
-    else:
-        # Return a styled HTML info page with diagnostics if frontend build is missing
-        html = '''
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Shamir Vault - Backend Running</title>
-            <style>
-                body { font-family: Arial, sans-serif; background: #181c20; color: #fff; margin: 0; padding: 0; }
-                .container { max-width: 600px; margin: 60px auto; background: #23272b; border-radius: 12px; box-shadow: 0 2px 16px #0008; padding: 32px; }
-                h1 { color: #ffb300; }
-                code { background: #222; color: #ffb300; padding: 2px 6px; border-radius: 4px; }
-                .diagnostics { margin-top: 24px; background: #222; padding: 16px; border-radius: 8px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>Shamir Vault Backend is Running</h1>
-                <p>The backend server is up, but the frontend build (<code>frontend/dist/index.html</code>) is missing or not deployed.</p>
-                <div class="diagnostics">
-                    <h2>Deployment Diagnostics</h2>
-                    <ul>
-                        <li><b>Backend URL:</b> {backend_url}</li>
-                        <li><b>Frontend URL:</b> {frontend_url}</li>
-                        <li><b>Checked for:</b> <code>{index_path}</code></li>
-                        <li><b>Timestamp:</b> {timestamp}</li>
-                    </ul>
-                    <p style="color:#ffb300;">To fix: Build your frontend and deploy <code>dist</code> to the correct location.</p>
+    try:
+        print(f"[SPA FALLBACK] Request path: {path}")
+        if os.path.exists(index_path):
+            print(f"[SPA FALLBACK] Serving index.html: {index_path}")
+            return send_from_directory(dist_dir, 'index.html')
+        else:
+            print(f"[SPA FALLBACK] index.html not found: {index_path}")
+            # Return a styled HTML info page with diagnostics if frontend build is missing
+            html = '''
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Shamir Vault - Backend Running</title>
+                <style>
+                    body { font-family: Arial, sans-serif; background: #181c20; color: #fff; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 60px auto; background: #23272b; border-radius: 12px; box-shadow: 0 2px 16px #0008; padding: 32px; }
+                    h1 { color: #ffb300; }
+                    code { background: #222; color: #ffb300; padding: 2px 6px; border-radius: 4px; }
+                    .diagnostics { margin-top: 24px; background: #222; padding: 16px; border-radius: 8px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Shamir Vault Backend is Running</h1>
+                    <p>The backend server is up, but the frontend build (<code>frontend/dist/index.html</code>) is missing or not deployed.</p>
+                    <div class="diagnostics">
+                        <h2>Deployment Diagnostics</h2>
+                        <ul>
+                            <li><b>Backend URL:</b> {backend_url}</li>
+                            <li><b>Frontend URL:</b> {frontend_url}</li>
+                            <li><b>Checked for:</b> <code>{index_path}</code></li>
+                            <li><b>Timestamp:</b> {timestamp}</li>
+                        </ul>
+                        <p style="color:#ffb300;">To fix: Build your frontend and deploy <code>dist</code> to the correct location.</p>
+                    </div>
                 </div>
-            </div>
-        </body>
-        </html>
-        '''.format(
-            backend_url=BACKEND_URL,
-            frontend_url=FRONTEND_URL,
-            index_path=index_path,
-            timestamp=time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())
-        )
-        return html, 200, {'Content-Type': 'text/html'}
+            </body>
+            </html>
+            '''.format(
+                backend_url=BACKEND_URL,
+                frontend_url=FRONTEND_URL,
+                index_path=index_path,
+                timestamp=time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())
+            )
+            return html, 200, {'Content-Type': 'text/html'}
+    except Exception as e:
+        print(f"[SPA FALLBACK] Exception: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 # backend/app.py
 import os
 import json
