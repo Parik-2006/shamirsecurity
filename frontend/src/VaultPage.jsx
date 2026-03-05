@@ -4,6 +4,7 @@ import { getErrorMessage } from './utils';
 import * as FM from 'framer-motion';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
+import FloatingShapes from './FloatingShapes';
 
 // API base URL - uses env variable in production, localhost in dev
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -41,78 +42,7 @@ const ParticlesBackground = () => {
   );
 };
 
-// Floating background orbs (subtle)
-const FloatingOrbs = () => (
-  <>
-    <div className="floating-orb orb-1" />
-    <div className="floating-orb orb-2" />
-    <div className="floating-orb orb-3" />
-    <div className="floating-orb orb-4" />
-  </>
-);
 
-// Animated floating shapes that move around the screen
-const AnimatedShapes = () => (
-  <>
-    {/* Rotating rings */}
-    <FM.motion.div
-      style={{ position: 'fixed', top: '10%', left: '5%', width: 120, height: 120, border: '3px solid rgba(99, 102, 241, 0.25)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
-      animate={{ rotate: 360, scale: [1, 1.15, 1] }}
-      transition={{ rotate: { duration: 25, repeat: Infinity, ease: 'linear' }, scale: { duration: 5, repeat: Infinity } }}
-    />
-    <FM.motion.div
-      style={{ position: 'fixed', bottom: '15%', right: '5%', width: 90, height: 90, border: '3px solid rgba(236, 72, 153, 0.25)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
-      animate={{ rotate: -360, scale: [1, 0.85, 1] }}
-      transition={{ rotate: { duration: 18, repeat: Infinity, ease: 'linear' }, scale: { duration: 4, repeat: Infinity } }}
-    />
-    
-    {/* Floating dots */}
-    <FM.motion.div
-      style={{ position: 'fixed', top: '25%', right: '10%', width: 18, height: 18, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
-      animate={{ y: [0, -35, 0], x: [0, 20, 0], opacity: [0.5, 1, 0.5] }}
-      transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-    />
-    <FM.motion.div
-      style={{ position: 'fixed', top: '55%', left: '8%', width: 14, height: 14, background: 'linear-gradient(135deg, #06b6d4, #10b981)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
-      animate={{ y: [0, 30, 0], x: [0, -25, 0], opacity: [0.4, 1, 0.4] }}
-      transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-    />
-    <FM.motion.div
-      style={{ position: 'fixed', bottom: '25%', left: '15%', width: 14, height: 14, background: 'linear-gradient(135deg, #ec4899, #f472b6)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
-      animate={{ y: [0, -28, 0], x: [0, 15, 0], opacity: [0.6, 1, 0.6] }}
-      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-    />
-    <FM.motion.div
-      style={{ position: 'fixed', top: '15%', right: '20%', width: 12, height: 12, background: '#facc15', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
-      animate={{ y: [0, 40, 0], opacity: [0.3, 0.8, 0.3] }}
-      transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-    />
-    
-    {/* Floating squares */}
-    <FM.motion.div
-      style={{ position: 'fixed', top: '40%', right: '3%', width: 30, height: 30, border: '3px solid rgba(6, 182, 212, 0.35)', borderRadius: 6, pointerEvents: 'none', zIndex: 0 }}
-      animate={{ rotate: [0, 90, 180, 270, 360], y: [0, -20, 0] }}
-      transition={{ rotate: { duration: 10, repeat: Infinity, ease: 'linear' }, y: { duration: 5, repeat: Infinity } }}
-    />
-    <FM.motion.div
-      style={{ position: 'fixed', bottom: '10%', left: '5%', width: 24, height: 24, border: '3px solid rgba(139, 92, 246, 0.35)', borderRadius: 5, pointerEvents: 'none', zIndex: 0 }}
-      animate={{ rotate: [0, -180, -360], x: [0, 25, 0] }}
-      transition={{ rotate: { duration: 14, repeat: Infinity, ease: 'linear' }, x: { duration: 6, repeat: Infinity } }}
-    />
-    
-    {/* Pulsing circles */}
-    <FM.motion.div
-      style={{ position: 'fixed', top: '65%', right: '15%', width: 60, height: 60, border: '2px solid rgba(16, 185, 129, 0.25)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
-      animate={{ scale: [1, 1.5, 1], opacity: [0.4, 0.15, 0.4] }}
-      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-    />
-    <FM.motion.div
-      style={{ position: 'fixed', top: '8%', left: '40%', width: 45, height: 45, border: '2px solid rgba(251, 146, 60, 0.2)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }}
-      animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.1, 0.3] }}
-      transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-    />
-  </>
-);
 
 // Animated flowing wave at bottom
 const FlowingWaves = () => (
@@ -764,8 +694,7 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
   return (
     <div className="app-wrapper">
       <ParticlesBackground />
-      <AnimatedShapes />
-      <FloatingOrbs />
+      <FloatingShapes zIndex={0} />
       
       <div style={{ 
         position: 'fixed', 

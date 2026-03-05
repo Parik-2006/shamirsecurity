@@ -5,6 +5,7 @@ import * as FM from 'framer-motion';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 import VaultPage from './VaultPage';
+import FloatingShapes from './FloatingShapes';
 import { encryptAESGCM, downloadBytes } from './utils';
 
 // API base URL - uses env variable in production, localhost in dev
@@ -453,7 +454,7 @@ function App() {
   return (
     <div className="app-wrapper">
       <ParticlesBackground />
-      <FloatingOrbs />
+      <FloatingShapes zIndex={0} />
       
       <div style={{ 
         position: 'absolute', 
