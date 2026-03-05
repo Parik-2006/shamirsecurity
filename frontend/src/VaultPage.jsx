@@ -1,7 +1,7 @@
 // frontend/src/VaultPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { getErrorMessage } from './utils';
-import * as FM from 'framer-motion';
+import { motion } from 'framer-motion';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 import FloatingShapes from './FloatingShapes';
@@ -136,33 +136,33 @@ const Icons = {
 
 // Animated loading spinner
 const LoadingSpinner = ({ text = "Loading..." }) => (
-  <FM.motion.div
+  <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     style={{ textAlign: 'center', padding: '60px' }}
   >
     <div className="spinner-container">
-      <FM.motion.div
+      <motion.div
         className="spinner-ring"
         animate={{ rotate: 360 }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
       />
-      <FM.motion.div
+      <motion.div
         className="spinner-ring spinner-ring-2"
         animate={{ rotate: -360 }}
         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
       />
     </div>
-    <FM.motion.p
+    <motion.p
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="gradient-text"
       style={{ marginTop: '25px' }}
     >
       {text}
-    </FM.motion.p>
-  </FM.motion.div>
+    </motion.p>
+  </motion.div>
 );
 
 // Generate dynamic color based on string (dark palette only)
@@ -420,7 +420,7 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
       </td>
       <td style={{ padding: '16px 20px', width: '25%' }}>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', alignItems: 'center' }}>
-          <FM.motion.button 
+          <motion.button 
             onClick={() => onToggleVisibility(index)}
             whileHover={{ scale: 1.08, boxShadow: '0 4px 18px #FFD70055' }}
             whileTap={{ scale: 0.96 }}
@@ -486,7 +486,7 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
           </FM.motion.button>
         </div>
       </td>
-    </FM.motion.tr>
+    </motion.tr>
   );
 };
 
