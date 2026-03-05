@@ -180,15 +180,15 @@ export default function App() {
             <CyberLogin3D zIndex={2} />
             <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
-                {/* Lock SVG left of heading */}
-                <span style={{ display: 'flex', alignItems: 'center', height: 38 }}>
-                  <svg width="38" height="38" viewBox="0 0 54 64" fill="none" style={{ display: 'block' }}>
+                {/* Lock SVG left of heading, fixed vertical alignment */}
+                <span style={{ display: 'flex', alignItems: 'center', height: 40, marginRight: 6 }}>
+                  <svg width="38" height="38" viewBox="0 0 54 64" fill="none" style={{ display: 'block', verticalAlign: 'middle' }}>
                     <rect x="7" y="28" width="40" height="28" rx="8" fill="#FFD700" stroke="#FFF8DC" strokeWidth="3" />
                     <rect x="20" y="38" width="14" height="10" rx="5" fill="#FFF8DC" />
                     <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
                   </svg>
                 </span>
-                <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', margin: 0, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55', lineHeight: 1 }}>Shamir Vault</h1>
+                <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', margin: 0, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55', lineHeight: 1, verticalAlign: 'middle' }}>Shamir Vault</h1>
               </div>
               <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
                 Secure Multi-Key Secret Management
