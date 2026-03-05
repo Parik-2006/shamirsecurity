@@ -1,5 +1,4 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from 'react'; import { motion } from 'framer-motion';
 import FloatingShapes from '../FloatingShapes';
 
 import { Canvas } from '@react-three/fiber';
