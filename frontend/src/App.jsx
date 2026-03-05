@@ -3,31 +3,34 @@ import React, { useState } from 'react';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import FloatingShapes from './FloatingShapes';
+import Cyber3DShapes from './Cyber3DShapes';
 
 
 function TopRightNav({ onNavigate }) {
-  const gold = '#FFD66B';
+  const gold = '#FFD700';
   const btnStyle = {
-    background: 'rgba(21, 26, 33, 0.98)',
+    background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)',
     color: gold,
-    border: `2px solid ${gold}`,
-    borderRadius: 7,
+    border: `2.5px solid ${gold}`,
+    borderRadius: 14,
     fontWeight: 800,
-    fontSize: 13,
-    padding: '5px 13px',
+    fontSize: 15,
+    padding: '10px 22px',
     margin: 0,
-    boxShadow: `0 1px 4px ${gold}44`,
+    boxShadow: '0 4px 18px #FFD70055, 0 1.5px 16px #FFD70022',
     cursor: 'pointer',
     outline: 'none',
     transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-    textShadow: `0 1px 3px ${gold}77`,
-    letterSpacing: 0.5,
+    textShadow: '0 2px 8px #FFD70044',
+    letterSpacing: 0.7,
     minWidth: 0,
     minHeight: 0,
     lineHeight: 1.2,
     display: 'flex',
     alignItems: 'center',
     gap: 0,
+    perspective: 400,
+    transformStyle: 'preserve-3d',
   };
   return (
     <div style={{ display: 'flex', gap: 8 }}>
@@ -58,7 +61,58 @@ export default function App() {
       </div>
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
         <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #00F5D422', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <button
+                className="floating"
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  fontSize: 20,
+                  fontWeight: 800,
+                  background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)',
+                  color: '#FFD700',
+                  border: '2.5px solid #FFD700',
+                  borderRadius: 16,
+                  cursor: 'pointer',
+                  marginBottom: 18,
+                  boxShadow: '0 4px 18px #FFD70055, 0 1.5px 16px #FFD70022',
+                  letterSpacing: 1.1,
+                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  textShadow: '0 2px 8px #FFD70044',
+                  perspective: 400,
+                  transformStyle: 'preserve-3d',
+                }}
+                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(6deg)'}
+                onMouseOut={e => e.currentTarget.style.transform = 'none'}
+              >
+                Create New Vault
+              </button>
+              <button
+                className="floating"
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  fontSize: 20,
+                  fontWeight: 800,
+                  background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)',
+                  color: '#FFD700',
+                  border: '2.5px solid #FFD700',
+                  borderRadius: 16,
+                  cursor: 'pointer',
+                  marginBottom: 8,
+                  boxShadow: '0 4px 18px #FFD70055, 0 1.5px 16px #FFD70022',
+                  letterSpacing: 1.1,
+                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  textShadow: '0 2px 8px #FFD70044',
+                  perspective: 400,
+                  transformStyle: 'preserve-3d',
+                }}
+                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(-6deg)'}
+                onMouseOut={e => e.currentTarget.style.transform = 'none'}
+              >
+                Unlock Vault
+              </button>
           <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', marginBottom: 8, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55' }}>Shamir Vault</h1>
+      <Cyber3DShapes zIndex={1} />
           <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
             Secure Multi-Key Secret Management
           </p>
