@@ -138,8 +138,49 @@ export default function App() {
       <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
         <TopRightNav onNavigate={handleNavigate} />
       </div>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #00F5D422', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+<<<<<<< HEAD
+      {page === 'login' && (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+          <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #00F5D422', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', marginBottom: 8, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55' }}>Shamir Vault</h1>
+            <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
+              Secure Multi-Key Secret Management
+            </p>
+            <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  fontSize: 17,
+                  borderRadius: 10,
+                  border: '1.5px solid #00F5D4',
+                  marginBottom: 14,
+                  background: '#181c20',
+                  color: '#eaf6fb',
+                  outline: 'none',
+                }}
+              />
+              <input
+                type="password"
+                placeholder="Master Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  fontSize: 17,
+                  borderRadius: 10,
+                  border: '1.5px solid #40E0FF',
+                  background: '#181c20',
+                  color: '#eaf6fb',
+                  outline: 'none',
+                  marginBottom: 22,
+                }}
+              />
               <button
                 className="floating"
                 style={{
@@ -147,26 +188,19 @@ export default function App() {
                   padding: '16px',
                   fontSize: 20,
                   fontWeight: 800,
-                  background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)',
-                  color: '#FFD700',
-                  border: '2.5px solid #FFD700',
-                  borderRadius: 16,
-                  cursor: loading ? 'wait' : 'pointer',
+                  background: 'linear-gradient(90deg, #151A21 60%, #00F5D4 100%)',
+                  color: '#00F5D4',
+                  border: '2px solid #00F5D4',
+                  borderRadius: 14,
+                  cursor: 'pointer',
                   marginBottom: 18,
-                  boxShadow: '0 4px 18px #FFD70055, 0 1.5px 16px #FFD70022',
+                  boxShadow: '0 2px 8px #00F5D422',
                   letterSpacing: 1.1,
                   transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                  textShadow: '0 2px 8px #FFD70044',
-                  perspective: 400,
-                  transformStyle: 'preserve-3d',
-                  opacity: loading ? 0.7 : 1,
                 }}
-                disabled={loading}
                 onClick={handleCreateVault}
-                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(6deg)'}
-                onMouseOut={e => e.currentTarget.style.transform = 'none'}
               >
-                {loading ? 'Creating...' : 'Create New Vault'}
+                Create New Vault
               </button>
               <button
                 className="floating"
@@ -175,35 +209,41 @@ export default function App() {
                   padding: '16px',
                   fontSize: 20,
                   fontWeight: 800,
-                  background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)',
-                  color: '#FFD700',
-                  border: '2.5px solid #FFD700',
-                  borderRadius: 16,
-                  cursor: loading ? 'wait' : 'pointer',
+                  background: 'linear-gradient(90deg, #151A21 60%, #40E0FF 100%)',
+                  color: '#40E0FF',
+                  border: '2px solid #40E0FF',
+                  borderRadius: 14,
+                  cursor: 'pointer',
                   marginBottom: 8,
-                  boxShadow: '0 4px 18px #FFD70055, 0 1.5px 16px #FFD70022',
+                  boxShadow: '0 2px 8px #40E0FF22',
                   letterSpacing: 1.1,
                   transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                  textShadow: '0 2px 8px #FFD70044',
-                  perspective: 400,
-                  transformStyle: 'preserve-3d',
-                  opacity: loading ? 0.7 : 1,
                 }}
-                disabled={loading}
                 onClick={handleUnlockVault}
-                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(-6deg)'}
-                onMouseOut={e => e.currentTarget.style.transform = 'none'}
               >
-                {loading ? 'Unlocking...' : 'Unlock Vault'}
+                Unlock Vault
               </button>
-                    {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
-                    {success && <div style={{ color: '#22c55e', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
-          <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', marginBottom: 8, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55' }}>Shamir Vault</h1>
-      <Cyber3DShapes zIndex={1} />
-          <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
-            Secure Multi-Key Secret Management
-          </p>
-          {page === 'login' && (
+              {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
+              {success && <div style={{ color: '#22c55e', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
+            </div>
+          </div>
+        </div>
+      )}
+      {page === 'documentation' && (
+        <Documentation onBack={() => setPage('login')} />
+      )}
+      {page === 'verification' && (
+        <Verification onBack={() => setPage('login')} />
+      )}
+=======
+      {page === 'login' && (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+          <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #00F5D422', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', marginBottom: 8, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55' }}>Shamir Vault</h1>
+            <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
+              Secure Multi-Key Secret Management
+            </p>
+>>>>>>> fe4979e (UI/UX: Add back button, full background, and 3D grid animations to Documentation and Verification pages)
             <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <input
                 type="text"
@@ -280,18 +320,14 @@ export default function App() {
                 Unlock Vault
               </button>
             </div>
-          )}
-        </div>
-      </div>
-      {page === 'documentation' && (
-        <div style={{ marginTop: 32 }}>
-          <Documentation />
+          </div>
         </div>
       )}
+      {page === 'documentation' && (
+        <Documentation onBack={() => setPage('login')} />
+      )}
       {page === 'verification' && (
-        <div style={{ marginTop: 32 }}>
-          <Verification />
-        </div>
+        <Verification onBack={() => setPage('login')} />
       )}
     </div>
   );

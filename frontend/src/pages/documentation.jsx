@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import FloatingShapes from '../FloatingShapes';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 
 
 const palette = {
@@ -17,20 +19,44 @@ const gridBg = {
   background: `repeating-linear-gradient(0deg, ${palette.grid} 0px, ${palette.grid} 1px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, ${palette.grid} 0px, ${palette.grid} 1px, transparent 1px, transparent 40px)`,
   backgroundColor: palette.bg,
   minHeight: '100vh',
-  width: '100vw',
-  position: 'fixed',
+  minWidth: '100vw',
+  position: 'absolute',
   top: 0,
   left: 0,
   zIndex: 0,
+  width: '100%',
+  height: '100%',
 };
 
-export default function Documentation() {
+function AnimatedGrid({ position, color, size = 2, speed = 0.5 }) {
+  // Simple animated 3D grid using react-three-fiber
   return (
-    <div style={{ minHeight: '100vh', width: '100vw', position: 'relative', overflow: 'hidden' }}>
+    <Canvas style={{ position: 'absolute', ...position, width: 180, height: 180, pointerEvents: 'none', zIndex: 2 }} camera={{ position: [0, 0, 6], fov: 50 }}>
+      <ambientLight intensity={0.6} />
+      <pointLight position={[5, 5, 5]} intensity={0.8} color={color} />
+      <mesh rotation={[Math.PI / 4, Math.PI / 4, 0]}>
+        <torusKnotGeometry args={[0.7 * size, 0.18 * size, 80, 8]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} metalness={0.6} roughness={0.3} wireframe />
+      </mesh>
+      <OrbitControls enablePan={false} enableZoom={false} enableRotate={false} />
+    </Canvas>
+  );
+}
+
+export default function Documentation({ onBack }) {
+  return (
+    <div style={{ minHeight: '100vh', minWidth: '100vw', width: '100%', position: 'relative', overflow: 'hidden', background: palette.bg }}>
       {/* Background grid, always at the back */}
-      <div style={{ ...gridBg, zIndex: 0, position: 'absolute' }} />
+      <div style={{ ...gridBg, zIndex: 0 }} />
       {/* Floating shapes, above background */}
       <FloatingShapes zIndex={1} />
+      {/* 3D Animated Grids */}
+      <AnimatedGrid position={{ top: 40, left: 40 }} color={palette.cyan} />
+      <AnimatedGrid position={{ top: 40, right: 40 }} color={palette.yellow} />
+      <AnimatedGrid position={{ bottom: 40, left: 40 }} color={palette.green} />
+      <AnimatedGrid position={{ bottom: 40, right: 40 }} color={palette.cyan} />
+      {/* Back Button */}
+      <button onClick={onBack} style={{ position: 'fixed', top: 32, left: 32, zIndex: 20, background: palette.card, color: palette.cyan, border: `2px solid ${palette.cyan}`, borderRadius: 12, fontWeight: 700, fontSize: 18, padding: '10px 24px', boxShadow: '0 2px 16px #00fff755', cursor: 'pointer', outline: 'none', transition: 'all 0.18s cubic-bezier(.4,2,.6,1)' }}>⟵ Back</button>
       {/* Main content, always on top */}
       <div style={{ position: 'relative', zIndex: 10, maxWidth: 1100, margin: '0 auto', padding: '64px 24px 32px 24px' }}>
         <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: 'anticipate' }} style={{ color: palette.cyan, fontSize: 38, fontWeight: 800, letterSpacing: 1.5, marginBottom: 32, textAlign: 'center', textShadow: '0 2px 24px #00fff755' }}>
