@@ -1,5 +1,6 @@
 // FloatingShapes.jsx
 import React from 'react';
+import { motion } from 'framer-motion';
 
 
 // Quantum Cyber Security color palette (strict, no purple/pink)
