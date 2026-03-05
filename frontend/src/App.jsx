@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import FloatingShapes from './FloatingShapes';
-import Cyber3DShapes from './Cyber3DShapes';
+import CyberLogin3D from './CyberLogin3D';
 import VaultPage from './VaultPage';
 
 
@@ -167,17 +167,10 @@ export default function App() {
         </div>
       )}
       {page === 'login' && (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-          <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #00F5D422', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}>
+          <CyberLogin3D zIndex={2} />
+          <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
-              {/* 3D Lock SVG (smaller, left of heading) */}
-              <span style={{ display: 'flex', alignItems: 'center', height: 38 }}>
-                <svg width="38" height="38" viewBox="0 0 54 64" fill="none" style={{ display: 'block' }}>
-                  <rect x="7" y="28" width="40" height="28" rx="8" fill="#FFD700" stroke="#FFF8DC" strokeWidth="3" />
-                  <rect x="20" y="38" width="14" height="10" rx="5" fill="#FFF8DC" />
-                  <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
-                </svg>
-              </span>
               <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', margin: 0, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55', lineHeight: 1 }}>Shamir Vault</h1>
             </div>
             <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
@@ -194,7 +187,7 @@ export default function App() {
                   padding: '14px',
                   fontSize: 17,
                   borderRadius: 10,
-                  border: '1.5px solid #00F5D4',
+                  border: '1.5px solid #23272f',
                   marginBottom: 14,
                   background: '#181c20',
                   color: '#eaf6fb',
@@ -211,14 +204,13 @@ export default function App() {
                   padding: '14px',
                   fontSize: 17,
                   borderRadius: 10,
-                  border: '1.5px solid #40E0FF',
+                  border: '1.5px solid #23272f',
                   background: '#181c20',
                   color: '#eaf6fb',
                   outline: 'none',
                   marginBottom: 22,
                 }}
               />
-              {/* Removed duplicate lock + heading row */}
               <button
                 className="floating"
                 style={{
@@ -226,15 +218,16 @@ export default function App() {
                   padding: '16px',
                   fontSize: 20,
                   fontWeight: 800,
-                  background: 'linear-gradient(90deg, #151A21 60%, #00F5D4 100%)',
-                  color: '#00F5D4',
-                  border: '2px solid #00F5D4',
+                  background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
+                  color: '#FFD66B',
+                  border: '2px solid #23272f',
                   borderRadius: 14,
                   cursor: 'pointer',
                   marginBottom: 18,
-                  boxShadow: '0 2px 8px #00F5D422',
+                  boxShadow: '0 2px 8px #23272f55',
                   letterSpacing: 1.1,
                   transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  textShadow: '0 2px 8px #FFD66B33',
                 }}
                 onClick={handleCreateVault}
                 disabled={loading}
@@ -248,15 +241,16 @@ export default function App() {
                   padding: '16px',
                   fontSize: 20,
                   fontWeight: 800,
-                  background: 'linear-gradient(90deg, #151A21 60%, #40E0FF 100%)',
-                  color: '#40E0FF',
-                  border: '2px solid #40E0FF',
+                  background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
+                  color: '#FFD66B',
+                  border: '2px solid #23272f',
                   borderRadius: 14,
                   cursor: 'pointer',
                   marginBottom: 8,
-                  boxShadow: '0 2px 8px #40E0FF22',
+                  boxShadow: '0 2px 8px #23272f55',
                   letterSpacing: 1.1,
                   transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  textShadow: '0 2px 8px #FFD66B33',
                 }}
                 onClick={handleUnlockVault}
                 disabled={loading}
@@ -264,7 +258,7 @@ export default function App() {
                 Unlock Vault
               </button>
               {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
-              {success && <div style={{ color: '#22c55e', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
+              {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
             </div>
           </div>
         </div>
