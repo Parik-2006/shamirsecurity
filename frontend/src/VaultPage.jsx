@@ -422,48 +422,60 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', alignItems: 'center' }}>
           <FM.motion.button 
             onClick={() => onToggleVisibility(index)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.08, boxShadow: '0 4px 18px #FFD70055' }}
+            whileTap={{ scale: 0.96 }}
             title={isVisible ? 'Hide Password' : 'Show Password'}
             style={{ 
               padding: '10px 16px', 
-              borderRadius: '8px', 
-              background: isVisible ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',
-              border: isVisible ? '2px solid rgba(239, 68, 68, 0.5)' : '2px solid rgba(34, 197, 94, 0.5)',
-              color: isVisible ? '#ef4444' : '#22c55e',
+              borderRadius: '12px',
+              background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)',
+              border: '2.5px solid #FFD700',
+              color: '#FFD700',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              minWidth: '90px'
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              minWidth: '90px',
+              boxShadow: '0 4px 18px #FFD70055',
+              textShadow: '0 2px 8px #FFD70044',
+              perspective: 400,
+              transformStyle: 'preserve-3d',
             }}
+            onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(6deg)'}
+            onMouseOut={e => e.currentTarget.style.transform = 'none'}
           >
             {isVisible ? Icons.eyeOff : Icons.eye}
             <span>{isVisible ? 'Hide' : 'Show'}</span>
           </FM.motion.button>
           <FM.motion.button
             onClick={handleCopy}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.08, boxShadow: '0 4px 18px #FFD70055' }}
+            whileTap={{ scale: 0.96 }}
             title="Copy Password"
             style={{ 
               padding: '10px 16px', 
-              borderRadius: '8px',
-              background: copied ? 'rgba(34, 197, 94, 0.15)' : 'rgba(99, 102, 241, 0.15)',
-              border: copied ? '2px solid rgba(34, 197, 94, 0.5)' : '2px solid rgba(99, 102, 241, 0.5)',
-              color: copied ? '#22c55e' : '#6366f1',
+              borderRadius: '12px',
+              background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)',
+              border: '2.5px solid #FFD700',
+              color: '#FFD700',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              minWidth: '90px'
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              minWidth: '90px',
+              boxShadow: '0 4px 18px #FFD70055',
+              textShadow: '0 2px 8px #FFD70044',
+              perspective: 400,
+              transformStyle: 'preserve-3d',
             }}
+            onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(-6deg)'}
+            onMouseOut={e => e.currentTarget.style.transform = 'none'}
           >
             {copied ? (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -648,8 +660,26 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
                 <button 
                   onClick={handleAddPassword} 
                   disabled={loading}
-                  className="btn-gradient-primary"
-                  style={{ width: '100%', opacity: loading ? 0.6 : 1 }}
+                  style={{
+                    width: '100%',
+                    opacity: loading ? 0.6 : 1,
+                    background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)',
+                    color: '#FFD700',
+                    border: '2.5px solid #FFD700',
+                    borderRadius: 16,
+                    fontWeight: 800,
+                    fontSize: 18,
+                    boxShadow: '0 4px 18px #FFD70055',
+                    textShadow: '0 2px 8px #FFD70044',
+                    padding: '14px',
+                    marginTop: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                    perspective: 400,
+                    transformStyle: 'preserve-3d',
+                  }}
+                  onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(6deg)'}
+                  onMouseOut={e => e.currentTarget.style.transform = 'none'}
                 >
                   {loading ? (
                     <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
@@ -668,8 +698,24 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
               <div style={{ marginTop: '10px' }}>
                 <button 
                   onClick={() => { setError(''); setPage('view'); }} 
-                  className="btn-ghost"
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    background: 'transparent',
+                    color: '#FFD700',
+                    border: '2px solid #FFD700',
+                    borderRadius: 14,
+                    fontWeight: 700,
+                    fontSize: 16,
+                    marginTop: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  }}
+                  onMouseOver={e => e.currentTarget.style.background = 'rgba(255,215,0,0.08)'}
+                  onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                 >
                   {Icons.back}
                   Back to Vault
@@ -741,14 +787,71 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
             </div>
             
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <button onClick={() => setPage('add')} className="btn-gradient-rainbow" style={{ padding: '12px 20px', fontSize: '0.9rem' }}>
+              <button onClick={() => setPage('add')}
+                style={{
+                  padding: '12px 20px',
+                  fontSize: '1rem',
+                  background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)',
+                  color: '#FFD700',
+                  border: '2.5px solid #FFD700',
+                  borderRadius: 14,
+                  fontWeight: 800,
+                  boxShadow: '0 4px 18px #FFD70055',
+                  marginRight: 8,
+                  cursor: 'pointer',
+                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  textShadow: '0 2px 8px #FFD70044',
+                  perspective: 400,
+                  transformStyle: 'preserve-3d',
+                }}
+                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(6deg)'}
+                onMouseOut={e => e.currentTarget.style.transform = 'none'}
+              >
                 {Icons.plus}
                 <span style={{ marginLeft: '8px' }}>Add</span>
               </button>
-              <button onClick={() => fetchVault(true)} className="btn-gradient-cyan" disabled={refreshing} style={{ padding: '12px 20px', fontSize: '0.9rem' }}>
+              <button onClick={() => fetchVault(true)} disabled={refreshing}
+                style={{
+                  padding: '12px 20px',
+                  fontSize: '1rem',
+                  background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)',
+                  color: '#FFD700',
+                  border: '2.5px solid #FFD700',
+                  borderRadius: 14,
+                  fontWeight: 800,
+                  boxShadow: '0 4px 18px #FFD70055',
+                  marginRight: 8,
+                  cursor: 'pointer',
+                  opacity: refreshing ? 0.6 : 1,
+                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  textShadow: '0 2px 8px #FFD70044',
+                  perspective: 400,
+                  transformStyle: 'preserve-3d',
+                }}
+                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(-6deg)'}
+                onMouseOut={e => e.currentTarget.style.transform = 'none'}
+              >
                 {Icons.refresh}
               </button>
-              <button onClick={onLogout} className="btn-gradient-pink" style={{ padding: '12px 20px', fontSize: '0.9rem' }}>
+              <button onClick={onLogout}
+                style={{
+                  padding: '12px 20px',
+                  fontSize: '1rem',
+                  background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)',
+                  color: '#FFD700',
+                  border: '2.5px solid #FFD700',
+                  borderRadius: 14,
+                  fontWeight: 800,
+                  boxShadow: '0 4px 18px #FFD70055',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  textShadow: '0 2px 8px #FFD70044',
+                  perspective: 400,
+                  transformStyle: 'preserve-3d',
+                }}
+                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(6deg)'}
+                onMouseOut={e => e.currentTarget.style.transform = 'none'}
+              >
                 {Icons.logout}
               </button>
             </div>
@@ -773,7 +876,25 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
               <p style={{ color: '#64748b', marginBottom: '20px', fontSize: '0.9rem' }}>
                 Start by adding your first secret
               </p>
-              <button onClick={() => setPage('add')} className="btn-gradient-success" style={{ padding: '12px 24px' }}>
+              <button onClick={() => setPage('add')}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '1rem',
+                  background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)',
+                  color: '#FFD700',
+                  border: '2.5px solid #FFD700',
+                  borderRadius: 14,
+                  fontWeight: 800,
+                  boxShadow: '0 4px 18px #FFD70055',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  textShadow: '0 2px 8px #FFD70044',
+                  perspective: 400,
+                  transformStyle: 'preserve-3d',
+                }}
+                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(6deg)'}
+                onMouseOut={e => e.currentTarget.style.transform = 'none'}
+              >
                 {Icons.plus}
                 <span style={{ marginLeft: '8px' }}>Add Your First Secret</span>
               </button>

@@ -443,6 +443,8 @@ def register_init():
     - Return Google OAuth URL so user signs in with THEIR account
     """
     try:
+        print("[DEBUG] /api/register/init called")
+        print(f"[TRACE] Incoming data: {request.json}")
         # Check for scope mismatch in environment and code
         expected_scopes = set([
             'openid',
@@ -450,38 +452,58 @@ def register_init():
             'https://www.googleapis.com/auth/userinfo.email',
             'https://www.googleapis.com/auth/userinfo.profile'
         ])
+        print(f"[TRACE] GOOGLE_SCOPES: {GOOGLE_SCOPES}")
         actual_scopes = set(GOOGLE_SCOPES)
         if actual_scopes != expected_scopes:
+            print(f"[ERROR] Google OAuth scope mismatch: expected {expected_scopes}, got {actual_scopes}")
             return jsonify({
                 "status": "error",
                 "message": "Google OAuth scope mismatch. Please ensure your Google Cloud Console OAuth consent screen and backend GOOGLE_SCOPES match exactly: " + ', '.join(expected_scopes)
             }), 400
         data = request.json
+        print(f"[TRACE] Parsed data: {data}")
         password, username = data.get('password'), data.get('username')
+        print(f"[TRACE] username: {username}, password: {'set' if password else 'unset'}")
         
         if not username or not password:
+            print(f"[ERROR] Username or password missing: username={username}, password={'set' if password else 'unset'}")
             return jsonify({"status": "error", "message": "Username and password required"}), 400
         
         print(f"[REGISTER INIT] Starting for user: {username}")
         
         # Generate Shamir shares
         golden_key_int = random.SystemRandom().randint(0, 2**127 - 1)
-        shares = make_random_shares(golden_key_int, 2, 3)
+        print(f"[TRACE] Generating Shamir shares...")
+        try:
+            shares = make_random_shares(golden_key_int, 2, 3)
+        except Exception as e:
+            print(f"[ERROR] Failed to generate Shamir shares: {e}")
+            return jsonify({"status": "error", "message": f"Failed to generate Shamir shares: {e}"}), 500
         share1, share2, share3 = [f"{s[0]}-{s[1]}" for s in shares]
         print(f"[REGISTER INIT] Generated 3 Shamir shares")
 
         # Store share2 in Supabase
         print(f"[REGISTER INIT] Storing share2 in Supabase...")
-        supabase_retry(lambda: supabase.table("shares").delete().eq("username", username).execute())
-        supabase_retry(lambda: supabase.table("shares").insert({"username": username, "share_data": share2}).execute())
+        print(f"[TRACE] Storing share2 in Supabase...")
+        try:
+            supabase_retry(lambda: supabase.table("shares").delete().eq("username", username).execute())
+            supabase_retry(lambda: supabase.table("shares").insert({"username": username, "share_data": share2}).execute())
+        except Exception as e:
+            print(f"[ERROR] Supabase error: {e}")
+            return jsonify({"status": "error", "message": f"Supabase error: {e}"}), 500
         print(f"[REGISTER INIT] Share2 stored")
 
         # Encrypt share3 with user's master password
         salt = os.urandom(16)
-        key = derive_key(password, salt)
-        f = Fernet(key)
-        encrypted_share3 = f.encrypt(share3.encode())
-        local_share_package = base64.b64encode(salt + b"::" + encrypted_share3).decode()
+        print(f"[TRACE] Encrypting share3 with user password...")
+        try:
+            key = derive_key(password, salt)
+            f = Fernet(key)
+            encrypted_share3 = f.encrypt(share3.encode())
+            local_share_package = base64.b64encode(salt + b"::" + encrypted_share3).decode()
+        except Exception as e:
+            print(f"[ERROR] Encryption error: {e}")
+            return jsonify({"status": "error", "message": f"Encryption error: {e}"}), 500
 
         # Create a unique registration ID and store pending data
         reg_id = secrets.token_urlsafe(32)
@@ -501,25 +523,32 @@ def register_init():
         save_pending_registrations()
 
         # Generate Google OAuth URL -- user will sign in with THEIR Google account
-        flow = get_google_flow()
-        auth_url, _ = flow.authorization_url(
-            access_type='offline',
-            prompt='consent',
-            state=reg_id,  # Pass reg_id so we can match it in callback
-            login_hint=username,
-            max_auth_age=0  # Always require fresh login and MFA
-        )
-        # Store code_verifier in pending_registrations
-        pending_registrations[reg_id]['code_verifier'] = getattr(flow, 'code_verifier', None)
-        print(f"[REGISTER INIT] OAuth URL generated. Waiting for user to sign in...")
-        return jsonify({
-            "status": "redirect",
-            "auth_url": auth_url,
-            "reg_id": reg_id
-        })
+        print(f"[TRACE] Generating Google OAuth URL...")
+        try:
+            flow = get_google_flow()
+            auth_url, _ = flow.authorization_url(
+                access_type='offline',
+                prompt='consent',
+                state=reg_id,  # Pass reg_id so we can match it in callback
+                login_hint=username,
+                max_auth_age=0  # Always require fresh login and MFA
+            )
+            # Store code_verifier in pending_registrations
+            pending_registrations[reg_id]['code_verifier'] = getattr(flow, 'code_verifier', None)
+            print(f"[REGISTER INIT] OAuth URL generated: {auth_url}")
+            return jsonify({
+                "status": "redirect",
+                "auth_url": auth_url,
+                "reg_id": reg_id
+            })
+        except Exception as e:
+            print(f"[ERROR] Google OAuth error: {e}")
+            return jsonify({"status": "error", "message": f"Google OAuth error: {e}"}), 500
         
     except Exception as e:
         print(f"[REGISTER INIT] Error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
@@ -637,10 +666,12 @@ def register_complete():
 def login():
     """Login using Supabase share2 + local share3 (NO Google required)"""
     try:
+        print("[DEBUG] /api/login called")
         data = request.json
         password, username, local_share_package = data.get('password'), data.get('username'), data.get('local_share')
         
         if not local_share_package:
+            print(f"[ERROR] No local share provided for user {username}")
             return jsonify({"status": "error", "message": "No local share found. Please create a vault first."}), 400
         
         # Decrypt local share3
@@ -649,29 +680,38 @@ def login():
             salt, encrypted_data = raw_package.split(b"::")
             f = Fernet(derive_key(password, salt))
             share3_str = f.decrypt(encrypted_data).decode()
-            print(f"[LOGIN] Share3 decrypted successfully")
+            print(f"[LOGIN] Share3 decrypted successfully for user {username}")
         except Exception as decrypt_err:
+            print(f"[ERROR] Decryption failed for user {username}: {decrypt_err}")
             return jsonify({"status": "error", "message": "Wrong password or corrupted local share"}), 401
         
         # Fetch share2 from Supabase with retry
-        print(f"[LOGIN] Fetching share2 from Supabase...")
-        response = supabase_retry(lambda: supabase.table("shares").select("share_data").eq("username", username).not_.is_("share_data", "null").execute())
-        
+        print(f"[LOGIN] Fetching share2 from Supabase for user {username}...")
+        try:
+            response = supabase_retry(lambda: supabase.table("shares").select("share_data").eq("username", username).not_.is_("share_data", "null").execute())
+        except Exception as e:
+            print(f"[ERROR] Supabase fetch error for user {username}: {e}")
+            return jsonify({"status": "error", "message": f"Supabase fetch error: {e}"}), 500
         if not response.data:
+            print(f"[ERROR] No vault found for user {username}")
             return jsonify({"status": "error", "message": f"No vault found for user '{username}'"}), 404
-        
         share2_str = response.data[0]['share_data']
-        print(f"[LOGIN] Share2 retrieved from Supabase")
+        print(f"[LOGIN] Share2 retrieved from Supabase for user {username}")
         
         # Reconstruct golden key from share2 + share3
-        s2 = (int(share2_str.split('-')[0]), int(share2_str.split('-')[1]))
-        s3 = (int(share3_str.split('-')[0]), int(share3_str.split('-')[1]))
-        recovered_int = recover_secret([s2, s3])
-        
-        print(f"[LOGIN] Login successful!")
+        try:
+            s2 = (int(share2_str.split('-')[0]), int(share2_str.split('-')[1]))
+            s3 = (int(share3_str.split('-')[0]), int(share3_str.split('-')[1]))
+            recovered_int = recover_secret([s2, s3])
+        except Exception as e:
+            print(f"[ERROR] Failed to reconstruct golden key for user {username}: {e}")
+            return jsonify({"status": "error", "message": f"Failed to reconstruct golden key: {e}"}), 500
+        print(f"[LOGIN] Login successful for user {username}!")
         return jsonify({"status": "success", "golden_key": str(recovered_int)})
     except Exception as e:
         print(f"[LOGIN] Error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"status": "error", "message": f"Login failed: {str(e)}"}), 401
 
 @app.route('/api/add_password', methods=['POST'])
