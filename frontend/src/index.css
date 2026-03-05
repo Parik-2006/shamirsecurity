@@ -2,40 +2,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Primary Colors */
-  --primary: #6366f1;
-  --primary-light: #818cf8;
-  --primary-dark: #4f46e5;
-  --primary-glow: rgba(99, 102, 241, 0.2);
-  
-  /* Secondary & Accent */
-  --secondary: #8b5cf6;
-  --secondary-glow: rgba(139, 92, 246, 0.2);
-  --purple: #a855f7;
-  --violet: #7c3aed;
-  
-  /* Vibrant Colors */
-  --cyan: #06b6d4;
+  /* Quantum Cyber Security Palette */
+  --primary: #0a192f; /* Deep space blue */
+  --primary-light: #181c20; /* Charcoal */
+  --primary-dark: #050810;
+  --primary-glow: rgba(10, 25, 47, 0.2);
+
+  --cyan: #00fff7;
   --cyan-light: #22d3ee;
-  --cyan-glow: rgba(6, 182, 212, 0.2);
-  --teal: #14b8a6;
-  --emerald: #10b981;
-  --green: #22c55e;
-  
-  --pink: #ec4899;
-  --pink-light: #f472b6;
-  --rose: #f43f5e;
-  --fuchsia: #d946ef;
-  --magenta: #e879f9;
-  
-  --orange: #f97316;
-  --amber: #f59e0b;
-  --yellow: #eab308;
-  --lime: #84cc16;
-  
-  --sky: #0ea5e9;
-  --blue: #3b82f6;
-  --indigo: #6366f1;
+  --cyan-glow: rgba(0, 255, 247, 0.15);
+  --green: #00ff85;
+  --green-glow: rgba(0, 255, 133, 0.15);
+  --yellow: #ffe600;
+  --yellow-glow: rgba(255, 230, 0, 0.12);
+
+  /* Remove all purple, pink, rose, fuchsia, magenta, orange, lime, sky, blue, indigo */
   
   /* Status Colors */
   --success: #10b981;
@@ -47,16 +28,16 @@
   --warning: #f59e0b;
   
   /* Backgrounds */
-  --bg-dark: #0a0e1a;
-  --bg-darker: #050810;
-  --bg-card: rgba(15, 20, 35, 0.85);
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --bg-dark: #0a192f;
+  --bg-darker: #181c20;
+  --bg-card: rgba(10, 25, 47, 0.92);
+  --glass-bg: rgba(10, 25, 47, 0.12);
+  --glass-border: rgba(0, 255, 247, 0.08);
   
   /* Text */
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #eaf6fb;
+  --text-secondary: #7dd6e7;
+  --text-muted: #4e5a67;
 }
 
 * {

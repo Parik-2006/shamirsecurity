@@ -2,9 +2,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// Quantum Cyber Security color palette
+// Quantum Cyber Security color palette (strict, no purple/pink)
 const COLORS = {
-  blue: '#0a192f',
+  blue: '#0a192f', // deep space blue
   cyan: '#00fff7',
   green: '#00ff85',
   yellow: '#ffe600',
@@ -21,6 +21,7 @@ export default function FloatingShapes({ style = {}, zIndex = 0 }) {
           border: `2.5px solid ${COLORS.cyan}`,
           borderRadius: '50%', pointerEvents: 'none', zIndex,
           filter: 'drop-shadow(0 0 16px #00fff7cc)',
+          background: 'transparent',
           ...style,
         }}
         animate={{ rotate: 360, scale: [1, 1.12, 1] }}
@@ -33,6 +34,7 @@ export default function FloatingShapes({ style = {}, zIndex = 0 }) {
           border: `2.5px solid ${COLORS.green}`,
           borderRadius: 8, pointerEvents: 'none', zIndex,
           filter: 'drop-shadow(0 0 10px #00ff85cc)',
+          background: 'transparent',
           ...style,
         }}
         animate={{ rotate: [0, 180, 360], y: [0, -18, 0] }}

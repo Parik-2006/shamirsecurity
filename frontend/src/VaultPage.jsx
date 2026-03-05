@@ -165,21 +165,13 @@ const LoadingSpinner = ({ text = "Loading..." }) => (
   </FM.motion.div>
 );
 
-// Generate dynamic vibrant color based on string
+// Generate dynamic color based on string (dark palette only)
 const getServiceColor = (str) => {
   const colors = [
-    ['#ec4899', '#f472b6', '#fce7f3'], // Pink
-    ['#8b5cf6', '#a78bfa', '#ede9fe'], // Purple
-    ['#06b6d4', '#22d3ee', '#cffafe'], // Cyan
-    ['#10b981', '#34d399', '#d1fae5'], // Emerald
-    ['#f97316', '#fb923c', '#ffedd5'], // Orange
-    ['#f43f5e', '#fb7185', '#ffe4e6'], // Rose
-    ['#6366f1', '#818cf8', '#e0e7ff'], // Indigo
-    ['#14b8a6', '#2dd4bf', '#ccfbf1'], // Teal
-    ['#eab308', '#facc15', '#fef9c3'], // Yellow
-    ['#d946ef', '#e879f9', '#fae8ff'], // Fuchsia
-    ['#0ea5e9', '#38bdf8', '#e0f2fe'], // Sky
-    ['#84cc16', '#a3e635', '#ecfccb'], // Lime
+    ['#00fff7', '#22d3ee', '#0a192f'], // Cyan
+    ['#00ff85', '#34d399', '#181c20'], // Green
+    ['#ffe600', '#facc15', '#181c20'], // Yellow
+    ['#0a192f', '#181c20', '#eaf6fb'], // Deep blue/charcoal
   ];
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
