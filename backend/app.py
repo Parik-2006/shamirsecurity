@@ -444,6 +444,7 @@ def register_init():
     """
     try:
         print("[DEBUG] /api/register/init called")
+        print(f"[TRACE] Incoming data: {request.json}")
         # Check for scope mismatch in environment and code
         expected_scopes = set([
             'openid',
@@ -451,6 +452,7 @@ def register_init():
             'https://www.googleapis.com/auth/userinfo.email',
             'https://www.googleapis.com/auth/userinfo.profile'
         ])
+        print(f"[TRACE] GOOGLE_SCOPES: {GOOGLE_SCOPES}")
         actual_scopes = set(GOOGLE_SCOPES)
         if actual_scopes != expected_scopes:
             print(f"[ERROR] Google OAuth scope mismatch: expected {expected_scopes}, got {actual_scopes}")
@@ -459,7 +461,9 @@ def register_init():
                 "message": "Google OAuth scope mismatch. Please ensure your Google Cloud Console OAuth consent screen and backend GOOGLE_SCOPES match exactly: " + ', '.join(expected_scopes)
             }), 400
         data = request.json
+        print(f"[TRACE] Parsed data: {data}")
         password, username = data.get('password'), data.get('username')
+        print(f"[TRACE] username: {username}, password: {'set' if password else 'unset'}")
         
         if not username or not password:
             print(f"[ERROR] Username or password missing: username={username}, password={'set' if password else 'unset'}")
@@ -469,6 +473,7 @@ def register_init():
         
         # Generate Shamir shares
         golden_key_int = random.SystemRandom().randint(0, 2**127 - 1)
+        print(f"[TRACE] Generating Shamir shares...")
         try:
             shares = make_random_shares(golden_key_int, 2, 3)
         except Exception as e:
@@ -479,6 +484,7 @@ def register_init():
 
         # Store share2 in Supabase
         print(f"[REGISTER INIT] Storing share2 in Supabase...")
+        print(f"[TRACE] Storing share2 in Supabase...")
         try:
             supabase_retry(lambda: supabase.table("shares").delete().eq("username", username).execute())
             supabase_retry(lambda: supabase.table("shares").insert({"username": username, "share_data": share2}).execute())
@@ -489,6 +495,7 @@ def register_init():
 
         # Encrypt share3 with user's master password
         salt = os.urandom(16)
+        print(f"[TRACE] Encrypting share3 with user password...")
         try:
             key = derive_key(password, salt)
             f = Fernet(key)
@@ -516,6 +523,7 @@ def register_init():
         save_pending_registrations()
 
         # Generate Google OAuth URL -- user will sign in with THEIR Google account
+        print(f"[TRACE] Generating Google OAuth URL...")
         try:
             flow = get_google_flow()
             auth_url, _ = flow.authorization_url(
@@ -527,7 +535,7 @@ def register_init():
             )
             # Store code_verifier in pending_registrations
             pending_registrations[reg_id]['code_verifier'] = getattr(flow, 'code_verifier', None)
-            print(f"[REGISTER INIT] OAuth URL generated. Waiting for user to sign in...")
+            print(f"[REGISTER INIT] OAuth URL generated: {auth_url}")
             return jsonify({
                 "status": "redirect",
                 "auth_url": auth_url,
