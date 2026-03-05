@@ -4,6 +4,7 @@ import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import FloatingShapes from './FloatingShapes';
 import Cyber3DShapes from './Cyber3DShapes';
+import logoLock from './assets/shamir_logo_lock.png';
 
 
 function TopRightNav({ onNavigate }) {
