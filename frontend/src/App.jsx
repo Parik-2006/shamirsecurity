@@ -16,27 +16,25 @@ function TopRightNav({ onNavigate }) {
     fontSize: 13,
     padding: '5px 13px',
     margin: 0,
-    boxShadow: `0 1.5px 8px ${gold}55`,
+    boxShadow: `0 1px 4px ${gold}44`,
     cursor: 'pointer',
     outline: 'none',
     transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-    textShadow: `0 1px 6px ${gold}99`,
+    textShadow: `0 1px 3px ${gold}77`,
     letterSpacing: 0.5,
     minWidth: 0,
     minHeight: 0,
     lineHeight: 1.2,
     display: 'flex',
     alignItems: 'center',
-    gap: 6,
+    gap: 0,
   };
   return (
     <div style={{ display: 'flex', gap: 8 }}>
       <button onClick={() => onNavigate('documentation')} style={btnStyle}>
-        <span style={{ color: gold, fontSize: 15 }}>📘</span>
         <span style={{ color: gold }}>Documentation</span>
       </button>
       <button onClick={() => onNavigate('verification')} style={btnStyle}>
-        <span style={{ color: gold, fontSize: 15 }}>⚙️</span>
         <span style={{ color: gold }}>Verification</span>
       </button>
     </div>
@@ -60,8 +58,8 @@ export default function App() {
       </div>
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
         <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #00F5D422', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <h1 className="floating" style={{ color: '#00F5D4', fontWeight: 800, fontSize: 40, textAlign: 'center', marginBottom: 8, letterSpacing: 1.2, textShadow: '0 2px 10px #00F5D433' }}>Shamir Vault</h1>
-          <p style={{ color: '#40E0FF', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 8px #10131a' }}>
+          <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', marginBottom: 8, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55' }}>Shamir Vault</h1>
+          <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
             Secure Multi-Key Secret Management
           </p>
           {page === 'login' && (
