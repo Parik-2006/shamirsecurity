@@ -142,19 +142,28 @@ export default function App() {
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <FloatingShapes zIndex={0} />
+<<<<<<< HEAD
       {/* Cybersecurity 3D animated elements for login page */}
       {page === 'login' && <React.Suspense fallback={null}>
         {React.createElement(require('./CyberLogin3D.jsx').default, { zIndex: 2 })}
       </React.Suspense>}
+=======
+>>>>>>> b6f7a91 (Manually resolve merge conflicts in App.jsx: combine all logic and UI/UX from both branches, remove conflict markers, ensure clean build.)
       <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
         <TopRightNav onNavigate={handleNavigate} />
       </div>
       {page === 'login' && (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'radial-gradient(ellipse at 60% 40%, #23272b 60%, #181c20 100%)', boxShadow: '0 0 120px #FFD70022 inset' }}>
           <div style={{ maxWidth: 440, width: '98vw', padding: '44px 28px', background: 'linear-gradient(135deg, #181c20 80%, #23272b 100%)', borderRadius: 32, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #FFD70022', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2.5px solid #FFD70055', position: 'relative' }}>
+<<<<<<< HEAD
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
               <img src={logoLock} alt="Shamir Lock Logo" style={{ height: 38, width: 'auto', marginBottom: 6, background: 'none', borderRadius: 12, border: '2px solid #FFD700', boxShadow: '0 2px 8px #FFD70033', padding: 0, objectFit: 'contain', filter: 'drop-shadow(0 1px 6px #FFD70066)' }} />
               <h1 className="floating" style={{ color: '#FFD700', fontWeight: 800, fontSize: 28, textAlign: 'center', margin: 0, letterSpacing: 1.1, textShadow: '0 1px 6px #FFD70055, 0 1.5px 8px #FFD70022' }}>Shamir Vault</h1>
+=======
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, gap: 22 }}>
+              <img src={logoLock} alt="Shamir Lock Logo" style={{ height: 70, width: 'auto', marginRight: 0, background: 'none', borderRadius: 18, border: '2.5px solid #FFD700', boxShadow: '0 4px 24px #FFD70033, 0 1.5px 16px #FFD70022', padding: 0, objectFit: 'contain', filter: 'drop-shadow(0 2px 12px #FFD70066) drop-shadow(0 0 0 #0000)' }} />
+              <h1 className="floating" style={{ color: '#FFD700', fontWeight: 900, fontSize: 44, textAlign: 'center', margin: 0, letterSpacing: 1.3, textShadow: '0 2px 12px #FFD70055, 0 1.5px 16px #FFD70022' }}>Shamir Vault</h1>
+>>>>>>> b6f7a91 (Manually resolve merge conflicts in App.jsx: combine all logic and UI/UX from both branches, remove conflict markers, ensure clean build.)
             </div>
             <Cyber3DShapes zIndex={1} />
             <p style={{ color: '#FFD700', fontSize: '1.18rem', textAlign: 'center', marginBottom: 32, letterSpacing: 0.8, textShadow: '0 1px 8px #FFD70033' }}>
@@ -209,6 +218,7 @@ export default function App() {
                 className="floating"
                 style={{
                   width: '100%',
+<<<<<<< HEAD
                   padding: '16px',
                   fontSize: 19,
                   fontWeight: 800,
@@ -223,6 +233,22 @@ export default function App() {
                   transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
                   opacity: loading ? 0.7 : 1,
                   textShadow: '0 1px 6px #FFD70055',
+=======
+                  padding: '18px',
+                  fontSize: 22,
+                  fontWeight: 900,
+                  background: 'linear-gradient(120deg, #FFD700 60%, #bfa43a 100%)',
+                  color: '#181c20',
+                  border: '2.5px solid #FFD700',
+                  borderRadius: 18,
+                  cursor: loading ? 'wait' : 'pointer',
+                  marginBottom: 10,
+                  boxShadow: '0 6px 24px #FFD70033, 0 1.5px 16px #FFD70022',
+                  letterSpacing: 1.2,
+                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  opacity: loading ? 0.7 : 1,
+                  textShadow: '0 2px 12px #FFD70055',
+>>>>>>> b6f7a91 (Manually resolve merge conflicts in App.jsx: combine all logic and UI/UX from both branches, remove conflict markers, ensure clean build.)
                   perspective: 400,
                   transformStyle: 'preserve-3d',
                 }}
@@ -237,6 +263,7 @@ export default function App() {
                 className="floating"
                 style={{
                   width: '100%',
+<<<<<<< HEAD
                   padding: '16px',
                   fontSize: 19,
                   fontWeight: 800,
@@ -251,6 +278,22 @@ export default function App() {
                   transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
                   opacity: loading ? 0.7 : 1,
                   textShadow: '0 1px 6px #FFD70055',
+=======
+                  padding: '18px',
+                  fontSize: 22,
+                  fontWeight: 900,
+                  background: 'linear-gradient(120deg, #FFD700 60%, #bfa43a 100%)',
+                  color: '#181c20',
+                  border: '2.5px solid #FFD700',
+                  borderRadius: 18,
+                  cursor: loading ? 'wait' : 'pointer',
+                  marginBottom: 10,
+                  boxShadow: '0 6px 24px #FFD70033, 0 1.5px 16px #FFD70022',
+                  letterSpacing: 1.2,
+                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  opacity: loading ? 0.7 : 1,
+                  textShadow: '0 2px 12px #FFD70055',
+>>>>>>> b6f7a91 (Manually resolve merge conflicts in App.jsx: combine all logic and UI/UX from both branches, remove conflict markers, ensure clean build.)
                   perspective: 400,
                   transformStyle: 'preserve-3d',
                 }}
