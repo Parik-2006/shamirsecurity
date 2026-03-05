@@ -371,7 +371,7 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
   };
 
   return (
-    <FM.motion.tr
+    <motion.tr
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
@@ -449,8 +449,8 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
           >
             {isVisible ? Icons.eyeOff : Icons.eye}
             <span>{isVisible ? 'Hide' : 'Show'}</span>
-          </FM.motion.button>
-          <FM.motion.button
+          </motion.button>
+          <motion.button
             onClick={handleCopy}
             whileHover={{ scale: 1.08, boxShadow: '0 4px 18px #FFD70055' }}
             whileTap={{ scale: 0.96 }}
@@ -483,7 +483,7 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
               </svg>
             ) : Icons.copy}
             <span>{copied ? 'Copied!' : 'Copy'}</span>
-          </FM.motion.button>
+          </motion.button>
         </div>
       </td>
     </motion.tr>
