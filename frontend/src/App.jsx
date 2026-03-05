@@ -44,13 +44,92 @@ function TopRightNav({ onNavigate }) {
   );
 }
 
+
 export default function App() {
   const [page, setPage] = useState('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [goldenKey, setGoldenKey] = useState(null);
 
   const handleNavigate = (target) => {
     setPage(target);
+  };
+
+  // Helper: get local share from localStorage
+  const getLocalShare = (username) => {
+    try {
+      return localStorage.getItem(`local_share_${username}`);
+    } catch {
+      return null;
+    }
+  };
+
+  // Helper: set local share in localStorage
+  const setLocalShare = (username, value) => {
+    try {
+      localStorage.setItem(`local_share_${username}`, value);
+    } catch {}
+  };
+
+  // Handler: Create New Vault
+  const handleCreateVault = async () => {
+    setError(''); setSuccess(''); setLoading(true);
+    try {
+      if (!username || !password) {
+        setError('Please enter username and password.'); setLoading(false); return;
+      }
+      // Call backend to create vault
+      const res = await fetch('/api/create_vault', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setLocalShare(username, data.local_share); // Save local share
+        setSuccess('Vault created! You can now unlock your vault.');
+      } else {
+        setError(data.message || 'Vault creation failed.');
+      }
+    } catch (e) {
+      setError('Network error creating vault.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handler: Unlock Vault (Login)
+  const handleUnlockVault = async () => {
+    setError(''); setSuccess(''); setLoading(true);
+    try {
+      if (!username || !password) {
+        setError('Please enter username and password.'); setLoading(false); return;
+      }
+      const local_share = getLocalShare(username);
+      if (!local_share) {
+        setError('No local share found. Please create a vault first.'); setLoading(false); return;
+      }
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, local_share })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setGoldenKey(data.golden_key);
+        setSuccess('Vault unlocked!');
+        // You can now route to the main vault page or setPage('vault')
+      } else {
+        setError(data.message || 'Unlock failed.');
+      }
+    } catch (e) {
+      setError('Network error unlocking vault.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,7 +151,7 @@ export default function App() {
                   color: '#FFD700',
                   border: '2.5px solid #FFD700',
                   borderRadius: 16,
-                  cursor: 'pointer',
+                  cursor: loading ? 'wait' : 'pointer',
                   marginBottom: 18,
                   boxShadow: '0 4px 18px #FFD70055, 0 1.5px 16px #FFD70022',
                   letterSpacing: 1.1,
@@ -80,11 +159,14 @@ export default function App() {
                   textShadow: '0 2px 8px #FFD70044',
                   perspective: 400,
                   transformStyle: 'preserve-3d',
+                  opacity: loading ? 0.7 : 1,
                 }}
+                disabled={loading}
+                onClick={handleCreateVault}
                 onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(6deg)'}
                 onMouseOut={e => e.currentTarget.style.transform = 'none'}
               >
-                Create New Vault
+                {loading ? 'Creating...' : 'Create New Vault'}
               </button>
               <button
                 className="floating"
@@ -97,7 +179,7 @@ export default function App() {
                   color: '#FFD700',
                   border: '2.5px solid #FFD700',
                   borderRadius: 16,
-                  cursor: 'pointer',
+                  cursor: loading ? 'wait' : 'pointer',
                   marginBottom: 8,
                   boxShadow: '0 4px 18px #FFD70055, 0 1.5px 16px #FFD70022',
                   letterSpacing: 1.1,
@@ -105,12 +187,17 @@ export default function App() {
                   textShadow: '0 2px 8px #FFD70044',
                   perspective: 400,
                   transformStyle: 'preserve-3d',
+                  opacity: loading ? 0.7 : 1,
                 }}
+                disabled={loading}
+                onClick={handleUnlockVault}
                 onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(-6deg)'}
                 onMouseOut={e => e.currentTarget.style.transform = 'none'}
               >
-                Unlock Vault
+                {loading ? 'Unlocking...' : 'Unlock Vault'}
               </button>
+                    {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
+                    {success && <div style={{ color: '#22c55e', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
           <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', marginBottom: 8, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55' }}>Shamir Vault</h1>
       <Cyber3DShapes zIndex={1} />
           <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
