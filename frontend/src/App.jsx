@@ -21,31 +21,24 @@ function PasswordStrengthBar({ password }) {
   const score = getPasswordStrength(password);
   const colors = ['#ef4444', '#f59e42', '#f7e13e', '#a3e635', '#22c55e'];
   const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-  return (
-    <div style={{ width: '100%', marginBottom: 8 }}>
-      <div style={{ height: 8, borderRadius: 4, background: '#23272f', overflow: 'hidden', marginBottom: 2 }}>
-        <div style={{ width: `${score * 20}%`, height: '100%', background: colors[score - 1] || '#23272f', transition: 'width 0.3s' }} />
-      </div>
-      <span style={{ fontSize: 12, color: colors[score - 1] || '#888', fontWeight: 600 }}>{password ? labels[score - 1] || 'Too Short' : ''}</span>
-    </div>
-  );
-}
-
-// --- Tooltip Component ---
-function Tooltip({ children, text }) {
-  const [show, setShow] = useState(false);
-  return (
-    <span style={{ position: 'relative', display: 'inline-block' }}
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}>
-      {children}
-      {show && (
-        <span style={{ position: 'absolute', bottom: '120%', left: '50%', transform: 'translateX(-50%)', background: '#23272f', color: '#FFD700', padding: '6px 12px', borderRadius: 8, fontSize: 13, whiteSpace: 'nowrap', zIndex: 100, boxShadow: '0 2px 8px #23272f88' }}>{text}</span>
-      )}
-    </span>
-  );
-}
-
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      fontSize: 17,
+                      borderRadius: 10,
+                      border: '1.5px solid #23272f',
+                      background: '#181c20',
+                      color: '#eaf6fb',
+                      outline: 'none',
+                      marginBottom: 14,
+                    }}
+                    autoComplete="username"
+                  />
 // --- Top Navigation with 3D Buttons ---
 function TopRightNav({ onNavigate }) {
   const btn3D = {
