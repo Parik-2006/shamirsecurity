@@ -108,10 +108,11 @@ export default function App() {
         return;
       }
       let data = null;
-      if (contentType && contentType.includes('application/json')) {
+      let text = null;
+      try {
         data = await res.json();
-      } else {
-        const text = await res.text();
+      } catch (err) {
+        text = await res.text();
         try {
           data = JSON.parse(text);
         } catch {
@@ -120,12 +121,14 @@ export default function App() {
           return;
         }
       }
-      if (data && data.status === 'redirect' && data.auth_url && data.reg_id) {
+      // Try to redirect if auth_url is present
+      if (data && data.auth_url) {
         setSuccess('Redirecting to Google for authentication...');
         window.location.href = data.auth_url;
-      } else if (data) {
-        setError(data.message || 'Vault creation failed.');
+        return;
       }
+      // Show full response for debugging
+      setError((data && (data.message || JSON.stringify(data))) || 'Vault creation failed.');
     } catch (e) {
       setError('Network error: ' + (e?.message || e?.toString() || 'Unknown error'));
     } finally {
