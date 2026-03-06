@@ -1,15 +1,14 @@
 // frontend/src/VaultPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { getErrorMessage } from './utils';
-import { motion } from 'framer-motion';
+import * as FM from 'framer-motion';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 import FloatingShapes from './FloatingShapes';
 import Vault3DCyberElements from './Vault3DCyberElements';
 
 // API base URL - uses env variable in production, localhost in dev
-// Use VITE_API_URL for API requests (supports dev/prod)
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Particles configuration for vault page
 const particlesConfig = {
@@ -138,33 +137,33 @@ const Icons = {
 
 // Animated loading spinner
 const LoadingSpinner = ({ text = "Loading..." }) => (
-  <motion.div
+  <FM.motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     style={{ textAlign: 'center', padding: '60px' }}
   >
     <div className="spinner-container">
-      <motion.div
+      <FM.motion.div
         className="spinner-ring"
         animate={{ rotate: 360 }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
       />
-      <motion.div
+      <FM.motion.div
         className="spinner-ring spinner-ring-2"
         animate={{ rotate: -360 }}
         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
       />
     </div>
-    <motion.p
+    <FM.motion.p
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="gradient-text"
       style={{ marginTop: '25px' }}
     >
       {text}
-    </motion.p>
-  </motion.div>
+    </FM.motion.p>
+  </FM.motion.div>
 );
 
 // Generate dynamic color based on string (dark palette only)
@@ -373,7 +372,7 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
   };
 
   return (
-    <motion.tr
+    <FM.motion.tr
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
@@ -422,7 +421,7 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
       </td>
       <td style={{ padding: '16px 20px', width: '25%' }}>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', alignItems: 'center' }}>
-          <motion.button 
+          <FM.motion.button 
             onClick={() => onToggleVisibility(index)}
             whileHover={{ scale: 1.08, boxShadow: '0 4px 18px #FFD70055' }}
             whileTap={{ scale: 0.96 }}
@@ -451,8 +450,8 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
           >
             {isVisible ? Icons.eyeOff : Icons.eye}
             <span>{isVisible ? 'Hide' : 'Show'}</span>
-          </motion.button>
-          <motion.button
+          </FM.motion.button>
+          <FM.motion.button
             onClick={handleCopy}
             whileHover={{ scale: 1.08, boxShadow: '0 4px 18px #FFD70055' }}
             whileTap={{ scale: 0.96 }}
@@ -485,10 +484,10 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
               </svg>
             ) : Icons.copy}
             <span>{copied ? 'Copied!' : 'Copy'}</span>
-          </motion.button>
+          </FM.motion.button>
         </div>
       </td>
-    </motion.tr>
+    </FM.motion.tr>
   );
 };
 
