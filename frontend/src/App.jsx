@@ -276,12 +276,6 @@ export default function App() {
   React.useEffect(() => {
     function handleMessage(event) {
       if (event.data && event.data.type === 'registration-complete') {
-<<<<<<< HEAD
-        setLocalShare(event.data.local_share);
-        setGoldenKey(event.data.golden_key);
-        setVaultUser(event.data.username);
-        setShowDownloadModal(true);
-=======
         // If local_share/golden_key/username are present, use them; otherwise, trigger fetch
         if (event.data.local_share && event.data.golden_key && event.data.username) {
           setLocalShare(event.data.local_share);
@@ -319,7 +313,6 @@ export default function App() {
               }
             });
         }
->>>>>>> parik4
       }
     }
     window.addEventListener('message', handleMessage);
