@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 import FloatingShapes from './FloatingShapes';
+import Vault3DCyberElements from './Vault3DCyberElements';
 
 // API base URL - uses env variable in production, localhost in dev
 // Use VITE_API_URL for API requests (supports dev/prod)
@@ -743,6 +744,7 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
     <div className="app-wrapper">
       <ParticlesBackground />
       <FloatingShapes zIndex={0} />
+      <Vault3DCyberElements zIndex={1} />
       
       <div style={{ 
         position: 'fixed', 
