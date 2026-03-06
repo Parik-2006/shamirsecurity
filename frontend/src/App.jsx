@@ -79,6 +79,9 @@ const TopRightNav = ({ onNavigate }) => {
       <button onClick={() => onNavigate('verification')} style={btn3D}>
         <span style={{ color: '#FFD700' }}>Verification</span>
       </button>
+      <button onClick={() => onNavigate('about')} style={btn3D}>
+        <span style={{ color: '#FFD700' }}>About</span>
+      </button>
     </div>
   );
 };
@@ -122,11 +125,23 @@ export default function App() {
   const [vaultUser, setVaultUser] = useState(null);
   const [vaultPage, setVaultPage] = useState(false);
   const [localShare, setLocalShare] = useState(null);
-  const [showAbout, setShowAbout] = useState(true);
+  // Show About modal only once per session
+  const [showAbout, setShowAbout] = useState(() => {
+    const seen = sessionStorage.getItem('about_seen');
+    return !seen;
+  });
+    // Handle About button navigation
+    const handleNavigate = (target) => {
+      if (target === 'about') {
+        setShowAbout(true);
+        sessionStorage.setItem('about_seen', '1');
+      } else {
+        setPage(target);
+      }
+    };
   const [showDownload, setShowDownload] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
-  const handleNavigate = (target) => setPage(target);
 
   // Step 1: Start registration, get Google OAuth URL
   const handleCreateVault = async () => {
