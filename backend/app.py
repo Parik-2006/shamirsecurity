@@ -477,6 +477,15 @@ def golden_int_to_fernet(golden_int):
 
 # ========== REGISTRATION (3-step web OAuth flow) ==========
 
+# --- CHECK CREDENTIALS ENDPOINT (STUB) ---
+@app.route('/api/check_credentials', methods=['POST'])
+def check_credentials():
+    """
+    Stub endpoint for deployment compatibility.
+    Returns success for any POST request.
+    """
+    return jsonify({"status": "success", "message": "Credentials check stub."}), 200
+
 @app.route('/api/register/init', methods=['POST'])
 def register_init():
     """
