@@ -87,6 +87,7 @@ export default function App() {
   const [vaultPage, setVaultPage] = useState(false);
   const [localShare, setLocalShare] = useState(null);
   const [showAbout, setShowAbout] = useState(true);
+  const [showDownload, setShowDownload] = useState(false);
 
   const handleNavigate = (target) => setPage(target);
 
@@ -181,14 +182,17 @@ export default function App() {
             setLocalShare(data.local_share);
             setGoldenKey(data.golden_key);
             setVaultUser(data.username);
-            // Download local_share.enc
-            const blob = new Blob([data.local_share], { type: 'text/plain' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'local_share.enc';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            // Automatic download
+            if (data.local_share) {
+              const blob = new Blob([data.local_share], { type: 'text/plain' });
+              const a = document.createElement('a');
+              a.href = URL.createObjectURL(blob);
+              a.download = 'local_share.enc';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setShowDownload(true); // Show manual download button as well
+            }
           } else {
             setError((data && data.message) || 'Vault creation failed.');
           }
@@ -359,6 +363,34 @@ export default function App() {
                 </button>
                 {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
                 {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
+                {/* Manual download button for local_share.enc */}
+                {showDownload && localShare && (
+                  <button
+                    style={{
+                      marginTop: 16,
+                      padding: '12px 24px',
+                      fontSize: 16,
+                      fontWeight: 700,
+                      background: '#FFD66B',
+                      color: '#151A21',
+                      border: 'none',
+                      borderRadius: 10,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px #FFD66B33',
+                    }}
+                    onClick={() => {
+                      const blob = new Blob([localShare], { type: 'text/plain' });
+                      const a = document.createElement('a');
+                      a.href = URL.createObjectURL(blob);
+                      a.download = 'local_share.enc';
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                    }}
+                  >
+                    Download local_share.enc
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>
