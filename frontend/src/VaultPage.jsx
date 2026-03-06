@@ -624,6 +624,8 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
                   </svg>
                 </div>
                 <input 
+                  id="vault-service"
+                  name="service"
                   placeholder="Service (e.g. GitHub, Netflix)" 
                   value={newService} 
                   onChange={e => setNewService(e.target.value)}
@@ -637,6 +639,8 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
                   </svg>
                 </div>
                 <input 
+                  id="vault-service-username"
+                  name="serviceUsername"
                   placeholder="Service Username (optional)" 
                   value={newServiceUser} 
                   onChange={e => setNewServiceUser(e.target.value)}
@@ -651,6 +655,8 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
                 </div>
                 <input 
                   type="password" 
+                  id="vault-password"
+                  name="password"
                   placeholder="Password to encrypt" 
                   value={newPass} 
                   onChange={e => setNewPass(e.target.value)}

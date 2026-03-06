@@ -346,6 +346,8 @@ export default function App() {
               <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <input
                   type="text"
+                  id="login-username"
+                  name="username"
                   placeholder="Username"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
@@ -363,6 +365,8 @@ export default function App() {
                 />
                 <input
                   type="password"
+                  id="login-password"
+                  name="password"
                   placeholder="Master Password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
