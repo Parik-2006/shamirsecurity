@@ -1,3 +1,5 @@
+import { AnimatePresence, motion } from 'framer-motion';
+
 // Modal for downloading local_share.enc
 function DownloadShareModal({ show, onDownload, onClose }) {
   if (!show) return null;
@@ -39,7 +41,6 @@ import React, { useState } from 'react';
 
 // Set your hosted backend URL here:
 const API_BASE = "https://shamirsecurity-12.onrender.com"; // <-- User's real backend URL
-import { AnimatePresence } from 'framer-motion';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import FloatingShapes from './FloatingShapes';
