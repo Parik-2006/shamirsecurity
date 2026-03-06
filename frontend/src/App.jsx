@@ -120,6 +120,15 @@ function DownloadShareModal({ show, onDownload, onClose }) {
   );
 }
 
+// Global handler for WebGL context loss
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', function(e) {
+    if (e.message && e.message.includes('WebGLRenderer: Context Lost')) {
+      alert('Graphics context lost. Please refresh the page.');
+    }
+  });
+}
+
 export default function App() {
   const [page, setPage] = useState('login');
   const [username, setUsername] = useState('');
