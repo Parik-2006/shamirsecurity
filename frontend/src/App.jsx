@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
 
