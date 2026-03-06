@@ -1,5 +1,59 @@
 // --- Auth Success Page ---
 function AuthSuccessPage() {
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const regComplete = params.get('reg_complete');
+    if (regComplete) {
+      fetch(`${API_URL}/api/register/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reg_id: regComplete })
+      })
+        .then(async res => {
+          const contentType = res.headers.get('Content-Type');
+          let raw = '';
+          let data = null;
+          try {
+            raw = await res.text();
+            if (raw && contentType && contentType.includes('application/json')) {
+              data = JSON.parse(raw);
+            }
+          } catch (jsonErr) {
+            data = null;
+            console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
+          }
+          return data;
+        })
+        .then(data => {
+          if (data && data.status === 'success') {
+            // Send postMessage to opener and close this tab
+            if (window.opener) {
+              window.opener.postMessage({ type: 'registration-complete', local_share: data.local_share, golden_key: data.golden_key, username: data.username }, '*');
+              setTimeout(() => window.close(), 500);
+            }
+          }
+        });
+    }
+  }, []);
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0B0D10' }}>
+      <div style={{ background: '#151A21', borderRadius: 24, padding: 48, color: '#FFD66B', fontWeight: 800, fontSize: 28, textAlign: 'center', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99' }}>
+        Authentication Flow Complete. You may now close this window.
+      </div>
+    </div>
+  );
+}
+  // Route to /auth-success for OAuth tab close message
+  React.useEffect(() => {
+    if (window.location.pathname === '/auth-success') {
+      setPage('auth-success');
+    }
+  }, []);
+  if (page === 'auth-success') {
+    return <AuthSuccessPage />;
+  }
+// --- Auth Success Page ---
+function AuthSuccessPage() {
   const [success, setSuccess] = React.useState('');
   const [error, setError] = React.useState('');
   React.useEffect(() => {
@@ -356,8 +410,8 @@ export default function App() {
       a.click();
       document.body.removeChild(a);
       setShowDownloadModal(false);
-      // After download, go to vault page
       setVaultPage(true);
+      setPage('vault');
     }
   };
 function DownloadShareModal({ show, onDownload, onClose }) {
