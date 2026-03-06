@@ -10,8 +10,7 @@ import VaultPage from './VaultPage';
 import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
 
-// Configuration
-const API_URL = import.meta.env.VITE_API_URL;
+
 
 // Detect if running on localhost and show a banner
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -47,8 +46,7 @@ class ErrorBoundary extends React.Component {
 }
 
 
-// --- API Configuration ---
-const API_URL = import.meta.env.VITE_API_URL;
+
 
 // --- Helper Components ---
 
