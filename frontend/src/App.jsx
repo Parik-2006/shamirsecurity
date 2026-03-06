@@ -108,7 +108,7 @@ export default function App() {
         setError(data.message || 'Vault creation failed.');
       }
     } catch (e) {
-      setError('Network error creating vault.');
+      setError('Network error: ' + (e?.message || e?.toString() || 'Unknown error'));
     } finally {
       setLoading(false);
     }
