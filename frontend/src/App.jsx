@@ -102,25 +102,31 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      // Check if response is JSON
       const contentType = res.headers.get('Content-Type');
+      let raw = '';
+      let data = null;
       if (!res.ok) {
-        const text = await res.text();
-        setError('Server error: ' + text);
+        // Try to get text for error
+        try {
+          raw = await res.text();
+        } catch (e) {
+          raw = '';
+        }
+        setError('Server error: ' + (raw || res.statusText));
         setLoading(false);
         return;
       }
-      let data = null;
-      let raw = '';
       try {
         raw = await res.text();
-        data = JSON.parse(raw);
+        if (raw && contentType && contentType.includes('application/json')) {
+          data = JSON.parse(raw);
+        } else {
+          data = null;
+        }
       } catch (jsonErr) {
         data = null;
-        // Print the actual error and response
         console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
       }
-      // Try to redirect if auth_url is present
       if (data && data.auth_url) {
         setSuccess('Opening Google sign-in...');
         const win = window.open(data.auth_url, '_blank');
@@ -129,9 +135,7 @@ export default function App() {
         }
         return;
       }
-      // Print backend response for debugging
       console.error('Backend response:', raw);
-      // Show user-friendly error
       if (data && data.message) {
         setError('Vault creation failed: ' + data.message);
       } else if (raw) {
@@ -156,9 +160,23 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reg_id: regComplete })
       })
-        .then(res => res.json())
+        .then(async res => {
+          const contentType = res.headers.get('Content-Type');
+          let raw = '';
+          let data = null;
+          try {
+            raw = await res.text();
+            if (raw && contentType && contentType.includes('application/json')) {
+              data = JSON.parse(raw);
+            }
+          } catch (jsonErr) {
+            data = null;
+            console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
+          }
+          return data;
+        })
         .then(data => {
-          if (data.status === 'success') {
+          if (data && data.status === 'success') {
             setSuccess('Vault created! Download your local share.');
             setLocalShare(data.local_share);
             setGoldenKey(data.golden_key);
@@ -172,7 +190,7 @@ export default function App() {
             a.click();
             document.body.removeChild(a);
           } else {
-            setError(data.message || 'Vault creation failed.');
+            setError((data && data.message) || 'Vault creation failed.');
           }
         });
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -191,14 +209,25 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, local_share: localShare })
       });
-      const data = await res.json();
-      if (data.status === 'success') {
+      const contentType = res.headers.get('Content-Type');
+      let raw = '';
+      let data = null;
+      try {
+        raw = await res.text();
+        if (raw && contentType && contentType.includes('application/json')) {
+          data = JSON.parse(raw);
+        }
+      } catch (jsonErr) {
+        data = null;
+        console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
+      }
+      if (data && data.status === 'success') {
         setGoldenKey(data.golden_key);
         setVaultUser(username);
         setVaultPage(true);
         setSuccess('Vault unlocked!');
       } else {
-        setError(data.message || 'Unlock failed.');
+        setError((data && data.message) || 'Unlock failed.');
       }
     } catch (e) {
       setError('Network error unlocking vault.');
