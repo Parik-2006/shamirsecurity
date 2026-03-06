@@ -11,22 +11,26 @@ import logging
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 
+import traceback
 # --- GLOBAL ERROR HANDLERS FOR JSON RESPONSES ---
 @app.errorhandler(404)
 def not_found_error(error):
+    print("[ERROR 404]", error)
     return jsonify({"status": "error", "message": "Not Found", "code": 404}), 404
 
 @app.errorhandler(Exception)
 def handle_exception(e):
-    # If it's an HTTPException, use its code and description
+    print("[GLOBAL EXCEPTION]", e)
+    traceback.print_exc()
     from werkzeug.exceptions import HTTPException
     if isinstance(e, HTTPException):
+        print("[HTTPException]", e.description)
         return jsonify({
             "status": "error",
             "message": e.description,
             "code": e.code
         }), e.code
-    # Otherwise, it's a non-HTTP error
+    print("[Non-HTTP Exception]", str(e))
     return jsonify({
         "status": "error",
         "message": str(e),
