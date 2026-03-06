@@ -34,11 +34,12 @@ function DownloadShareModal({ show, onDownload, onClose }) {
     </motion.div>
   );
 }
-import React, { useState, useRef } from 'react';
+
+import React, { useState } from 'react';
 
 // Set your hosted backend URL here:
 const API_BASE = "https://shamirsecurity-12.onrender.com"; // <-- User's real backend URL
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import FloatingShapes from './FloatingShapes';
@@ -129,18 +130,9 @@ export default function App() {
   const [showAbout, setShowAbout] = useState(() => {
     const seen = sessionStorage.getItem('about_seen');
     return !seen;
-    const [openVaultAdd, setOpenVaultAdd] = useState(false);
   });
-    // Handle About button navigation
-    const handleNavigate = (target) => {
-      if (target === 'about') {
-        setShowAbout(true);
-        sessionStorage.setItem('about_seen', '1');
-      } else {
-        setPage(target);
-      }
-    };
-  const [showDownload, setShowDownload] = useState(false);
+  // State to trigger add password mode after registration
+  // const [openVaultAdd, setOpenVaultAdd] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
 
@@ -159,18 +151,6 @@ export default function App() {
       const contentType = res.headers.get('Content-Type');
       let raw = '';
       let data = null;
-        setOpenVaultAdd(true);
-      if (!res.ok) {
-        // Try to get text for error
-        try {
-          raw = await res.text();
-        } catch (e) {
-      return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} openAdd={openVaultAdd} onAddOpenChange={setOpenVaultAdd} />;
-        }
-        setError('Server error: ' + (raw || res.statusText));
-        setLoading(false);
-        return;
-      }
       try {
         raw = await res.text();
         if (raw && contentType && contentType.includes('application/json')) {
@@ -198,8 +178,8 @@ export default function App() {
       } else {
         setError('Vault creation failed. No response from backend.');
       }
-    } catch (e) {
-      setError('Network error: ' + (e?.message || e?.toString() || 'Unknown error'));
+    } catch {
+      setError('Network error: Unknown error');
     } finally {
       setLoading(false);
     }
@@ -277,10 +257,19 @@ export default function App() {
       } else {
         setError((data && data.message) || 'Unlock failed.');
       }
-    } catch (e) {
+    } catch {
       setError('Network error unlocking vault.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleNavigate = (target) => {
+    if (target === 'about') {
+      setShowAbout(true);
+      sessionStorage.setItem('about_seen', '1');
+    } else {
+      setPage(target);
     }
   };
 
