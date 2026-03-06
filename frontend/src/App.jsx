@@ -214,6 +214,7 @@ export default function App() {
           setGoldenKey(event.data.golden_key);
           setVaultUser(event.data.username);
           setShowDownloadModal(true);
+          console.log('[DEBUG] Received local_share directly from message, showing download modal.');
         } else if (event.data.reg_complete) {
           fetch(`${API_URL}/api/register/complete`, {
             method: 'POST',
@@ -227,7 +228,13 @@ export default function App() {
               setGoldenKey(data.golden_key);
               setVaultUser(data.username);
               setShowDownloadModal(true);
+              console.log('[DEBUG] Registration complete via reg_id, showing download modal.');
+            } else {
+              setError(data.message || 'Registration failed.');
             }
+          })
+          .catch(err => {
+            setError('Failed to complete registration.');
           });
         }
       }
