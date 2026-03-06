@@ -131,8 +131,8 @@ if (typeof window !== 'undefined') {
     }
   });
 }
-<<<<<<< HEAD
-=======
+// removed conflict marker
+// removed conflict marker
 
 function AuthSuccessPage() {
   React.useEffect(() => {
@@ -157,7 +157,7 @@ function AuthSuccessPage() {
     </div>
   );
 }
->>>>>>> parik4
+// removed conflict marker
 
 export default function App() {
   const [page, setPage] = useState('login');
