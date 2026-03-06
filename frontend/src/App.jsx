@@ -131,10 +131,11 @@ function AboutModal(props) {
 }
 
 // --- Contact Support Section ---
-function ContactSupport() {
+function ContactSupport({ onAbout }) {
   return (
     <div style={{ marginTop: 18, background: '#23272f', borderRadius: 12, padding: 16, color: '#FFD66B', fontSize: 14, textAlign: 'center' }}>
-      <b>Need help?</b> Email <a href="mailto:support@shamirvault.app" style={{ color: '#FFD700', textDecoration: 'underline' }}>support@shamirvault.app</a> or join our <a href="https://discord.gg/shamirvault" style={{ color: '#FFD700', textDecoration: 'underline' }}>Discord</a>.
+      <b>Need help?</b> Email <a href="mailto:support@shamirvault.app" style={{ color: '#FFD700', textDecoration: 'underline' }}>support@shamirvault.app</a> or join our{' '}
+      <a href="#about" style={{ color: '#FFD700', textDecoration: 'underline', cursor: 'pointer' }} onClick={e => { e.preventDefault(); onAbout && onAbout(); }}>Discord</a>.
     </div>
   );
 }
@@ -387,11 +388,10 @@ export default function App() {
   return (
     <ErrorBoundary>
       <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <FloatingShapes zIndex={0} />
         {(page === 'login' || page === 'verification') && (
-          <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10, display: 'flex', gap: 12 }}>
+          <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
             <TopRightNav onNavigate={handleNavigate} />
-            <button onClick={() => setShowAbout(true)} aria-label="About Shamir Vault" style={{ background: 'none', border: '2px solid #FFD700', color: '#FFD700', borderRadius: 10, fontWeight: 700, fontSize: 15, padding: '10px 18px', cursor: 'pointer', marginLeft: 8 }}>About</button>
+            {/* About button permanently removed */}
           </div>
         )}
         <AnimatePresence mode="wait">
@@ -482,13 +482,6 @@ export default function App() {
                       marginBottom: 10,
                     }}
                     autoComplete="off"
-                  />
-                  <input
-                    type="file"
-                    accept=".enc,.txt"
-                    ref={fileInputRef}
-                    style={{ display: 'none' }}
-                    onChange={handleLocalShareUpload}
                   />
                   <button
                     style={{
