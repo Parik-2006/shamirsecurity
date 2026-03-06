@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 
 // Set your hosted backend URL here:
-const API_BASE = "https://your-backend-domain.com"; // <-- CHANGE THIS to your real backend URL
+const API_BASE = "https://shamirsecurity-12.onrender.com"; // <-- User's real backend URL
 import { AnimatePresence, motion } from 'framer-motion';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
