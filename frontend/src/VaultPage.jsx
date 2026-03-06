@@ -491,19 +491,12 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
   );
 };
 
-function VaultPage({ username, goldenKey, onLogout, mfaWarning, openAdd, onAddOpenChange }) {
+function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
   const [vaultData, setVaultData] = useState([]);
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(openAdd ? 'add' : 'view');
-    // If openAdd prop changes to true, switch to add page
-    React.useEffect(() => {
-      if (openAdd) {
-        setPage('add');
-        if (onAddOpenChange) onAddOpenChange(false);
-      }
-    }, [openAdd, onAddOpenChange]);
+  const [page, setPage] = useState('view');
   const [refreshing, setRefreshing] = useState(false);
   const [showMfaBanner, setShowMfaBanner] = useState(!!mfaWarning);
   
@@ -589,7 +582,7 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning, openAdd, onAddOp
     return (
       <div className="app-wrapper">
         <ParticlesBackground />
-        <AnimatedShapes />
+        <FloatingShapes />
         <FloatingOrbs />
         
         <div style={{ 
