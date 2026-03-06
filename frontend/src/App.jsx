@@ -61,8 +61,6 @@ function AboutModal({ show, onClose }) {
   );
 }
 
-
-
 // --- Dev Info Panel (shows only in development) ---
 function isDev() {
   // Use a safe check for dev mode (works in browser)
@@ -104,6 +102,44 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// --- Top Navigation with 3D Buttons ---
+function TopRightNav({ onNavigate }) {
+  const btn3D = {
+    background: 'linear-gradient(145deg, #151A21 60%, #23272f 100%)',
+    color: '#FFD700',
+    border: '2.5px solid #FFD700',
+    borderRadius: 14,
+    fontWeight: 800,
+    fontSize: 15,
+    padding: '12px 28px',
+    margin: 0,
+    boxShadow: '4px 4px 16px #0a192f99, -4px -4px 16px #23272f55, 0 2px 8px #FFD70033',
+    cursor: 'pointer',
+    outline: 'none',
+    transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+    textShadow: '0 2px 8px #FFD70044',
+    letterSpacing: 0.7,
+    minWidth: 0,
+    minHeight: 0,
+    lineHeight: 1.2,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 0,
+    perspective: 400,
+    transformStyle: 'preserve-3d',
+  };
+  return (
+    <div style={{ display: 'flex', gap: 16 }}>
+      <button onClick={() => onNavigate('documentation')} style={btn3D}>
+        <span style={{ color: '#FFD700' }}>Documentation</span>
+      </button>
+      <button onClick={() => onNavigate('verification')} style={btn3D}>
+        <span style={{ color: '#FFD700' }}>Verification</span>
+      </button>
+    </div>
+  );
+}
+
 // --- Main App Component ---
 export default function App() {
   // --- State ---
@@ -116,16 +152,6 @@ export default function App() {
     setPage(target);
     // Removed setError, setSuccess, setLoading (no longer used)
   };
-
-
-
-
-
-
-
-
-
-
 
   // --- Main UI ---
   return (
