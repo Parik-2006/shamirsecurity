@@ -182,17 +182,7 @@ export default function App() {
             setLocalShare(data.local_share);
             setGoldenKey(data.golden_key);
             setVaultUser(data.username);
-            // Automatic download
-            if (data.local_share) {
-              const blob = new Blob([data.local_share], { type: 'text/plain' });
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = 'local_share.enc';
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              setShowDownload(true); // Show manual download button as well
-            }
+            setShowDownload(true); // Only show manual download button
           } else {
             setError((data && data.message) || 'Vault creation failed.');
           }
