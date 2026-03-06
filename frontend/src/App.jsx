@@ -367,15 +367,10 @@ export default function App() {
     }
   };
 
-<<<<<<< HEAD
-=======
-
   // Render AuthSuccessPage if on /auth-success route (with or without query params)
   if (window.location.pathname.startsWith('/auth-success')) {
     return <AuthSuccessPage />;
   }
-
->>>>>>> parik4
   if (vaultPage && goldenKey && vaultUser) {
     return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
   }
