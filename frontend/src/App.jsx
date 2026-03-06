@@ -4,7 +4,6 @@ import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
-import VaultPage from './VaultPage';
 
 // --- Utility: Password Strength Meter ---
 function getPasswordStrength(password) {
@@ -86,14 +85,8 @@ function LoadingSkeleton({ width = '100%', height = 24, style = {} }) {
   return <div style={{ width, height, background: '#23272f', borderRadius: 8, marginBottom: 8, ...style, animation: 'pulse 1.2s infinite alternate' }} />;
 }
 
-// --- About Modal ---
-function AboutModal(props) {
-  const { show, onClose } = props;
-  function handleClose() {
-    if (typeof onClose === 'function') {
-      onClose();
-    }
-  }
+// --- About Modal (only popup) ---
+function AboutModal({ show, onClose }) {
   if (!show) return null;
   return (
     <motion.div
@@ -104,27 +97,20 @@ function AboutModal(props) {
       aria-modal="true" role="dialog" tabIndex={-1}
     >
       <div style={{ background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
-        <button onClick={handleClose} aria-label="Close about modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
+        <button onClick={onClose} aria-label="Close about modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
         <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>About Shamir Vault</h2>
         <p style={{ fontSize: 18, marginBottom: 18 }}>
           Shamir Vault is a secure, open-source secret management app using advanced cryptography and multi-party computation.<br /><br />
           <b>Version:</b> 1.0.0<br />
           <b>Maintainer:</b> Parik-2006
         </p>
-        <p style={{ fontSize: 15, color: '#FFD700bb' }}>For feedback or bug reports, see the Contact Support section.</p>
+        <p style={{ fontSize: 15, color: '#FFD700bb' }}>For feedback or bug reports, email <a href="mailto:support@shamirvault.app" style={{ color: '#FFD700', textDecoration: 'underline' }}>support@shamirvault.app</a> or join our <a href="https://discord.gg/shamirvault" style={{ color: '#FFD700', textDecoration: 'underline' }}>Discord</a>.</p>
       </div>
     </motion.div>
   );
 }
 
-// --- Contact Support Section ---
-function ContactSupport() {
-  return (
-    <div style={{ marginTop: 18, background: '#23272f', borderRadius: 12, padding: 16, color: '#FFD66B', fontSize: 14, textAlign: 'center' }}>
-      <b>Need help?</b> Email <a href="mailto:support@shamirvault.app" style={{ color: '#FFD700', textDecoration: 'underline' }}>support@shamirvault.app</a> or join our <a href="https://discord.gg/shamirvault" style={{ color: '#FFD700', textDecoration: 'underline' }}>Discord</a>.
-    </div>
-  );
-}
+
 
 // --- Dev Info Panel (shows only in development) ---
 function isDev() {
@@ -179,8 +165,6 @@ export default function App() {
   const [goldenKey, setGoldenKey] = useState(null);
   const [vaultUser, setVaultUser] = useState(null);
   const [vaultPage, setVaultPage] = useState(false);
-  const [localShare, setLocalShare] = useState('');
-  const fileInputRef = useRef();
   const [showAbout, setShowAbout] = useState(true); // About popup always on load
 
   // --- Navigation ---
@@ -191,182 +175,15 @@ export default function App() {
     setLoading(false);
   };
 
-  // --- Registration: Step 1 ---
-  const handleCreateVault = async () => {
-    setError(''); setSuccess(''); setLoading(true);
-    try {
-      if (!username || !password) {
-        setError('Please enter username and password.'); setLoading(false); return;
-      }
-      if (getPasswordStrength(password) < 3) {
-        setError('Password is too weak. Use a mix of upper, lower, numbers, and symbols.'); setLoading(false); return;
-      }
-      const res = await fetch('/api/register/init', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      if (!res.ok) {
-        setError(`Server error: ${res.status} ${res.statusText}`);
-        setLoading(false); return;
-      }
-      const data = await res.json();
-      if (data.status === 'redirect' && data.auth_url && data.reg_id) {
-        setSuccess('Redirecting to Google for authentication...');
-        window.location.href = data.auth_url;
-      } else if (data.status === 'error') {
-        setError(data.message || 'Vault creation failed.');
-      } else {
-        setError('Unexpected server response during registration.');
-      }
-    } catch (err) {
-      setError(`Network or unexpected error: ${err?.message || err}`);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  // --- Registration: Step 2 (OAuth Complete) ---
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const regComplete = params.get('reg_complete');
-    if (regComplete) {
-      fetch('/api/register/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reg_id: regComplete })
-      })
-        .then(res => {
-          if (!res.ok) throw new Error(`Server error: ${res.status} ${res.statusText}`);
-          return res.json();
-        })
-        .then(data => {
-          if (data.status === 'success') {
-            setSuccess('Vault created! Download your local share.');
-            setLocalShare(data.local_share);
-            setGoldenKey(data.golden_key);
-            setVaultUser(data.username);
-            // Download local_share.enc
-            try {
-              const blob = new Blob([data.local_share], { type: 'text/plain' });
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = 'local_share.enc';
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-            } catch (downloadErr) {
-              setError('Vault created, but failed to trigger download: ' + downloadErr?.message);
-            }
-          } else if (data.status === 'error') {
-            setError(data.message || 'Vault creation failed.');
-          } else {
-            setError('Unexpected server response during registration completion.');
-          }
-        })
-        .catch(err => setError(`Network or unexpected error: ${err?.message || err}`));
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
 
-  // --- Vault Unlock (with local_share) ---
-  const handleUnlockVault = async () => {
-    setError(''); setSuccess(''); setLoading(true);
-    try {
-      if (!username || !password || !localShare) {
-        setError('Please enter username, password, and upload your local_share.enc file.'); setLoading(false); return;
-      }
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, local_share: localShare })
-      });
-      if (!res.ok) {
-        setError(`Server error: ${res.status} ${res.statusText}`);
-        setLoading(false); return;
-      }
-      const data = await res.json();
-      if (data.status === 'success') {
-        setGoldenKey(data.golden_key);
-        setVaultUser(username);
-        setVaultPage(true);
-        setSuccess('Vault unlocked!');
-      } else if (data.status === 'error') {
-        setError(data.message || 'Unlock failed.');
-      } else {
-        setError('Unexpected server response during unlock.');
-      }
-    } catch (err) {
-      setError(`Network or unexpected error: ${err?.message || err}`);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  // --- File Upload Handler (for local_share.enc) ---
-  const handleLocalShareUpload = (e) => {
-    try {
-      const file = e.target.files[0];
-      if (!file) { setError('No file selected.'); return; }
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        setLocalShare(evt.target.result);
-        setSuccess('local_share.enc loaded!');
-        setError('');
-      };
-      reader.onerror = () => {
-        setError('Failed to read local_share.enc');
-        setSuccess('');
-      };
-      reader.readAsText(file);
-    } catch (err) {
-      setError('File upload error: ' + (err?.message || err));
-    }
-  };
 
-  // --- Logout ---
-  const handleLogout = () => {
-    setVaultPage(false);
-    setGoldenKey(null);
-    setVaultUser(null);
-    setPage('login');
-    setPassword('');
-    setLocalShare('');
-    setError('');
-    setSuccess('');
-    setLoading(false);
-  };
 
-  // --- Onboarding Modal ---
-  const OnboardingModal = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 60 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 60 }}
-      transition={{ duration: 0.7, ease: 'anticipate' }}
-      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0B0D10ee', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-    >
-      <div style={{ background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center' }}>
-        <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Welcome to Shamir Vault</h2>
-        <p style={{ fontSize: 18, marginBottom: 18 }}>This app uses advanced cryptography to keep your secrets safe. <br />
-          <b>Steps:</b><br />
-          1. Register with a strong password<br />
-          2. Complete Google authentication<br />
-          3. Download and keep your <b>local_share.enc</b> safe<br />
-          4. Use it to unlock your vault anytime
-        </p>
-        <button style={{ padding: '12px 32px', fontWeight: 700, fontSize: 18, borderRadius: 12, background: '#FFD700', color: '#151A21', border: 'none', cursor: 'pointer', marginTop: 12 }} onClick={() => setShowOnboarding(false)}>Get Started</button>
-      </div>
-    </motion.div>
-  );
 
-  // --- About Modal ---
-  const handleAboutClose = () => setShowAbout(false);
 
-  // --- Vault Page ---
-  if (vaultPage && goldenKey && vaultUser) {
-    return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={handleLogout} />;
-  }
+
+
 
   // --- Main UI ---
   return (
@@ -416,131 +233,14 @@ export default function App() {
                       fontSize: 17,
                       borderRadius: 10,
                       border: '1.5px solid #23272f',
-                      marginBottom: 14,
-                      background: '#181c20',
-                      color: '#eaf6fb',
-                      outline: 'none',
-                    }}
-                    autoComplete="username"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Master Password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '14px',
-                      fontSize: 17,
-                      borderRadius: 10,
-                      border: '1.5px solid #23272f',
-                      background: '#181c20',
-                      color: '#eaf6fb',
-                      outline: 'none',
-                      marginBottom: 22,
-                    }}
-                    autoComplete="current-password"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Paste your local_share.enc content here (for unlock)"
-                    value={localShare}
-                    onChange={e => setLocalShare(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      fontSize: 15,
-                      borderRadius: 8,
-                      border: '1.5px solid #23272f',
-                      background: '#181c20',
-                      color: '#eaf6fb',
-                      outline: 'none',
-                      marginBottom: 10,
-                    }}
-                    autoComplete="off"
-                  />
-                  <button
-                    className="floating"
-                    style={{
-                      width: '100%',
-                      padding: '16px',
-                      fontSize: 20,
-                      fontWeight: 800,
-                      background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                      color: '#FFD66B',
-                      border: '2px solid #23272f',
-                      borderRadius: 14,
-                      cursor: loading ? 'not-allowed' : 'pointer',
-                      marginBottom: 18,
-                      boxShadow: '0 2px 8px #23272f55',
-                      letterSpacing: 1.1,
-                      transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                      textShadow: '0 2px 8px #FFD66B33',
-                      opacity: loading ? 0.7 : 1,
-                    }}
-                    onClick={handleCreateVault}
-                    disabled={loading}
-                  >
-                    Create New Vault
-                  </button>
-                  <button
-                    className="floating"
-                    style={{
-                      width: '100%',
-                      padding: '16px',
-                      fontSize: 20,
-                      fontWeight: 800,
-                      background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                      color: '#FFD66B',
-                      border: '2px solid #23272f',
-                      borderRadius: 14,
-                      cursor: loading ? 'not-allowed' : 'pointer',
-                      marginBottom: 8,
-                      boxShadow: '0 2px 8px #23272f55',
-                      letterSpacing: 1.1,
-                      transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                      textShadow: '0 2px 8px #FFD66B33',
-                      opacity: loading ? 0.7 : 1,
-                    }}
-                    onClick={handleUnlockVault}
-                    disabled={loading}
-                  >
-                    Unlock Vault
-                  </button>
-                  {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
-                  {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
-                </div>
-              </div>
-            </motion.div>
-          )}
-          {showAbout && <AboutModal show={showAbout} onClose={handleAboutClose} />}
-          {page === 'documentation' && (
-            <motion.div
-              key="documentation"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -40 }}
-              transition={{ duration: 0.6, ease: 'anticipate' }}
-              style={{ width: '100%', height: '100%' }}
-            >
-              <Documentation onBack={() => setPage('login')} />
-            </motion.div>
-          )}
-          {page === 'verification' && (
-            <motion.div
-              key="verification"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -40 }}
-              transition={{ duration: 0.6, ease: 'anticipate' }}
-              style={{ width: '100%', height: '100%' }}
-            >
-              <Verification onBack={() => setPage('login')} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <DevInfoPanel username={username} vaultUser={vaultUser} goldenKey={goldenKey} localShare={localShare} />
-      </div>
-    </ErrorBoundary>
-  );
-}
+                      // --- Main UI ---
+                      return (
+                        <ErrorBoundary>
+                          <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                            <FloatingShapes zIndex={0} />
+                            <AnimatePresence mode="wait">
+                              {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
+                            </AnimatePresence>
+                          </div>
+                        </ErrorBoundary>
+                      );
