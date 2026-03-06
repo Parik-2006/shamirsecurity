@@ -99,13 +99,25 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      const data = await res.json();
-      if (data.status === 'redirect' && data.auth_url && data.reg_id) {
-        // setRegId(data.reg_id); // regId not used in this version
-        setSuccess('Redirecting to Google for authentication...');
-        window.location.href = data.auth_url;
+      // Check if response is JSON
+      const contentType = res.headers.get('Content-Type');
+      if (!res.ok) {
+        const text = await res.text();
+        setError('Server error: ' + text);
+        setLoading(false);
+        return;
+      }
+      if (contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.status === 'redirect' && data.auth_url && data.reg_id) {
+          setSuccess('Redirecting to Google for authentication...');
+          window.location.href = data.auth_url;
+        } else {
+          setError(data.message || 'Vault creation failed.');
+        }
       } else {
-        setError(data.message || 'Vault creation failed.');
+        const text = await res.text();
+        setError('Unexpected response: ' + text);
       }
     } catch (e) {
       setError('Network error: ' + (e?.message || e?.toString() || 'Unknown error'));
