@@ -59,7 +59,12 @@ function AboutModal({ show, onClose }) {
           3. Download and keep your <b>local_share.enc</b> safe<br />
           4. Use it to unlock your vault anytime
         </p>
-        <p style={{ fontSize: 15, color: '#FFD700bb' }}>For feedback or bug reports, email <a href="mailto:support@shamirvault.app" style={{ color: '#FFD700', textDecoration: 'underline' }}>support@shamirvault.app</a> or join our <a href="https://discord.gg/shamirvault" style={{ color: '#FFD700', textDecoration: 'underline' }}>Discord</a>.</p>
+        <p style={{ fontSize: 15, color: '#FFD700bb' }}>
+          For feedback or bug reports, email
+          <a href="mailto:parikshithbb.cs25@rvce.edu.in" style={{ color: '#FFD700', textDecoration: 'underline' }}>parikshithbb.cs25@rvce.edu.in</a>
+          or join our
+          <a href="https://discord.gg/YEwrW4M2" style={{ color: '#FFD700', textDecoration: 'underline' }}>Discord</a>.
+        </p>
       </div>
     </motion.div>
   );
