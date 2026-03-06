@@ -1,36 +1,195 @@
-// Minimal test button for window.open
-function TestWindowOpen() {
-  return (
-    <button
-      style={{
-        position: 'fixed', bottom: 24, right: 24, zIndex: 9999, padding: 16, background: '#FFD700', color: '#151A21', border: 'none', borderRadius: 12, fontWeight: 800, fontSize: 18, boxShadow: '0 2px 8px #FFD66B33', cursor: 'pointer', letterSpacing: 1.1 }}
-      onClick={() => window.open('https://accounts.google.com/', '_blank', 'noopener,noreferrer')}
-    >
-      TEST window.open
-    </button>
-  );
-}
 import { AnimatePresence, motion } from 'framer-motion';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// Global API URL for all API calls
+// --- API Configuration ---
 const API_URL = import.meta.env.VITE_API_URL;
+
+// --- Imports ---
 import Documentation from './pages/documentation.jsx';
 import Verification from './pages/verification.jsx';
 import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
 import VaultPage from './VaultPage';
 
-// --- Onboarding Modal (only popup) ---
-// ...existing code...
+// --- Helper Components ---
 
-  // ...existing code...
-  // (Insert the full, latest App.jsx code from parik4 branch here, as already read above)
+/**
+ * Minimal test button for debugging window.open functionality
+ */
+function TestWindowOpen() {
+  return (
+    <button
+      style={{
+        position: 'fixed', bottom: 24, right: 24, zIndex: 9999, padding: 16, 
+        background: '#FFD700', color: '#151A21', border: 'none', borderRadius: 12, 
+        fontWeight: 800, fontSize: 18, boxShadow: '0 2px 8px #FFD66B33', 
+        cursor: 'pointer', letterSpacing: 1.1 
+      }}
+      onClick={() => window.open('https://accounts.google.com/', '_blank', 'noopener,noreferrer')}
+    >
+      TEST window.open
+    </button>
+  );
+}
+
+/**
+ * Top Navigation with 3D Styled Buttons
+ */
+const TopRightNav = ({ onNavigate }) => {
+  const btn3D = {
+    background: 'linear-gradient(145deg, #151A21 60%, #23272f 100%)',
+    color: '#FFD700',
+    border: '2.5px solid #FFD700',
+    borderRadius: 14,
+    fontWeight: 800,
+    fontSize: 15,
+    padding: '12px 28px',
+    margin: 0,
+    boxShadow: '4px 4px 16px #0a192f99, -4px -4px 16px #23272f55, 0 2px 8px #FFD70033',
+    cursor: 'pointer',
+    outline: 'none',
+    transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+    textShadow: '0 2px 8px #FFD70044',
+    letterSpacing: 0.7,
+    display: 'flex',
+    alignItems: 'center',
+    perspective: 400,
+    transformStyle: 'preserve-3d',
+  };
+
+  return (
+    <div style={{ display: 'flex', gap: 16 }}>
+      <button onClick={() => onNavigate('documentation')} style={btn3D}>
+        <span style={{ color: '#FFD700' }}>Documentation</span>
+      </button>
+      <button onClick={() => onNavigate('verification')} style={btn3D}>
+        <span style={{ color: '#FFD700' }}>Verification</span>
+      </button>
+      <button onClick={() => onNavigate('about')} style={btn3D}>
+        <span style={{ color: '#FFD700' }}>About</span>
+      </button>
+    </div>
+  );
+};
+
+/**
+ * Information Modal
+ */
+function AboutModal({ show, onClose }) {
+  if (!show) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{ 
+        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', 
+        background: '#0B0D10ee', zIndex: 2000, display: 'flex', 
+        alignItems: 'center', justifyContent: 'center' 
+      }}
+    >
+      <div style={{ 
+        background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 480, 
+        width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', 
+        color: '#FFD66B', textAlign: 'center', position: 'relative' 
+      }}>
+        <button onClick={onClose} style={{ 
+          position: 'absolute', top: 16, right: 16, background: 'none', 
+          border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' 
+        }}>×</button>
+        <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Welcome to Shamir Vault</h2>
+        <p style={{ fontSize: 18, marginBottom: 18 }}>
+          This app uses advanced cryptography to keep your secrets safe.<br /><br />
+          <b>Steps to use:</b><br />
+          1. Register with a strong password<br />
+          2. Complete Google authentication<br />
+          3. Download and keep your <b>local_share.enc</b> safe<br />
+          4. Use it to unlock your vault anytime
+        </p>
+        <p style={{ fontSize: 18, color: '#FFD700bb', marginTop: 24 }}>
+          For feedback, email <a href="mailto:parikshithbb.cs25@rvce.edu.in" style={{ color: '#FFD700' }}>mail</a>.
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+/**
+ * Modal to trigger the download of the local share file
+ */
+function DownloadShareModal({ show, onDownload, onClose }) {
+  if (!show) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{ 
+        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', 
+        background: '#0B0D10ee', zIndex: 3000, display: 'flex', 
+        alignItems: 'center', justifyContent: 'center' 
+      }}
+    >
+      <div style={{ 
+        background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 420, 
+        width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', 
+        color: '#FFD66B', textAlign: 'center', position: 'relative' 
+      }}>
+        <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 18 }}>Download Your Vault Share</h2>
+        <p style={{ fontSize: 17, marginBottom: 24 }}>
+          Click below to download your <b>local_share.enc</b> file. <br />
+          Keep it safe! You need it to unlock your vault.
+        </p>
+        <button
+          style={{
+            padding: '14px 32px', fontSize: 18, fontWeight: 700, 
+            background: '#FFD66B', color: '#151A21', border: 'none', 
+            borderRadius: 10, cursor: 'pointer', boxShadow: '0 2px 8px #FFD66B33',
+          }}
+          onClick={onDownload}
+        >
+          Download local_share.enc
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+/**
+ * Page displayed in the OAuth popup after successful sign-in
+ */
+function AuthSuccessPage() {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const regComplete = params.get('reg_complete');
+    
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
+      setTimeout(() => {
+        window.close();
+      }, 2000);
+    }
+  }, []);
+
+  return (
+    <div style={{ 
+      minHeight: '100vh', width: '100vw', background: '#0B0D10', 
+      display: 'flex', alignItems: 'center', justifyContent: 'center' 
+    }}>
+      <div style={{ 
+        background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 480, 
+        width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', 
+        color: '#FFD66B', textAlign: 'center' 
+      }}>
+        <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Authentication Complete</h2>
+        <p style={{ fontSize: 20, marginBottom: 18 }}>Authentication flow complete.<br />You may close this window or tab.</p>
+        <p style={{ fontSize: 16, color: '#FFD66B99' }}>(This tab will close automatically.)</p>
       </div>
     </div>
   );
 }
-// removed conflict marker
+
+// --- Main App Logic ---
 
 export default function App() {
   const [page, setPage] = useState('login');
@@ -43,498 +202,39 @@ export default function App() {
   const [vaultUser, setVaultUser] = useState(null);
   const [vaultPage, setVaultPage] = useState(false);
   const [localShare, setLocalShare] = useState(null);
-  const [showLocalShareStep, setShowLocalShareStep] = useState(false);
-  // Show About modal only once per session
-  const [showAbout, setShowAbout] = useState(() => {
-    const seen = sessionStorage.getItem('about_seen');
-    return !seen;
-  });
-  // State to trigger add password mode after registration
-  // const [openVaultAdd, setOpenVaultAdd] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [showAbout, setShowAbout] = useState(() => !sessionStorage.getItem('about_seen'));
 
-
-<<<<<<< HEAD
-  return (
-    <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <FloatingShapes zIndex={0} />
-      {(page === 'login' || page === 'verification') && (
-        <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
-          <TopRightNav onNavigate={handleNavigate} />
-        </div>
-      )}
-      <AnimatePresence mode="wait">
-        {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
-        {page === 'login' && !showLocalShareStep && (
-          <motion.div
-            key="login"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -40 }}
-            transition={{ duration: 0.6, ease: 'anticipate' }}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
-          >
-            <CyberLogin3D zIndex={2} />
-            <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
-                <span style={{ display: 'flex', alignItems: 'center', height: 40, marginRight: 6 }}>
-                  <svg width="38" height="38" viewBox="0 0 54 64" fill="none" style={{ display: 'block', verticalAlign: 'middle' }}>
-                    <rect x="7" y="28" width="40" height="28" rx="8" fill="#FFD700" stroke="#FFF8DC" strokeWidth="3" />
-                    <rect x="20" y="38" width="14" height="10" rx="5" fill="#FFF8DC" />
-                    <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
-                  </svg>
-                </span>
-                <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', margin: 0, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55', lineHeight: 1, verticalAlign: 'middle' }}>Shamir Vault</h1>
-              </div>
-              <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
-                Secure Multi-Key Secret Management
-              </p>
-              <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <input
-                  type="text"
-                  placeholder="Username"
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    fontSize: 17,
-                    borderRadius: 10,
-                    border: '1.5px solid #23272f',
-                    marginBottom: 14,
-                    background: '#181c20',
-                    color: '#eaf6fb',
-                    outline: 'none',
-                  }}
-                />
-                <input
-                  type="password"
-                  placeholder="Master Password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    fontSize: 17,
-                    borderRadius: 10,
-                    border: '1.5px solid #23272f',
-                    background: '#181c20',
-                    color: '#eaf6fb',
-                    outline: 'none',
-                    marginBottom: 22,
-                  }}
-                />
-                <button
-                  className="floating"
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    fontSize: 20,
-                    fontWeight: 800,
-                    background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                    color: '#FFD66B',
-                    border: '2px solid #23272f',
-                    borderRadius: 14,
-                    cursor: 'pointer',
-                    marginBottom: 18,
-                    boxShadow: '0 2px 8px #23272f55',
-                    letterSpacing: 1.1,
-                    transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                    textShadow: '0 2px 8px #FFD66B33',
-                    opacity: loading ? 0.7 : 1,
-                  }}
-                  onClick={handleCreateVault}
-                  disabled={loading}
-                >
-                  Create New Vault
-                </button>
-                <button
-                  className="floating"
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    fontSize: 20,
-                    fontWeight: 800,
-                    background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                    color: '#FFD66B',
-                    border: '2px solid #23272f',
-                    borderRadius: 14,
-                    cursor: 'pointer',
-                    marginBottom: 8,
-                    boxShadow: '0 2px 8px #23272f55',
-                    letterSpacing: 1.1,
-                    transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                    textShadow: '0 2px 8px #FFD66B33',
-                    opacity: loading ? 0.7 : 1,
-                  }}
-                  onClick={handleUnlockVault}
-                  disabled={loading}
-                >
-                  Unlock Vault
-                </button>
-                {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
-                {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Step 2: Show local_share upload if credentials valid */}
-        {page === 'login' && showLocalShareStep && (
-          <motion.div
-            key="localshare"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -40 }}
-            transition={{ duration: 0.6, ease: 'anticipate' }}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
-          >
-            <CyberLogin3D zIndex={2} />
-            <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
-              <h2 style={{ color: '#FFD66B', fontWeight: 800, fontSize: 28, textAlign: 'center', marginBottom: 18 }}>Upload Your local_share.enc</h2>
-              <input
-                type="file"
-                accept=".enc,.txt"
-                onChange={e => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = ev => setLocalShare(ev.target.result);
-                    reader.readAsText(file);
-                  }
-                }}
-                style={{ marginBottom: 18 }}
-              />
-              <button
-                className="floating"
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  fontSize: 20,
-                  fontWeight: 800,
-                  background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                  color: '#FFD66B',
-                  border: '2px solid #23272f',
-                  borderRadius: 14,
-                  cursor: 'pointer',
-                  marginBottom: 8,
-                  boxShadow: '0 2px 8px #23272f55',
-                  letterSpacing: 1.1,
-                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                  textShadow: '0 2px 8px #FFD66B33',
-                  opacity: loading ? 0.7 : 1,
-                }}
-                onClick={handleLocalShareUpload}
-                disabled={loading}
-              >
-                Unlock Vault
-              </button>
-              <button
-                style={{ marginTop: 10, color: '#FFD66B', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 16 }}
-                onClick={() => { setShowLocalShareStep(false); setLocalShare(null); setError(''); setSuccess(''); }}
-              >
-                &larr; Back to Login
-              </button>
-              {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
-              {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
-            </div>
-          </motion.div>
-        )}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  fontSize: 20,
-                  fontWeight: 800,
-                  background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                  color: '#FFD66B',
-                  border: '2px solid #23272f',
-                  borderRadius: 14,
-                  cursor: 'pointer',
-                  marginBottom: 18,
-                  boxShadow: '0 2px 8px #23272f55',
-                  letterSpacing: 1.1,
-                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                  textShadow: '0 2px 8px #FFD66B33',
-                  opacity: loading ? 0.7 : 1,
-                }}
-                onClick={() => setPage('verification')}
-                disabled={loading}
-              >
-                Unlock Existing Vault
-              </button>
-              {error && <div style={{ color: '#ff4d4f', marginTop: 8, fontWeight: 700 }}>{error}</div>}
-              {success && <div style={{ color: '#00e676', marginTop: 8, fontWeight: 700 }}>{success}</div>}
-            </div>
-          </motion.div>
-        )}
-        {page === 'verification' && (
-          <Verification
-            username={username}
-            setUsername={setUsername}
-            password={password}
-            setPassword={setPassword}
-            setVaultPage={setVaultPage}
-            setGoldenKey={setGoldenKey}
-=======
-  // Step 1: Start registration, get Google OAuth URL
-  const handleCreateVault = async () => {
-    setError(''); setSuccess(''); setLoading(true);
-    try {
-      if (!username || !password) {
-        setError('Please enter username and password.'); setLoading(false); return;
-      }
-      const res = await fetch(`${API_BASE}/api/register/init`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const contentType = res.headers.get('Content-Type');
-      let raw = '';
-      let data = null;
-      if (!res.ok) {
-        // Try to get text for error
-        try {
-          raw = await res.text();
-        } catch (e) {
-          raw = '';
-        }
-        setError('Server error: ' + (raw || res.statusText));
-        setLoading(false);
-        return;
-      }
-      try {
-        raw = await res.text();
-        if (raw && contentType && contentType.includes('application/json')) {
-          data = JSON.parse(raw);
-        } else {
-          data = null;
-        }
-      } catch (jsonErr) {
-        data = null;
-        console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-      }
-      if (data && data.auth_url) {
-        setSuccess('Opening Google sign-in...');
-        const win = window.open(data.auth_url, '_blank');
-        if (!win) {
-          window.location.href = data.auth_url;
-        }
-        return;
-      }
-      console.error('Backend response:', raw);
-      if (data && data.message) {
-        setError('Vault creation failed: ' + data.message);
-      } else if (raw) {
-        setError('Vault creation failed. Backend says: ' + raw);
-      } else {
-        setError('Vault creation failed. No response from backend.');
-      }
-    } catch (e) {
-      setError('Network error: ' + (e?.message || e?.toString() || 'Unknown error'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Step 2: After Google OAuth, complete registration and download local_share
-  React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const regComplete = params.get('reg_complete');
-    if (regComplete) {
-      fetch(`${API_BASE}/api/register/complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reg_id: regComplete })
-      })
-        .then(async res => {
-          const contentType = res.headers.get('Content-Type');
-          let raw = '';
-          let data = null;
-          try {
-            raw = await res.text();
-            if (raw && contentType && contentType.includes('application/json')) {
-              data = JSON.parse(raw);
+  // OAuth Message Listener
+  useEffect(() => {
+    function handleMessage(event) {
+      if (event.data && event.data.type === 'registration-complete') {
+        if (event.data.local_share) {
+          setLocalShare(event.data.local_share);
+          setGoldenKey(event.data.golden_key);
+          setVaultUser(event.data.username);
+          setShowDownloadModal(true);
+        } else if (event.data.reg_complete) {
+          fetch(`${API_URL}/api/register/complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reg_id: event.data.reg_complete })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === 'success') {
+              setLocalShare(data.local_share);
+              setGoldenKey(data.golden_key);
+              setVaultUser(data.username);
+              setShowDownloadModal(true);
             }
-          } catch (jsonErr) {
-            data = null;
-            console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-          }
-          return data;
-        })
-        .then(data => {
-          if (data && data.status === 'success') {
-            setSuccess('Vault created! Download your local share.');
-            setLocalShare(data.local_share);
-            setGoldenKey(data.golden_key);
-            setVaultUser(data.username);
-            setShowDownloadModal(true); // Show modal for download
-          } else {
-            setError((data && data.message) || 'Vault creation failed.');
-          }
-        });
-      window.history.replaceState({}, document.title, window.location.pathname);
+          });
+        }
+      }
     }
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
   }, []);
-
-  // Step 3a: Validate username/password only
-  const handleUnlockVault = async () => {
-    setError(''); setSuccess(''); setLoading(true);
->>>>>>> 3cc3c33 (feat: two-step unlock vault flow (username/password, then local_share.enc))
-    try {
-      if (!username || !password) {
-        setError('Please enter username and password.'); setLoading(false); return;
-      }
-<<<<<<< HEAD
-      const res = await fetch(`${API_URL}/api/login`, {
-=======
-      // Try to fetch share2 from backend to check if user exists and password is correct (simulate login)
-      const res = await fetch(`${API_BASE}/api/check_credentials`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const contentType = res.headers.get('Content-Type');
-      let raw = '';
-      let data = null;
-      try {
-        raw = await res.text();
-        if (raw && contentType && contentType.includes('application/json')) {
-          data = JSON.parse(raw);
-        }
-      } catch (jsonErr) {
-        data = null;
-        console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-      }
-      if (data && data.status === 'success') {
-        setShowLocalShareStep(true);
-        setSuccess('Credentials valid! Please upload your local_share.enc file.');
-      } else {
-        setError((data && data.message) || 'Invalid username or password.');
-      }
-    } catch (e) {
-      setError('Network error validating credentials.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Step 3b: After credentials, upload local_share.enc to unlock vault
-  const handleLocalShareUpload = async () => {
-    setError(''); setSuccess(''); setLoading(true);
-    try {
-      if (!localShare) {
-        setError('Please upload your local_share.enc file.'); setLoading(false); return;
-      }
-      const res = await fetch(`${API_BASE}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, local_share: localShare })
-      });
-      const contentType = res.headers.get('Content-Type');
-      let raw = '';
-      let data = null;
-      try {
-        raw = await res.text();
-        if (raw && contentType && contentType.includes('application/json')) {
-          data = JSON.parse(raw);
-        }
-      } catch (jsonErr) {
-        data = null;
-        console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-      }
-      if (data && data.status === 'success') {
-        setGoldenKey(data.golden_key);
-        setVaultUser(username);
-        setVaultPage(true);
-        setSuccess('Vault unlocked!');
-      } else {
-        setError((data && data.message) || 'Unlock failed.');
-      }
-    } catch (e) {
-      setError('Network error unlocking vault.');
-    } finally {
-      setLoading(false);
-    }
-  };
-  const handleUnlockVault = async () => {
-    setError(''); setSuccess(''); setLoading(true);
-    try {
-      if (!username || !password) {
-        setError('Please enter username and password.'); setLoading(false); return;
-      }
-<<<<<<< HEAD
-=======
-      // Try to fetch share2 from backend to check if user exists and password is correct (simulate login)
-      const res = await fetch(`${API_BASE}/api/check_credentials`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const contentType = res.headers.get('Content-Type');
-      let raw = '';
-      let data = null;
-      try {
-        raw = await res.text();
-        if (raw && contentType && contentType.includes('application/json')) {
-          data = JSON.parse(raw);
-        }
-      } catch (jsonErr) {
-        data = null;
-        console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-      }
-      if (data && data.status === 'success') {
-        setShowLocalShareStep(true);
-        setSuccess('Credentials valid! Please upload your local_share.enc file.');
-      } else {
-        setError((data && data.message) || 'Invalid username or password.');
-      }
-    } catch (e) {
-      setError('Network error validating credentials.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Step 3b: After credentials, upload local_share.enc to unlock vault
-  const handleLocalShareUpload = async () => {
-    setError(''); setSuccess(''); setLoading(true);
-    try {
-      if (!localShare) {
-        setError('Please upload your local_share.enc file.'); setLoading(false); return;
-      }
->>>>>>> 13b2684 (feat: two-step unlock vault flow (username/password, then local_share.enc))
-      const res = await fetch(`${API_BASE}/api/login`, {
->>>>>>> 3cc3c33 (feat: two-step unlock vault flow (username/password, then local_share.enc))
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, local_share: localShare })
-      });
-      const contentType = res.headers.get('Content-Type');
-      let raw = '';
-      let data = null;
-      try {
-        raw = await res.text();
-        if (raw && contentType && contentType.includes('application/json')) {
-          data = JSON.parse(raw);
-        }
-      } catch (jsonErr) {
-        data = null;
-        console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-      }
-      if (data && data.status === 'success') {
-        setGoldenKey(data.golden_key);
-        setVaultUser(username);
-        setVaultPage(true);
-        setSuccess('Vault unlocked!');
-      } else {
-        setError((data && data.message) || 'Unlock failed.');
-      }
-    } catch {
-      setError('Network error unlocking vault.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleNavigate = (target) => {
     if (target === 'about') {
@@ -545,16 +245,32 @@ export default function App() {
     }
   };
 
-  // Only show AuthSuccessPage on /auth-success route (OAuth callback)
-  if (window.location.pathname.startsWith('/auth-success')) {
-    return <AuthSuccessPage />;
-  }
-  // Otherwise, render the normal app (login page, etc.)
-  if (vaultPage && goldenKey && vaultUser) {
-    return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); setShowLocalShareStep(false); setLocalShare(null); }} />;
-  }
+  const handleCreateVault = async () => {
+    setError(''); setSuccess(''); setLoading(true);
+    try {
+      if (!username || !password) {
+        setError('Please enter username and password.'); 
+        setLoading(false); return;
+      }
+      const res = await fetch(`${API_URL}/api/register/init`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (data.auth_url) {
+        setSuccess('Redirecting to Google sign-in...');
+        window.open(data.auth_url, '_blank', 'noopener,noreferrer');
+      } else {
+        setError(data.message || 'Creation failed.');
+      }
+    } catch {
+      setError('Connection error.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Handler for downloading local_share.enc from modal
   const handleDownloadShare = () => {
     if (localShare) {
       const blob = new Blob([localShare], { type: 'text/plain' });
@@ -565,348 +281,132 @@ export default function App() {
       a.click();
       document.body.removeChild(a);
       setShowDownloadModal(false);
-      // After download, go to vault page
       setVaultPage(true);
     }
   };
 
+  // Route Handling for OAuth success
+  if (window.location.pathname.startsWith('/auth-success')) {
+    return <AuthSuccessPage />;
+  }
+
+  // Final Vault View
+  if (vaultPage && goldenKey && vaultUser) {
+    return (
+      <VaultPage 
+        username={vaultUser} 
+        goldenKey={goldenKey} 
+        onLogout={() => { 
+          setVaultPage(false); setGoldenKey(null); setPage('login'); 
+        }} 
+      />
+    );
+  }
+
   return (
-    <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ 
+      minHeight: '100vh', width: '100vw', background: '#0B0D10', 
+      position: 'relative', overflow: 'hidden', display: 'flex', 
+      flexDirection: 'column' 
+    }}>
       <FloatingShapes zIndex={0} />
+      
       {(page === 'login' || page === 'verification') && (
         <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
           <TopRightNav onNavigate={handleNavigate} />
         </div>
       )}
+
       <AnimatePresence mode="wait">
         {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
+        
         {page === 'login' && (
           <motion.div
             key="login"
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -40 }}
-            transition={{ duration: 0.6, ease: 'anticipate' }}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
           >
             <CyberLogin3D zIndex={2} />
-            <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
-                <span style={{ display: 'flex', alignItems: 'center', height: 40, marginRight: 6 }}>
-                  <svg width="38" height="38" viewBox="0 0 54 64" fill="none" style={{ display: 'block', verticalAlign: 'middle' }}>
-                    <rect x="7" y="28" width="40" height="28" rx="8" fill="#FFD700" stroke="#FFF8DC" strokeWidth="3" />
-                    <rect x="20" y="38" width="14" height="10" rx="5" fill="#FFF8DC" />
-                    <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
-                  </svg>
-                </span>
-                <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', margin: 0, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55', lineHeight: 1, verticalAlign: 'middle' }}>Shamir Vault</h1>
+            <div style={{ 
+              maxWidth: 420, width: '95vw', padding: '40px 24px', 
+              background: '#151A21', borderRadius: 28, 
+              boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', 
+              display: 'flex', flexDirection: 'column', alignItems: 'center', 
+              zIndex: 3 
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20, gap: 14 }}>
+                <svg width="38" height="38" viewBox="0 0 54 64" fill="none">
+                  <rect x="7" y="28" width="40" height="28" rx="8" fill="#FFD700" stroke="#FFF8DC" strokeWidth="3" />
+                  <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
+                </svg>
+                <span style={{ fontWeight: 900, fontSize: 32, color: '#FFD700' }}>Shamir Vault</span>
               </div>
-              <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
-                Secure Multi-Key Secret Management
-              </p>
-              <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <input
-                  type="text"
-<<<<<<< HEAD
-                  id="login-username"
-                  name="username"
-=======
-<<<<<<< HEAD
->>>>>>> 3cc3c33 (feat: two-step unlock vault flow (username/password, then local_share.enc))
-                  placeholder="Username"
-                  autoComplete="username"
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    fontSize: 17,
-                    borderRadius: 10,
-                    border: '1.5px solid #23272f',
-                    marginBottom: 14,
-                    background: '#181c20',
-                    color: '#eaf6fb',
-                    outline: 'none',
-                  }}
-                />
-                <input
-                  type="password"
-                  id="login-password"
-                  name="password"
-                  placeholder="Master Password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    fontSize: 17,
-                    borderRadius: 10,
-                    border: '1.5px solid #23272f',
-                    background: '#181c20',
-                    color: '#eaf6fb',
-                    outline: 'none',
-                    marginBottom: 22,
-                  }}
-                />
-                <button
-                  className="floating"
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    fontSize: 20,
-                    fontWeight: 800,
-                    background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                    color: '#FFD66B',
-                    border: '2px solid #23272f',
-                    borderRadius: 14,
-                    cursor: 'pointer',
-                    marginBottom: 18,
-                    boxShadow: '0 2px 8px #23272f55',
-                    letterSpacing: 1.1,
-                    transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                    textShadow: '0 2px 8px #FFD66B33',
-                    opacity: loading ? 0.7 : 1,
-                  }}
-                  onClick={handleCreateVault}
-                  disabled={loading}
-                >
-                  Create New Vault
-                </button>
-                <button
-                  className="floating"
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    fontSize: 20,
-                    fontWeight: 800,
-                    background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                    color: '#FFD66B',
-                    border: '2px solid #23272f',
-                    borderRadius: 14,
-                    cursor: 'pointer',
-                    marginBottom: 8,
-                    boxShadow: '0 2px 8px #23272f55',
-                    letterSpacing: 1.1,
-                    transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                    textShadow: '0 2px 8px #FFD66B33',
-                    opacity: loading ? 0.7 : 1,
-                  }}
-                  onClick={handleUnlockVault}
-                  disabled={loading}
-                >
-                  Unlock Vault
-                </button>
-                {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
-                {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
-                {/* Download button now appears in modal only */}
-              </div>
+
+              <input
+                type="text" placeholder="Username" value={username}
+                onChange={e => setUsername(e.target.value)}
+                style={{ 
+                  width: '100%', padding: '14px', borderRadius: 10, border: '1.5px solid #23272f',
+                  background: '#181c20', color: '#fff', marginBottom: 14 
+                }}
+              />
+              <input
+                type="password" placeholder="Master Password" value={password}
+                onChange={e => setPassword(e.target.value)}
+                style={{ 
+                  width: '100%', padding: '14px', borderRadius: 10, border: '1.5px solid #23272f',
+                  background: '#181c20', color: '#fff', marginBottom: 22 
+                }}
+              />
+
+              <button 
+                onClick={handleCreateVault} 
+                disabled={loading}
+                style={{ 
+                  width: '100%', padding: 16, background: '#FFD66B', color: '#151A21', 
+                  borderRadius: 14, fontWeight: 800, cursor: 'pointer', marginBottom: 12 
+                }}
+              >
+                Create New Vault
+              </button>
+
+              <button 
+                onClick={() => setPage('verification')}
+                style={{ 
+                  width: '100%', padding: 16, background: 'transparent', color: '#FFD66B', 
+                  border: '2px solid #23272f', borderRadius: 14, fontWeight: 800, cursor: 'pointer' 
+                }}
+              >
+                Unlock Existing Vault
+              </button>
+
+              {error && <div style={{ color: '#ef4444', marginTop: 12 }}>{error}</div>}
+              {success && <div style={{ color: '#FFD66B', marginTop: 12 }}>{success}</div>}
             </div>
           </motion.div>
         )}
+
         {page === 'documentation' && (
-          <motion.div
-            key="documentation"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -40 }}
-            transition={{ duration: 0.6, ease: 'anticipate' }}
-            style={{ width: '100%', height: '100%' }}
-          >
+          <motion.div key="doc" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ width: '100%', height: '100%' }}>
             <Documentation onBack={() => setPage('login')} />
           </motion.div>
         )}
-        {page === 'verification' && (
-          <motion.div
-            key="verification"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -40 }}
-            transition={{ duration: 0.6, ease: 'anticipate' }}
-            style={{ width: '100%', height: '100%' }}
-          >
-            <Verification onBack={() => setPage('login')} />
-=======
-                  id="login-username"
-                  {page === 'login' && !showLocalShareStep && (
-                    <motion.div
-                      key="login"
-                      initial={{ opacity: 0, y: 40 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -40 }}
-                      transition={{ duration: 0.6, ease: 'anticipate' }}
-                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
-                    >
-                      <CyberLogin3D zIndex={2} />
-                      <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
-                          <span style={{ display: 'flex', alignItems: 'center', height: 40, marginRight: 6 }}>
-                            <svg width="38" height="38" viewBox="0 0 54 64" fill="none" style={{ display: 'block', verticalAlign: 'middle' }}>
-                              <rect x="7" y="28" width="40" height="28" rx="8" fill="#FFD700" stroke="#FFF8DC" strokeWidth="3" />
-                              <rect x="20" y="38" width="14" height="10" rx="5" fill="#FFF8DC" />
-                              <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
-                            </svg>
-                          </span>
-                          <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', margin: 0, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55', lineHeight: 1, verticalAlign: 'middle' }}>Shamir Vault</h1>
-                        </div>
-                        <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
-                          Secure Multi-Key Secret Management
-                        </p>
-                        <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                          <input
-                            type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={e => setUsername(e.target.value)}
-                            style={{
-                              width: '100%',
-                              padding: '14px',
-                              fontSize: 17,
-                              borderRadius: 10,
-                              border: '1.5px solid #23272f',
-                              marginBottom: 14,
-                              background: '#181c20',
-                              color: '#eaf6fb',
-                              outline: 'none',
-                            }}
-                          />
-                          <input
-                            type="password"
-                            placeholder="Master Password"
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            style={{
-                              width: '100%',
-                              padding: '14px',
-                              fontSize: 17,
-                              borderRadius: 10,
-                              border: '1.5px solid #23272f',
-                              background: '#181c20',
-                              color: '#eaf6fb',
-                              outline: 'none',
-                              marginBottom: 22,
-                            }}
-                          />
-                          <button
-                            className="floating"
-                            style={{
-                              width: '100%',
-                              padding: '16px',
-                              fontSize: 20,
-                              fontWeight: 800,
-                              background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                              color: '#FFD66B',
-                              border: '2px solid #23272f',
-                              borderRadius: 14,
-                              cursor: 'pointer',
-                              marginBottom: 18,
-                              boxShadow: '0 2px 8px #23272f55',
-                              letterSpacing: 1.1,
-                              transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                              textShadow: '0 2px 8px #FFD66B33',
-                              opacity: loading ? 0.7 : 1,
-                            }}
-                            onClick={handleCreateVault}
-                            disabled={loading}
-                          >
-                            Create New Vault
-                          </button>
-                          <button
-                            className="floating"
-                            style={{
-                              width: '100%',
-                              padding: '16px',
-                              fontSize: 20,
-                              fontWeight: 800,
-                              background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                              color: '#FFD66B',
-                              border: '2px solid #23272f',
-                              borderRadius: 14,
-                              cursor: 'pointer',
-                              marginBottom: 8,
-                              boxShadow: '0 2px 8px #23272f55',
-                              letterSpacing: 1.1,
-                              transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                              textShadow: '0 2px 8px #FFD66B33',
-                              opacity: loading ? 0.7 : 1,
-                            }}
-                            onClick={handleUnlockVault}
-                            disabled={loading}
-                          >
-                            Unlock Vault
-                          </button>
-                          {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
-                          {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
 
-                  {/* Step 2: Show local_share upload if credentials valid */}
-                  {page === 'login' && showLocalShareStep && (
-                    <motion.div
-                      key="localshare"
-                      initial={{ opacity: 0, y: 40 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -40 }}
-                      transition={{ duration: 0.6, ease: 'anticipate' }}
-                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
-                    >
-                      <CyberLogin3D zIndex={2} />
-                      <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
-                        <h2 style={{ color: '#FFD66B', fontWeight: 800, fontSize: 28, textAlign: 'center', marginBottom: 18 }}>Upload Your local_share.enc</h2>
-                        <input
-                          type="file"
-                          accept=".enc,.txt"
-                          onChange={e => {
-                            const file = e.target.files[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onload = ev => setLocalShare(ev.target.result);
-                              reader.readAsText(file);
-                            }
-                          }}
-                          style={{ marginBottom: 18 }}
-                        />
-                        <button
-                          className="floating"
-                          style={{
-                            width: '100%',
-                            padding: '16px',
-                            fontSize: 20,
-                            fontWeight: 800,
-                            background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                            color: '#FFD66B',
-                            border: '2px solid #23272f',
-                            borderRadius: 14,
-                            cursor: 'pointer',
-                            marginBottom: 8,
-                            boxShadow: '0 2px 8px #23272f55',
-                            letterSpacing: 1.1,
-                            transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                            textShadow: '0 2px 8px #FFD66B33',
-                            opacity: loading ? 0.7 : 1,
-                          }}
-                          onClick={handleLocalShareUpload}
-                          disabled={loading}
-                        >
-                          Unlock Vault
-                        </button>
-                        <button
-                          style={{ marginTop: 10, color: '#FFD66B', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 16 }}
-                          onClick={() => { setShowLocalShareStep(false); setLocalShare(null); setError(''); setSuccess(''); }}
-                        >
-                          &larr; Back to Login
-                        </button>
-                        {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
-                        {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
-                      </div>
-                    </motion.div>
-                  )}
->>>>>>> 13b2684 (feat: two-step unlock vault flow (username/password, then local_share.enc))
+        {page === 'verification' && (
+          <motion.div key="verify" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ width: '100%', height: '100%' }}>
+            <Verification onBack={() => setPage('login')} />
           </motion.div>
         )}
       </AnimatePresence>
+
+      <DownloadShareModal 
+        show={showDownloadModal} 
+        onDownload={handleDownloadShare} 
+        onClose={() => setShowDownloadModal(false)} 
+      />
+      <TestWindowOpen />
     </div>
   );
 }
