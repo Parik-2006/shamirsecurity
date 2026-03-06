@@ -1,29 +1,4 @@
-  // Show download modal if registration just completed and user lands on main window
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const regComplete = params.get('reg_complete');
-    if (regComplete && !showDownloadModal && !vaultPage) {
-      // Try to fetch the registration result directly
-      fetch(`${API_URL}/api/register/complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reg_id: regComplete })
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === 'success') {
-            setLocalShare(data.local_share);
-            setGoldenKey(data.golden_key);
-            setVaultUser(data.username);
-            setShowDownloadModal(true);
-            window.history.replaceState({}, document.title, window.location.pathname); // Clean up URL
-          } else {
-            setError(data.message || 'Registration failed.');
-          }
-        })
-        .catch(() => setError('Failed to complete registration.'));
-    }
-  }, [showDownloadModal, vaultPage]);
+
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
 import Documentation from './pages/documentation.jsx';
@@ -202,6 +177,32 @@ function AuthSuccessPage() {
 // --- Main App Logic ---
 
 export default function App() {
+    // Show download modal if registration just completed and user lands on main window
+    useEffect(() => {
+      const params = new URLSearchParams(window.location.search);
+      const regComplete = params.get('reg_complete');
+      if (regComplete && !showDownloadModal && !vaultPage) {
+        // Try to fetch the registration result directly
+        fetch(`${API_URL}/api/register/complete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reg_id: regComplete })
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === 'success') {
+              setLocalShare(data.local_share);
+              setGoldenKey(data.golden_key);
+              setVaultUser(data.username);
+              setShowDownloadModal(true);
+              window.history.replaceState({}, document.title, window.location.pathname); // Clean up URL
+            } else {
+              setError(data.message || 'Registration failed.');
+            }
+          })
+          .catch(() => setError('Failed to complete registration.'));
+      }
+    }, [showDownloadModal, vaultPage]);
   const [page, setPage] = useState('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
