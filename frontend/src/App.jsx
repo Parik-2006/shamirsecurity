@@ -265,7 +265,6 @@ export default function App() {
       )}
       <AnimatePresence mode="wait">
         {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
-        <DownloadShareModal show={showDownloadModal} onDownload={handleDownloadShare} onClose={() => setShowDownloadModal(false)} />
         {page === 'login' && (
           <motion.div
             key="login"
