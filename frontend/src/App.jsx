@@ -377,7 +377,7 @@ export default function App() {
     }
   };
 
-  // Only show AuthSuccessPage if on /auth-success route (never load login page in new tab)
+  // Show AuthSuccessPage only on /auth-success route, otherwise render normal app (login page, etc.)
   if (window.location.pathname.startsWith('/auth-success')) {
     return <AuthSuccessPage />;
   }
