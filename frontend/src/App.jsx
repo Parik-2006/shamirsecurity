@@ -86,19 +86,6 @@ function LoadingSkeleton({ width = '100%', height = 24, style = {} }) {
   return <div style={{ width, height, background: '#23272f', borderRadius: 8, marginBottom: 8, ...style, animation: 'pulse 1.2s infinite alternate' }} />;
 }
 
-// --- Help Popover ---
-function HelpPopover({ text }) {
-  const [show, setShow] = useState(false);
-  return (
-    <span style={{ position: 'relative', marginLeft: 6 }}>
-      <span style={{ color: '#FFD700', cursor: 'pointer', fontWeight: 700 }} onClick={() => setShow(s => !s)}>?</span>
-      {show && (
-        <span style={{ position: 'absolute', left: '110%', top: 0, background: '#23272f', color: '#FFD700', padding: '8px 14px', borderRadius: 8, fontSize: 13, whiteSpace: 'nowrap', zIndex: 100, boxShadow: '0 2px 8px #23272f88' }}>{text}</span>
-      )}
-    </span>
-  );
-}
-
 // --- About Modal ---
 function AboutModal(props) {
   const { show, onClose } = props;
@@ -131,11 +118,10 @@ function AboutModal(props) {
 }
 
 // --- Contact Support Section ---
-function ContactSupport({ onAbout }) {
+function ContactSupport() {
   return (
     <div style={{ marginTop: 18, background: '#23272f', borderRadius: 12, padding: 16, color: '#FFD66B', fontSize: 14, textAlign: 'center' }}>
-      <b>Need help?</b> Email <a href="mailto:support@shamirvault.app" style={{ color: '#FFD700', textDecoration: 'underline' }}>support@shamirvault.app</a> or join our{' '}
-      <a href="#about" style={{ color: '#FFD700', textDecoration: 'underline', cursor: 'pointer' }} onClick={e => { e.preventDefault(); onAbout && onAbout(); }}>Discord</a>.
+      <b>Need help?</b> Email <a href="mailto:support@shamirvault.app" style={{ color: '#FFD700', textDecoration: 'underline' }}>support@shamirvault.app</a> or join our <a href="https://discord.gg/shamirvault" style={{ color: '#FFD700', textDecoration: 'underline' }}>Discord</a>.
     </div>
   );
 }
@@ -197,7 +183,7 @@ export default function App() {
   // regId state removed (was unused)
   const fileInputRef = useRef();
   const [showOnboarding, setShowOnboarding] = useState(true);
-  const [showAbout, setShowAbout] = useState(false);
+  const [showAbout, setShowAbout] = useState(true);
 
   // --- Navigation ---
   const handleNavigate = (target) => {
@@ -388,15 +374,15 @@ export default function App() {
   return (
     <ErrorBoundary>
       <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <FloatingShapes zIndex={0} />
         {(page === 'login' || page === 'verification') && (
           <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
             <TopRightNav onNavigate={handleNavigate} />
-            {/* About button permanently removed */}
           </div>
         )}
         <AnimatePresence mode="wait">
-          {showOnboarding && <OnboardingModal />}
           {showAbout && <AboutModal show={showAbout} onClose={handleAboutClose} />}
+          {showOnboarding && <OnboardingModal />}
           {page === 'login' && (
             <motion.div
               key="login"
@@ -463,7 +449,6 @@ export default function App() {
                   </div>
                   <div style={{ width: '100%', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: 13, color: '#FFD70099' }}>Need help?</span>
-                    <HelpPopover text="Use a strong password with upper, lower, numbers, and symbols. Keep your local_share.enc safe!" />
                   </div>
                   <input
                     type="text"
