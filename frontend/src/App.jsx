@@ -1,5 +1,5 @@
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
 import Documentation from './pages/documentation.jsx';
 import Verification from './pages/verification.jsx';
@@ -102,7 +102,7 @@ function AboutModal({ show, onClose }) {
 /**
  * Modal to trigger the download of the local share file
  */
-function DownloadShareModal({ show, onDownload, onClose }) {
+function DownloadShareModal({ show, onDownload }) {
   if (!show) return null;
   return (
     <motion.div
@@ -246,6 +246,11 @@ export default function App() {
           })
           .catch(err => {
             setError('Failed to complete registration.');
+            if (err && err.stack) {
+              console.error('Registration completion error:', err.stack);
+            } else {
+              console.error('Registration completion error:', err);
+            }
           });
         }
       }
