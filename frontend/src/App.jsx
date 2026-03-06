@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+// Workaround for deployment: ensure motion is globally available
+if (typeof window !== 'undefined') {
+  window.motion = motion;
+}
 import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
 
