@@ -1,12 +1,19 @@
-// ErrorBoundary to catch runtime errors and allow the page to load
 import React, { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+
+// Pages
 import Documentation from './pages/documentation.jsx';
 import Verification from './pages/verification.jsx';
-import FloatingShapes from './FloatingShapes';
-import CyberLogin3D from './CyberLogin3D';
 import VaultPage from './VaultPage';
 
+// 3D & UI Components
+import FloatingShapes from './FloatingShapes';
+import CyberLogin3D from './CyberLogin3D';
+
+// Configuration
+const API_URL = import.meta.env.VITE_API_URL;
+
+// ErrorBoundary to catch runtime errors and allow the page to load
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -27,13 +34,6 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-import React, { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
-import Documentation from './pages/documentation.jsx';
-import Verification from './pages/verification.jsx';
-import FloatingShapes from './FloatingShapes';
-import CyberLogin3D from './CyberLogin3D';
-import VaultPage from './VaultPage';
 
 // --- API Configuration ---
 const API_URL = import.meta.env.VITE_API_URL;
