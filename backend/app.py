@@ -624,9 +624,9 @@ def google_callback():
         pending_registrations[state]['completed'] = True
         save_pending_registrations()
         
-        # Redirect back to frontend with MFA status
-        print(f"[GOOGLE CALLBACK] Redirecting to frontend...")
-        return redirect(f"{FRONTEND_URL}?reg_complete={state}&reg_mfa={'1' if mfa_enabled else '0'}")
+        # Redirect to /auth-success for a dedicated close-message page
+        print(f"[GOOGLE CALLBACK] Redirecting to frontend /auth-success...")
+        return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?reg_complete={state}")
         
     except Exception as e:
         print(f"[GOOGLE CALLBACK] Error: {e}")

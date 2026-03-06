@@ -131,6 +131,33 @@ if (typeof window !== 'undefined') {
     }
   });
 }
+<<<<<<< HEAD
+=======
+
+function AuthSuccessPage() {
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const regComplete = params.get('reg_complete');
+    // Always try to notify opener
+    if (window.opener) {
+      window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
+    }
+    // Always close after delay
+    setTimeout(() => {
+      window.close();
+    }, 2000);
+  }, []);
+  return (
+    <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
+        <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Authentication Complete</h2>
+        <p style={{ fontSize: 20, marginBottom: 18 }}>Authentication flow complete.<br />You may close this window or tab.</p>
+        <p style={{ fontSize: 16, color: '#FFD66B99' }}>(This tab will close automatically.)</p>
+      </div>
+    </div>
+  );
+}
+>>>>>>> parik4
 
 export default function App() {
   const [page, setPage] = useState('login');
@@ -249,10 +276,50 @@ export default function App() {
   React.useEffect(() => {
     function handleMessage(event) {
       if (event.data && event.data.type === 'registration-complete') {
+<<<<<<< HEAD
         setLocalShare(event.data.local_share);
         setGoldenKey(event.data.golden_key);
         setVaultUser(event.data.username);
         setShowDownloadModal(true);
+=======
+        // If local_share/golden_key/username are present, use them; otherwise, trigger fetch
+        if (event.data.local_share && event.data.golden_key && event.data.username) {
+          setLocalShare(event.data.local_share);
+          setGoldenKey(event.data.golden_key);
+          setVaultUser(event.data.username);
+          setShowDownloadModal(true);
+        } else if (event.data.reg_complete) {
+          // Fetch registration completion if only reg_complete is sent
+          fetch(`${API_URL}/api/register/complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reg_id: event.data.reg_complete })
+          })
+            .then(async res => {
+              const contentType = res.headers.get('Content-Type');
+              let raw = '';
+              let data = null;
+              try {
+                raw = await res.text();
+                if (raw && contentType && contentType.includes('application/json')) {
+                  data = JSON.parse(raw);
+                }
+              } catch (jsonErr) {
+                data = null;
+                console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
+              }
+              return data;
+            })
+            .then(data => {
+              if (data && data.status === 'success') {
+                setLocalShare(data.local_share);
+                setGoldenKey(data.golden_key);
+                setVaultUser(data.username);
+                setShowDownloadModal(true);
+              }
+            });
+        }
+>>>>>>> parik4
       }
     }
     window.addEventListener('message', handleMessage);
@@ -307,6 +374,15 @@ export default function App() {
     }
   };
 
+<<<<<<< HEAD
+=======
+
+  // Render AuthSuccessPage if on /auth-success route (with or without query params)
+  if (window.location.pathname.startsWith('/auth-success')) {
+    return <AuthSuccessPage />;
+  }
+
+>>>>>>> parik4
   if (vaultPage && goldenKey && vaultUser) {
     return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
   }
