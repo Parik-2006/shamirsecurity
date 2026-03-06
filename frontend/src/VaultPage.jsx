@@ -491,12 +491,19 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
   );
 };
 
-function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
+function VaultPage({ username, goldenKey, onLogout, mfaWarning, openAdd, onAddOpenChange }) {
   const [vaultData, setVaultData] = useState([]);
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState('view');
+  const [page, setPage] = useState(openAdd ? 'add' : 'view');
+    // If openAdd prop changes to true, switch to add page
+    React.useEffect(() => {
+      if (openAdd) {
+        setPage('add');
+        if (onAddOpenChange) onAddOpenChange(false);
+      }
+    }, [openAdd, onAddOpenChange]);
   const [refreshing, setRefreshing] = useState(false);
   const [showMfaBanner, setShowMfaBanner] = useState(!!mfaWarning);
   

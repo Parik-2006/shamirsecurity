@@ -129,6 +129,7 @@ export default function App() {
   const [showAbout, setShowAbout] = useState(() => {
     const seen = sessionStorage.getItem('about_seen');
     return !seen;
+    const [openVaultAdd, setOpenVaultAdd] = useState(false);
   });
     // Handle About button navigation
     const handleNavigate = (target) => {
@@ -158,12 +159,13 @@ export default function App() {
       const contentType = res.headers.get('Content-Type');
       let raw = '';
       let data = null;
+        setOpenVaultAdd(true);
       if (!res.ok) {
         // Try to get text for error
         try {
           raw = await res.text();
         } catch (e) {
-          raw = '';
+      return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} openAdd={openVaultAdd} onAddOpenChange={setOpenVaultAdd} />;
         }
         setError('Server error: ' + (raw || res.statusText));
         setLoading(false);
