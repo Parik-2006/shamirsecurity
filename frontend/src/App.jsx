@@ -1,5 +1,54 @@
 // --- Auth Success Page ---
 function AuthSuccessPage() {
+  const [success, setSuccess] = React.useState('');
+  const [error, setError] = React.useState('');
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const regComplete = params.get('reg_complete');
+    if (regComplete) {
+      fetch(`${API_URL}/api/register/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reg_id: regComplete })
+      })
+        .then(async res => {
+          const contentType = res.headers.get('Content-Type');
+          let raw = '';
+          let data = null;
+          try {
+            raw = await res.text();
+            if (raw && contentType && contentType.includes('application/json')) {
+              data = JSON.parse(raw);
+            }
+          } catch (jsonErr) {
+            data = null;
+            console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
+          }
+          return data;
+        })
+        .then(data => {
+          if (data && data.status === 'success') {
+            if (window.opener) {
+              window.opener.postMessage({ type: 'registration-complete', local_share: data.local_share, golden_key: data.golden_key, username: data.username }, '*');
+            }
+            setSuccess('Authentication Flow Complete. You may now close this window.');
+          } else {
+            setError((data && data.message) || 'Vault creation failed.');
+          }
+        });
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0B0D10' }}>
+      <div style={{ background: '#151A21', borderRadius: 24, padding: 48, color: '#FFD66B', fontWeight: 800, fontSize: 28, textAlign: 'center', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99' }}>
+        {success || error || 'Loading...'}
+      </div>
+    </div>
+  );
+}
+// --- Auth Success Page ---
+function AuthSuccessPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0B0D10' }}>
       <div style={{ background: '#151A21', borderRadius: 24, padding: 48, color: '#FFD66B', fontWeight: 800, fontSize: 28, textAlign: 'center', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99' }}>
@@ -8,12 +57,10 @@ function AuthSuccessPage() {
     </div>
   );
 }
-  // If this is the OAuth tab and registration is complete, show only the close message
-  const [isAuthTab, setIsAuthTab] = React.useState(false);
+  // Route to /auth-success for OAuth tab close message
   React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('reg_complete')) {
-      setIsAuthTab(true);
+    if (window.location.pathname === '/auth-success') {
+      setPage('auth-success');
     }
   }, []);
 import { AnimatePresence } from 'framer-motion';
@@ -360,14 +407,8 @@ function AuthSuccessPage() {
   }, []);
   {page === 'auth-success' && <AuthSuccessPage />}
 
-  if (isAuthTab) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0B0D10' }}>
-        <div style={{ background: '#151A21', borderRadius: 24, padding: 48, color: '#FFD66B', fontWeight: 800, fontSize: 28, textAlign: 'center', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99' }}>
-          {success || 'Authentication Flow Complete. You may now close this window.'}
-        </div>
-      </div>
-    );
+  if (page === 'auth-success') {
+    return <AuthSuccessPage />;
   }
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
