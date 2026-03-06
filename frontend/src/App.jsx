@@ -230,11 +230,10 @@ export default function App() {
             setLocalShare(data.local_share);
             setGoldenKey(data.golden_key);
             setVaultUser(data.username);
-            // If in popup, show message and close after short delay
+            setShowDownloadModal(true); // Always show download modal after registration
+            // If in popup, close after short delay
             if (window.opener) {
               setTimeout(() => { window.close(); }, 2000);
-            } else {
-              setShowDownloadModal(true); // Show modal for download in main tab
             }
           } else {
             setError((data && data.message) || 'Vault creation failed.');
