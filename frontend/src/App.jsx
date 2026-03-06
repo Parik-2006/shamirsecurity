@@ -1,4 +1,7 @@
 import React, { useState, useRef } from 'react';
+
+// Set your hosted backend URL here:
+const API_BASE = "https://your-backend-domain.com"; // <-- CHANGE THIS to your real backend URL
 import { AnimatePresence, motion } from 'framer-motion';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
@@ -94,7 +97,7 @@ export default function App() {
       if (!username || !password) {
         setError('Please enter username and password.'); setLoading(false); return;
       }
-      const res = await fetch('/api/register/init', {
+      const res = await fetch(`${API_BASE}/api/register/init`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -148,7 +151,7 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
     if (regComplete) {
-      fetch('/api/register/complete', {
+      fetch(`${API_BASE}/api/register/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reg_id: regComplete })
@@ -183,7 +186,7 @@ export default function App() {
       if (!username || !password || !localShare) {
         setError('Please enter username, password, and upload your local_share.enc file.'); setLoading(false); return;
       }
-      const res = await fetch('/api/login', {
+      const res = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, local_share: localShare })
