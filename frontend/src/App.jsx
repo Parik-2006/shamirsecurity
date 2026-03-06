@@ -1,3 +1,21 @@
+// --- Auth Success Page ---
+function AuthSuccessPage() {
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0B0D10' }}>
+      <div style={{ background: '#151A21', borderRadius: 24, padding: 48, color: '#FFD66B', fontWeight: 800, fontSize: 28, textAlign: 'center', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99' }}>
+        Authentication Flow Complete. You may now close this window.
+      </div>
+    </div>
+  );
+}
+  // If this is the OAuth tab and registration is complete, show only the close message
+  const [isAuthTab, setIsAuthTab] = React.useState(false);
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reg_complete')) {
+      setIsAuthTab(true);
+    }
+  }, []);
 import { AnimatePresence } from 'framer-motion';
 import React, { useState } from 'react';
 
@@ -87,41 +105,6 @@ function AboutModal({ show, onClose }) {
   );
 }
 
-function DownloadShareModal({ show, onDownload, onClose }) {
-  if (!show) return null;
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0B0D10ee', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      aria-modal="true" role="dialog" tabIndex={-1}
-    >
-      <div style={{ background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 420, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
-        <button onClick={onClose} aria-label="Close download modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
-        <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 18 }}>Download Your Vault Share</h2>
-        <p style={{ fontSize: 17, marginBottom: 24 }}>Click below to download your <b>local_share.enc</b> file. <br />Keep it safe! You need it to unlock your vault.</p>
-        <button
-          style={{
-            marginTop: 8,
-            padding: '14px 32px',
-            fontSize: 18,
-            fontWeight: 700,
-            background: '#FFD66B',
-            color: '#151A21',
-            border: 'none',
-            borderRadius: 10,
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px #FFD66B33',
-          }}
-          onClick={onDownload}
-        >
-          Download local_share.enc
-        </button>
-      </div>
-    </motion.div>
-  );
-}
 
 // Global handler for WebGL context loss
 if (typeof window !== 'undefined') {
@@ -156,13 +139,13 @@ export default function App() {
   // Step 1: Start registration, get Google OAuth URL
   const handleCreateVault = async () => {
     setError(''); setSuccess(''); setLoading(true);
-    let popup = null;
+    let oauthTab = null;
     try {
       if (!username || !password) {
         setError('Please enter username and password.'); setLoading(false); return;
       }
-      // Open popup immediately to avoid browser popup blockers
-      popup = window.open('', '_blank', 'noopener,noreferrer');
+      // Open OAuth in a new tab
+      oauthTab = window.open('', '_blank', 'noopener,noreferrer');
       const res = await fetch(`${API_URL}/api/register/init`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -184,14 +167,14 @@ export default function App() {
       }
       if (data && data.auth_url) {
         setSuccess('Redirecting to Google sign-in...');
-        if (popup) {
-          popup.location = data.auth_url;
+        if (oauthTab) {
+          oauthTab.location = data.auth_url;
         } else {
           window.open(data.auth_url, '_blank', 'noopener,noreferrer');
         }
         return;
       }
-      if (popup) popup.close();
+      if (oauthTab) oauthTab.close();
       console.error('Backend response:', raw);
       if (data && data.message) {
         setError('Vault creation failed: ' + data.message);
@@ -201,7 +184,7 @@ export default function App() {
         setError('Vault creation failed. No response from backend.');
       }
     } catch {
-      if (popup) popup.close();
+      if (oauthTab) oauthTab.close();
       setError('Could not connect to the server. Please check your internet connection or try again later.');
     } finally {
       setLoading(false);
@@ -254,7 +237,7 @@ export default function App() {
     }
   }, []);
 
-  // Listen for registration-complete message from popup
+  // Listen for registration-complete message from OAuth tab
   React.useEffect(() => {
     function handleMessage(event) {
       if (event.data && event.data.type === 'registration-complete') {
@@ -335,7 +318,6 @@ export default function App() {
       setVaultPage(true);
     }
   };
-// DownloadShareModal component (ensure it's present)
 function DownloadShareModal({ show, onDownload, onClose }) {
   if (!show) return null;
   return (
@@ -365,7 +347,27 @@ function DownloadShareModal({ show, onDownload, onClose }) {
     </div>
   );
 }
+// --- Auth Success Page ---
+function AuthSuccessPage() {
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0B0D10' }}>
+      <div style={{ background: '#151A21', borderRadius: 24, padding: 48, color: '#FFD66B', fontWeight: 800, fontSize: 28, textAlign: 'center', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99' }}>
+        Authentication Flow Complete. You may now close this window.
+      </div>
+    </div>
+  );
+}
+  // Route to /auth-success if path matches
+  React.useEffect(() => {
+    if (window.location.pathname === '/auth-success') {
+      setPage('auth-success');
+    }
+  }, []);
+  {page === 'auth-success' && <AuthSuccessPage />}
 
+  if (isAuthTab) {
+    return <AuthSuccessPage />;
+  }
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <FloatingShapes zIndex={0} />
