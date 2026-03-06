@@ -136,13 +136,14 @@ function AuthSuccessPage() {
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
-    // Notify opener tab if present
-    if (window.opener && regComplete) {
+    // Always try to notify opener
+    if (window.opener) {
       window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
-      setTimeout(() => {
-        window.close();
-      }, 2000); // Close after 2 seconds
     }
+    // Always close after delay
+    setTimeout(() => {
+      window.close();
+    }, 2000);
   }, []);
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -272,10 +273,43 @@ export default function App() {
   React.useEffect(() => {
     function handleMessage(event) {
       if (event.data && event.data.type === 'registration-complete') {
-        setLocalShare(event.data.local_share);
-        setGoldenKey(event.data.golden_key);
-        setVaultUser(event.data.username);
-        setShowDownloadModal(true);
+        // If local_share/golden_key/username are present, use them; otherwise, trigger fetch
+        if (event.data.local_share && event.data.golden_key && event.data.username) {
+          setLocalShare(event.data.local_share);
+          setGoldenKey(event.data.golden_key);
+          setVaultUser(event.data.username);
+          setShowDownloadModal(true);
+        } else if (event.data.reg_complete) {
+          // Fetch registration completion if only reg_complete is sent
+          fetch(`${API_URL}/api/register/complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reg_id: event.data.reg_complete })
+          })
+            .then(async res => {
+              const contentType = res.headers.get('Content-Type');
+              let raw = '';
+              let data = null;
+              try {
+                raw = await res.text();
+                if (raw && contentType && contentType.includes('application/json')) {
+                  data = JSON.parse(raw);
+                }
+              } catch (jsonErr) {
+                data = null;
+                console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
+              }
+              return data;
+            })
+            .then(data => {
+              if (data && data.status === 'success') {
+                setLocalShare(data.local_share);
+                setGoldenKey(data.golden_key);
+                setVaultUser(data.username);
+                setShowDownloadModal(true);
+              }
+            });
+        }
       }
     }
     window.addEventListener('message', handleMessage);
