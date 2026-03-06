@@ -1,7 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import Documentation from './pages/documentation';
-import Verification from './pages/verification';
+import React, { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
 
@@ -21,54 +19,12 @@ function PasswordStrengthBar({ password }) {
   const score = getPasswordStrength(password);
   const colors = ['#ef4444', '#f59e42', '#f7e13e', '#a3e635', '#22c55e'];
   const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-                  <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '14px',
-                      fontSize: 17,
-                      borderRadius: 10,
-                      border: '1.5px solid #23272f',
-                      background: '#181c20',
-                      color: '#eaf6fb',
-                      outline: 'none',
-                      marginBottom: 14,
-                    }}
-                    autoComplete="username"
-                  />
-// --- Top Navigation with 3D Buttons ---
-function TopRightNav({ onNavigate }) {
-  const btn3D = {
-    background: 'linear-gradient(145deg, #151A21 60%, #23272f 100%)',
-    color: '#FFD700',
-    border: '2.5px solid #FFD700',
-    borderRadius: 14,
-    fontWeight: 800,
-    fontSize: 15,
-    padding: '12px 28px',
-    margin: 0,
-    boxShadow: '4px 4px 16px #0a192f99, -4px -4px 16px #23272f55, 0 2px 8px #FFD70033',
-    cursor: 'pointer',
-    outline: 'none',
-    transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-    textShadow: '0 2px 8px #FFD70044',
-    letterSpacing: 0.7,
-    minWidth: 0,
-    minHeight: 0,
-    lineHeight: 1.2,
-    display: 'flex',
-    alignItems: 'center',
-    gap: 0,
-    perspective: 400,
-    transformStyle: 'preserve-3d',
-  };
   return (
-    <div style={{ display: 'flex', gap: 16 }}>
-      <Tooltip text="Read the full documentation."><button onClick={() => onNavigate('documentation')} style={btn3D}>Documentation</button></Tooltip>
-      <Tooltip text="Verify your vault integrity."><button onClick={() => onNavigate('verification')} style={btn3D}>Verification</button></Tooltip>
+    <div style={{ width: '100%', marginBottom: 8 }}>
+      <div style={{ height: 8, borderRadius: 4, background: '#23272f', overflow: 'hidden', marginBottom: 2 }}>
+        <div style={{ width: `${score * 20}%`, height: '100%', background: colors[score - 1] || '#23272f', transition: 'width 0.3s' }} />
+      </div>
+      <span style={{ fontSize: 12, color: colors[score - 1] || '#888', fontWeight: 600 }}>{password ? labels[score - 1] || 'Too Short' : ''}</span>
     </div>
   );
 }
@@ -153,21 +109,12 @@ export default function App() {
   // --- State ---
   const [page, setPage] = useState('login');
   const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [goldenKey, setGoldenKey] = useState(null);
-  const [vaultUser, setVaultUser] = useState(null);
-  const [vaultPage, setVaultPage] = useState(false);
   const [showAbout, setShowAbout] = useState(true); // About popup always on load
 
   // --- Navigation ---
   const handleNavigate = (target) => {
     setPage(target);
-    setError('');
-    setSuccess('');
-    setLoading(false);
+    // Removed setError, setSuccess, setLoading (no longer used)
   };
 
 
@@ -191,7 +138,7 @@ export default function App() {
           </div>
         )}
         <AnimatePresence mode="wait">
-          {showAbout && <AboutModal show={showAbout} onClose={handleAboutClose} />}
+          {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
           {page === 'login' && (
             <motion.div
               key="login"
@@ -217,25 +164,52 @@ export default function App() {
                   Secure Multi-Key Secret Management
                 </p>
                 <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '14px',
-                      fontSize: 17,
-                      borderRadius: 10,
-                      border: '1.5px solid #23272f',
-                      // --- Main UI ---
+                  {/* Error handling for input */}
+                  {(() => {
+                    try {
                       return (
-                        <ErrorBoundary>
-                          <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                            <FloatingShapes zIndex={0} />
-                            <AnimatePresence mode="wait">
-                              {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
-                            </AnimatePresence>
-                          </div>
-                        </ErrorBoundary>
+                        <input
+                          type="text"
+                          placeholder="Username"
+                          value={username}
+                          onChange={e => setUsername(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '14px',
+                            fontSize: 17,
+                            borderRadius: 10,
+                            border: '1.5px solid #23272f',
+                            background: '#181c20',
+                            color: '#eaf6fb',
+                            outline: 'none',
+                            marginBottom: 14,
+                          }}
+                          autoComplete="username"
+                        />
                       );
+                    } catch (err) {
+                      return <div style={{ color: '#ef4444' }}>Input error: {err.message}</div>;
+                    }
+                  })()}
+                  {/*
+                  // --- Main UI ---
+                  return (
+                    <ErrorBoundary>
+                      <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        <FloatingShapes zIndex={0} />
+                        <AnimatePresence mode="wait">
+                          {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
+                        </AnimatePresence>
+                      </div>
+                    </ErrorBoundary>
+                  );
+                  */}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </ErrorBoundary>
+  );
+}
