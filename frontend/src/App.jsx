@@ -108,11 +108,14 @@ export default function App() {
         return;
       }
       let data = null;
-      let raw = await res.text();
+      let raw = '';
       try {
+        raw = await res.text();
         data = JSON.parse(raw);
-      } catch {
+      } catch (jsonErr) {
         data = null;
+        // Print the actual error and response
+        console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
       }
       // Try to redirect if auth_url is present
       if (data && data.auth_url) {
@@ -123,8 +126,16 @@ export default function App() {
         }
         return;
       }
-      // Show full response for debugging
-      setError('Unexpected response: ' + (raw || 'Vault creation failed.'));
+      // Print backend response for debugging
+      console.error('Backend response:', raw);
+      // Show user-friendly error
+      if (data && data.message) {
+        setError('Vault creation failed: ' + data.message);
+      } else if (raw) {
+        setError('Vault creation failed. Backend says: ' + raw);
+      } else {
+        setError('Vault creation failed. No response from backend.');
+      }
     } catch (e) {
       setError('Network error: ' + (e?.message || e?.toString() || 'Unknown error'));
     } finally {
