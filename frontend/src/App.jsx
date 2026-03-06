@@ -26,16 +26,14 @@
   }, [showDownloadModal, vaultPage]);
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
-
-// --- API Configuration ---
-const API_URL = import.meta.env.VITE_API_URL;
-
-// --- Imports ---
 import Documentation from './pages/documentation.jsx';
 import Verification from './pages/verification.jsx';
 import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
 import VaultPage from './VaultPage';
+
+// --- API Configuration ---
+const API_URL = import.meta.env.VITE_API_URL;
 
 // --- Helper Components ---
 
