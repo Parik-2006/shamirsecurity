@@ -283,7 +283,7 @@ GOOGLE_SCOPES = [
 GOOGLE_REDIRECT_URI = f'{BACKEND_URL}/api/google/callback'
 
 # Robust CORS: allow only deployed frontend for all /api/* endpoints
-CORS(app, resources={r"/api/*": {"origins": [FRONTEND_URL]}}, supports_credentials=True)
+CORS(app, resources={r"/api/*": {"origins": ["https://shamirsecurity-1234.onrender.com"]}}, supports_credentials=True)
 
 # Allow OAuth over HTTP for local dev only
 if 'localhost' in BACKEND_URL:
