@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import React, { useState } from 'react';
 
 // Global API URL for all API calls
@@ -150,7 +150,7 @@ export default function App() {
   });
   // State to trigger add password mode after registration
   // const [openVaultAdd, setOpenVaultAdd] = useState(false);
-  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  // const [showDownloadModal, setShowDownloadModal] = useState(false);
 
 
   // Step 1: Start registration, get Google OAuth URL
@@ -312,20 +312,20 @@ export default function App() {
   }
 
   // Handler for downloading local_share.enc from modal
-  const handleDownloadShare = () => {
-    if (localShare) {
-      const blob = new Blob([localShare], { type: 'text/plain' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'local_share.enc';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setShowDownloadModal(false);
-      // After download, go to vault page
-      setVaultPage(true);
-    }
-  };
+  // const handleDownloadShare = () => {
+  //   if (localShare) {
+  //     const blob = new Blob([localShare], { type: 'text/plain' });
+  //     const a = document.createElement('a');
+  //     a.href = URL.createObjectURL(blob);
+  //     a.download = 'local_share.enc';
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     document.body.removeChild(a);
+  //     setShowDownloadModal(false);
+  //     // After download, go to vault page
+  //     setVaultPage(true);
+  //   }
+  // };
 
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
