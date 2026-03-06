@@ -4,15 +4,15 @@ import json
 import base64
 import random
 import hashlib
+# Flask and CORS
 from flask import Flask, request, jsonify, redirect, send_from_directory
+from flask_cors import CORS
 # ...existing code...
 import logging
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 
-# CORS support
-from flask_cors import CORS
 import traceback
 # --- GLOBAL ERROR HANDLERS FOR JSON RESPONSES ---
 @app.errorhandler(404)
@@ -136,8 +136,6 @@ from googleapiclient.http import MediaIoBaseUpload
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
-# Allow CORS for deployed frontend
-CORS(app, origins=["https://shamirsecurity-1234.onrender.com"], supports_credentials=True)
 
 # --- HEALTH CHECK ENDPOINT FOR RENDER ---
 @app.route('/healthz')
@@ -271,7 +269,7 @@ app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 #   BACKEND_URL   = https://your-backend.onrender.com
 #   SUPABASE_URL  = your supabase project url
 #   SUPABASE_KEY  = your supabase anon key
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://shamirsecurity-1234.onrender.com')
 BACKEND_URL  = os.environ.get('BACKEND_URL', 'http://localhost:5000')
 
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://tacsrdvzgcsucparujcr.supabase.co')
@@ -284,7 +282,8 @@ GOOGLE_SCOPES = [
 ]
 GOOGLE_REDIRECT_URI = f'{BACKEND_URL}/api/google/callback'
 
-CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+# Robust CORS: allow only deployed frontend for all /api/* endpoints
+CORS(app, resources={r"/api/*": {"origins": [FRONTEND_URL]}}, supports_credentials=True)
 
 # Allow OAuth over HTTP for local dev only
 if 'localhost' in BACKEND_URL:
