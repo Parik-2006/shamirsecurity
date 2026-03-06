@@ -1,46 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-
-// Modal for downloading local_share.enc
-function DownloadShareModal({ show, onDownload, onClose }) {
-  if (!show) return null;
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0B0D10ee', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      aria-modal="true" role="dialog" tabIndex={-1}
-    >
-      <div style={{ background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 420, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
-        <button onClick={onClose} aria-label="Close download modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
-        <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 18 }}>Download Your Vault Share</h2>
-        <p style={{ fontSize: 17, marginBottom: 24 }}>Click below to download your <b>local_share.enc</b> file. <br />Keep it safe! You need it to unlock your vault.</p>
-        <button
-          style={{
-            marginTop: 8,
-            padding: '14px 32px',
-            fontSize: 18,
-            fontWeight: 700,
-            background: '#FFD66B',
-            color: '#151A21',
-            border: 'none',
-            borderRadius: 10,
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px #FFD66B33',
-          }}
-          onClick={onDownload}
-        >
-          Download local_share.enc
-        </button>
-      </div>
-    </motion.div>
-  );
-}
-
 import React, { useState } from 'react';
-
-// Set your hosted backend URL here:
-const API_BASE = "https://shamirsecurity-12.onrender.com"; // <-- User's real backend URL
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import FloatingShapes from './FloatingShapes';
@@ -164,11 +123,8 @@ export default function App() {
         console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
       }
       if (data && data.auth_url) {
-        setSuccess('Opening Google sign-in...');
-        const win = window.open(data.auth_url, '_blank');
-        if (!win) {
-          window.location.href = data.auth_url;
-        }
+        setSuccess('Redirecting to Google sign-in...');
+        window.location.href = data.auth_url; // Always same tab
         return;
       }
       console.error('Backend response:', raw);
@@ -180,7 +136,7 @@ export default function App() {
         setError('Vault creation failed. No response from backend.');
       }
     } catch {
-      setError('Network error: Unknown error');
+      setError('Could not connect to the server. Please check your internet connection or try again later.');
     } finally {
       setLoading(false);
     }
@@ -213,11 +169,16 @@ export default function App() {
         })
         .then(data => {
           if (data && data.status === 'success') {
-            setSuccess('Vault created! Download your local share.');
+            setSuccess('Authentication flow complete. You may close this tab or window.');
             setLocalShare(data.local_share);
             setGoldenKey(data.golden_key);
             setVaultUser(data.username);
-            setShowDownloadModal(true); // Show modal for download
+            // If in popup, show message and close after short delay
+            if (window.opener) {
+              setTimeout(() => { window.close(); }, 2000);
+            } else {
+              setShowDownloadModal(true); // Show modal for download in main tab
+            }
           } else {
             setError((data && data.message) || 'Vault creation failed.');
           }
