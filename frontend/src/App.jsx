@@ -153,11 +153,12 @@ export default function App() {
   // Step 1: Start registration, get Google OAuth URL
   const handleCreateVault = async () => {
     setError(''); setSuccess(''); setLoading(true);
+    const API_URL = import.meta.env.VITE_API_URL;
     try {
       if (!username || !password) {
         setError('Please enter username and password.'); setLoading(false); return;
       }
-      const res = await fetch(`${API_BASE}/api/register/init`, {
+      const res = await fetch(`${API_URL}/api/register/init`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -201,7 +202,7 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
     if (regComplete) {
-      fetch(`${API_BASE}/api/register/complete`, {
+      fetch(`${API_URL}/api/register/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reg_id: regComplete })
@@ -248,7 +249,7 @@ export default function App() {
       if (!username || !password || !localShare) {
         setError('Please enter username, password, and upload your local_share.enc file.'); setLoading(false); return;
       }
-      const res = await fetch(`${API_BASE}/api/login`, {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, local_share: localShare })
