@@ -108,23 +108,15 @@ export default function App() {
         return;
       }
       let data = null;
-      let text = null;
+      let raw = await res.text();
       try {
-        data = await res.json();
-      } catch (err) {
-        text = await res.text();
-        try {
-          data = JSON.parse(text);
-        } catch {
-          setError('Unexpected response: ' + text);
-          setLoading(false);
-          return;
-        }
+        data = JSON.parse(raw);
+      } catch {
+        data = null;
       }
       // Try to redirect if auth_url is present
       if (data && data.auth_url) {
         setSuccess('Opening Google sign-in...');
-        // Try window.open first, fallback to redirect
         const win = window.open(data.auth_url, '_blank');
         if (!win) {
           window.location.href = data.auth_url;
@@ -132,7 +124,7 @@ export default function App() {
         return;
       }
       // Show full response for debugging
-      setError('Unexpected response: ' + (text || JSON.stringify(data) || 'Vault creation failed.'));
+      setError('Unexpected response: ' + (raw || 'Vault creation failed.'));
     } catch (e) {
       setError('Network error: ' + (e?.message || e?.toString() || 'Unknown error'));
     } finally {
