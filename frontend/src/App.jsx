@@ -52,12 +52,10 @@ function AboutModal({ show, onClose }) {
       <div style={{ background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
         <button onClick={onClose} aria-label="Close onboarding modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
         <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Welcome to Shamir Vault</h2>
-        <p style={{ fontSize: 18, marginBottom: 18 }}>This app uses advanced cryptography to keep your secrets safe.<br /><br />
-          <b>Steps to use:</b><br />
-          1. Register with a strong password<br />
-          2. Complete Google authentication<br />
-          3. Download and keep your <b>local_share.enc</b> safe<br />
-          4. Use it to unlock your vault anytime
+        <p style={{ fontSize: 18, marginBottom: 18 }}>
+          Shamir Vault is a secure, open-source secret management app using advanced cryptography and multi-party computation.<br /><br />
+          <b>Version:</b> 1.0.0<br />
+          <b>Maintainer:</b> Parik-2006
         </p>
         <p style={{ fontSize: 18, color: '#FFD700bb', wordBreak: 'break-word', lineHeight: 1.7, marginTop: 24, textAlign: 'center' }}>
           For feedback or bug reports, email <a href="mailto:parikshithbb.cs25@rvce.edu.in" style={{ color: '#FFD700', textDecoration: 'underline', fontSize: 18 }}>mail</a> or join our <a href="https://discord.gg/YEwrW4M2" style={{ color: '#FFD700', textDecoration: 'underline', fontSize: 18 }}>Discord</a>.
