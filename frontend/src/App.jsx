@@ -1,6 +1,6 @@
 
-import { AnimatePresence } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import Documentation from './pages/documentation.jsx';
 import Verification from './pages/verification.jsx';
 import FloatingShapes from './FloatingShapes';
