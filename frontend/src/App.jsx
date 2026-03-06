@@ -151,6 +151,7 @@ export default function App() {
   // --- State ---
   const [page, setPage] = useState('login');
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showAbout, setShowAbout] = useState(true); // About popup always on load
 
   // --- Navigation ---
@@ -196,46 +197,90 @@ export default function App() {
                   Secure Multi-Key Secret Management
                 </p>
                 <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  {/* Error handling for input */}
-                  {(() => {
-                    try {
-                      return (
-                        <input
-                          type="text"
-                          placeholder="Username"
-                          value={username}
-                          onChange={e => setUsername(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '14px',
-                            fontSize: 17,
-                            borderRadius: 10,
-                            border: '1.5px solid #23272f',
-                            background: '#181c20',
-                            color: '#eaf6fb',
-                            outline: 'none',
-                            marginBottom: 14,
-                          }}
-                          autoComplete="username"
-                        />
-                      );
-                    } catch (err) {
-                      return <div style={{ color: '#ef4444' }}>Input error: {err.message}</div>;
-                    }
-                  })()}
-                  {/*
-                  // --- Main UI ---
-                  return (
-                    <ErrorBoundary>
-                      <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                        <FloatingShapes zIndex={0} />
-                        <AnimatePresence mode="wait">
-                          {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
-                        </AnimatePresence>
-                      </div>
-                    </ErrorBoundary>
-                  );
-                  */}
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      fontSize: 17,
+                      borderRadius: 10,
+                      border: '1.5px solid #23272f',
+                      marginBottom: 14,
+                      background: '#181c20',
+                      color: '#eaf6fb',
+                      outline: 'none',
+                    }}
+                  />
+                  <input
+                    type="password"
+                    placeholder="Master Password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      fontSize: 17,
+                      borderRadius: 10,
+                      border: '1.5px solid #23272f',
+                      background: '#181c20',
+                      color: '#eaf6fb',
+                      outline: 'none',
+                      marginBottom: 22,
+                    }}
+                  />
+                  <button
+                    className="floating"
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      fontSize: 20,
+                      fontWeight: 800,
+                      background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
+                      color: '#FFD66B',
+                      border: '2px solid #23272f',
+                      borderRadius: 14,
+                      cursor: 'pointer',
+                      marginBottom: 18,
+                      boxShadow: '0 2px 8px #23272f55',
+                      letterSpacing: 1.1,
+                      transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                      textShadow: '0 2px 8px #FFD66B33',
+                      opacity: loading ? 0.7 : 1,
+                    }}
+                    onClick={handleCreateVault}
+                    disabled={loading}
+                  >
+                    Create New Vault
+                  </button>
+                  <button
+                    className="floating"
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      fontSize: 20,
+                      fontWeight: 800,
+                      background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
+                      color: '#FFD66B',
+                      border: '2px solid #23272f',
+                      borderRadius: 14,
+                      cursor: 'pointer',
+                      marginBottom: 8,
+                      boxShadow: '0 2px 8px #23272f55',
+                      letterSpacing: 1.1,
+                      transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                      textShadow: '0 2px 8px #FFD66B33',
+                      opacity: loading ? 0.7 : 1,
+                    }}
+                    onClick={handleUnlockVault}
+                    disabled={loading}
+                  >
+                    Unlock Vault
+                  </button>
+                  {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
+                  {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
                 </div>
               </div>
             </motion.div>
