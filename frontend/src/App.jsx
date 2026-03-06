@@ -181,7 +181,7 @@ export default function App() {
       }
       if (data && data.auth_url) {
         setSuccess('Redirecting to Google sign-in...');
-        window.location.href = data.auth_url; // Always same tab
+        window.open(data.auth_url, '_blank', 'noopener,noreferrer'); // Open Google sign-in in new tab
         return;
       }
       console.error('Backend response:', raw);
@@ -226,14 +226,16 @@ export default function App() {
         })
         .then(data => {
           if (data && data.status === 'success') {
-            setSuccess('Authentication flow complete. You may close this tab or window.');
-            setLocalShare(data.local_share);
-            setGoldenKey(data.golden_key);
-            setVaultUser(data.username);
-            setShowDownloadModal(true); // Always show download modal after registration
-            // If in popup, close after short delay
+            // If in popup, notify opener and show close message
             if (window.opener) {
-              setTimeout(() => { window.close(); }, 2000);
+              window.opener.postMessage({ type: 'registration-complete', local_share: data.local_share, golden_key: data.golden_key, username: data.username }, '*');
+              setSuccess('Authentication flow complete. You may close this tab.');
+            } else {
+              setSuccess('Authentication flow complete. You may close this tab or window.');
+              setLocalShare(data.local_share);
+              setGoldenKey(data.golden_key);
+              setVaultUser(data.username);
+              setShowDownloadModal(true);
             }
           } else {
             setError((data && data.message) || 'Vault creation failed.');
@@ -241,6 +243,19 @@ export default function App() {
         });
       window.history.replaceState({}, document.title, window.location.pathname);
     }
+  // Listen for registration-complete message from popup
+  React.useEffect(() => {
+    function handleMessage(event) {
+      if (event.data && event.data.type === 'registration-complete') {
+        setLocalShare(event.data.local_share);
+        setGoldenKey(event.data.golden_key);
+        setVaultUser(event.data.username);
+        setShowDownloadModal(true);
+      }
+    }
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
   }, []);
 
   // Step 3: Unlock vault (user uploads local_share.enc)
