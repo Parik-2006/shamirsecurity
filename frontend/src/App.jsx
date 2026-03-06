@@ -1,3 +1,39 @@
+// Modal for downloading local_share.enc
+function DownloadShareModal({ show, onDownload, onClose }) {
+  if (!show) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0B0D10ee', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      aria-modal="true" role="dialog" tabIndex={-1}
+    >
+      <div style={{ background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 420, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
+        <button onClick={onClose} aria-label="Close download modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
+        <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 18 }}>Download Your Vault Share</h2>
+        <p style={{ fontSize: 17, marginBottom: 24 }}>Click below to download your <b>local_share.enc</b> file. <br />Keep it safe! You need it to unlock your vault.</p>
+        <button
+          style={{
+            marginTop: 8,
+            padding: '14px 32px',
+            fontSize: 18,
+            fontWeight: 700,
+            background: '#FFD66B',
+            color: '#151A21',
+            border: 'none',
+            borderRadius: 10,
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px #FFD66B33',
+          }}
+          onClick={onDownload}
+        >
+          Download local_share.enc
+        </button>
+      </div>
+    </motion.div>
+  );
+}
 import React, { useState, useRef } from 'react';
 
 // Set your hosted backend URL here:
@@ -88,6 +124,7 @@ export default function App() {
   const [localShare, setLocalShare] = useState(null);
   const [showAbout, setShowAbout] = useState(true);
   const [showDownload, setShowDownload] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   const handleNavigate = (target) => setPage(target);
 
@@ -182,7 +219,7 @@ export default function App() {
             setLocalShare(data.local_share);
             setGoldenKey(data.golden_key);
             setVaultUser(data.username);
-            setShowDownload(true); // Only show manual download button
+            setShowDownloadModal(true); // Show modal for download
           } else {
             setError((data && data.message) || 'Vault creation failed.');
           }
@@ -234,6 +271,22 @@ export default function App() {
     return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
   }
 
+  // Handler for downloading local_share.enc from modal
+  const handleDownloadShare = () => {
+    if (localShare) {
+      const blob = new Blob([localShare], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'local_share.enc';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setShowDownloadModal(false);
+      // After download, go to vault page
+      setVaultPage(true);
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <FloatingShapes zIndex={0} />
@@ -244,6 +297,7 @@ export default function App() {
       )}
       <AnimatePresence mode="wait">
         {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
+        <DownloadShareModal show={showDownloadModal} onDownload={handleDownloadShare} onClose={() => setShowDownloadModal(false)} />
         {page === 'login' && (
           <motion.div
             key="login"
@@ -353,34 +407,7 @@ export default function App() {
                 </button>
                 {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
                 {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
-                {/* Manual download button for local_share.enc */}
-                {showDownload && localShare && (
-                  <button
-                    style={{
-                      marginTop: 16,
-                      padding: '12px 24px',
-                      fontSize: 16,
-                      fontWeight: 700,
-                      background: '#FFD66B',
-                      color: '#151A21',
-                      border: 'none',
-                      borderRadius: 10,
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px #FFD66B33',
-                    }}
-                    onClick={() => {
-                      const blob = new Blob([localShare], { type: 'text/plain' });
-                      const a = document.createElement('a');
-                      a.href = URL.createObjectURL(blob);
-                      a.download = 'local_share.enc';
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                    }}
-                  >
-                    Download local_share.enc
-                  </button>
-                )}
+                {/* Download button now appears in modal only */}
               </div>
             </div>
           </motion.div>
