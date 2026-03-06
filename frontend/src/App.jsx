@@ -150,7 +150,7 @@ export default function App() {
   });
   // State to trigger add password mode after registration
   // const [openVaultAdd, setOpenVaultAdd] = useState(false);
-  // const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
 
 
   // Step 1: Start registration, get Google OAuth URL
@@ -312,20 +312,50 @@ export default function App() {
   }
 
   // Handler for downloading local_share.enc from modal
-  // const handleDownloadShare = () => {
-  //   if (localShare) {
-  //     const blob = new Blob([localShare], { type: 'text/plain' });
-  //     const a = document.createElement('a');
-  //     a.href = URL.createObjectURL(blob);
-  //     a.download = 'local_share.enc';
-  //     document.body.appendChild(a);
-  //     a.click();
-  //     document.body.removeChild(a);
-  //     setShowDownloadModal(false);
-  //     // After download, go to vault page
-  //     setVaultPage(true);
-  //   }
-  // };
+  const handleDownloadShare = () => {
+    if (localShare) {
+      const blob = new Blob([localShare], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'local_share.enc';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setShowDownloadModal(false);
+      // After download, go to vault page
+      setVaultPage(true);
+    }
+  };
+// DownloadShareModal component (ensure it's present)
+function DownloadShareModal({ show, onDownload, onClose }) {
+  if (!show) return null;
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0B0D10ee', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 420, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
+        <button onClick={onClose} aria-label="Close download modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
+        <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 18 }}>Download Your Vault Share</h2>
+        <p style={{ fontSize: 17, marginBottom: 24 }}>Click below to download your <b>local_share.enc</b> file. <br />Keep it safe! You need it to unlock your vault.</p>
+        <button
+          style={{
+            marginTop: 8,
+            padding: '14px 32px',
+            fontSize: 18,
+            fontWeight: 700,
+            background: '#FFD66B',
+            color: '#151A21',
+            border: 'none',
+            borderRadius: 10,
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px #FFD66B33',
+          }}
+          onClick={onDownload}
+        >
+          Download local_share.enc
+        </button>
+      </div>
+    </div>
+  );
+}
 
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -336,6 +366,9 @@ export default function App() {
         </div>
       )}
       <AnimatePresence mode="wait">
+        {showDownloadModal && (
+          <DownloadShareModal show={showDownloadModal} onDownload={handleDownloadShare} onClose={() => setShowDownloadModal(false)} />
+        )}
         {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
         {page === 'login' && (
           <motion.div
