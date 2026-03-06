@@ -123,12 +123,16 @@ export default function App() {
       }
       // Try to redirect if auth_url is present
       if (data && data.auth_url) {
-        setSuccess('Redirecting to Google for authentication...');
-        window.location.href = data.auth_url;
+        setSuccess('Opening Google sign-in...');
+        // Try window.open first, fallback to redirect
+        const win = window.open(data.auth_url, '_blank');
+        if (!win) {
+          window.location.href = data.auth_url;
+        }
         return;
       }
       // Show full response for debugging
-      setError((data && (data.message || JSON.stringify(data))) || 'Vault creation failed.');
+      setError('Unexpected response: ' + (text || JSON.stringify(data) || 'Vault creation failed.'));
     } catch (e) {
       setError('Network error: ' + (e?.message || e?.toString() || 'Unknown error'));
     } finally {
