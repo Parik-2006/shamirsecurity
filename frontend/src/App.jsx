@@ -1,3 +1,29 @@
+  // Show download modal if registration just completed and user lands on main window
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const regComplete = params.get('reg_complete');
+    if (regComplete && !showDownloadModal && !vaultPage) {
+      // Try to fetch the registration result directly
+      fetch(`${API_URL}/api/register/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reg_id: regComplete })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            setLocalShare(data.local_share);
+            setGoldenKey(data.golden_key);
+            setVaultUser(data.username);
+            setShowDownloadModal(true);
+            window.history.replaceState({}, document.title, window.location.pathname); // Clean up URL
+          } else {
+            setError(data.message || 'Registration failed.');
+          }
+        })
+        .catch(() => setError('Failed to complete registration.'));
+    }
+  }, [showDownloadModal, vaultPage]);
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
 
@@ -16,21 +42,7 @@ import VaultPage from './VaultPage';
 /**
  * Minimal test button for debugging window.open functionality
  */
-function TestWindowOpen() {
-  return (
-    <button
-      style={{
-        position: 'fixed', bottom: 24, right: 24, zIndex: 9999, padding: 16, 
-        background: '#FFD700', color: '#151A21', border: 'none', borderRadius: 12, 
-        fontWeight: 800, fontSize: 18, boxShadow: '0 2px 8px #FFD66B33', 
-        cursor: 'pointer', letterSpacing: 1.1 
-      }}
-      onClick={() => window.open('https://accounts.google.com/', '_blank', 'noopener,noreferrer')}
-    >
-      TEST window.open
-    </button>
-  );
-}
+// (TestWindowOpen removed)
 
 /**
  * Top Navigation with 3D Styled Buttons
@@ -350,6 +362,9 @@ export default function App() {
                 </svg>
                 <span style={{ fontWeight: 900, fontSize: 32, color: '#FFD700' }}>Shamir Vault</span>
               </div>
+                <div style={{ color: '#FFD66B', fontSize: 18, fontWeight: 600, marginTop: 8, letterSpacing: 1.1, textAlign: 'center' }}>
+                  Multi-Key Secret Management
+                </div>
 
               <input
                 type="text" placeholder="Username" value={username}
