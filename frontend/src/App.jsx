@@ -421,7 +421,11 @@ function App() {
                 </div>
 
               <input
-                type="text" placeholder="Username" value={username}
+                id="login-username"
+                name="username"
+                type="text"
+                placeholder="Username"
+                value={username}
                 onChange={e => setUsername(e.target.value)}
                 style={{ 
                   width: '100%', padding: '14px', borderRadius: 10, border: '1.5px solid #23272f',
@@ -429,7 +433,11 @@ function App() {
                 }}
               />
               <input
-                type="password" placeholder="Master Password" value={password}
+                id="login-password"
+                name="password"
+                type="password"
+                placeholder="Master Password"
+                value={password}
                 onChange={e => setPassword(e.target.value)}
                 style={{ 
                   width: '100%', padding: '14px', borderRadius: 10, border: '1.5px solid #23272f',

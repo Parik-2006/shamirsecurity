@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # --- Imports and App Initialization ---
 import secrets
 import os
@@ -911,6 +912,14 @@ def debug_google_creds():
 
 
 if __name__ == '__main__':
-    check_frontend_build()
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    print("[MAIN] Starting backend...")
+    try:
+        check_frontend_build()
+        port = int(os.environ.get('PORT', 5000))
+        print(f"[MAIN] Running on 0.0.0.0:{port}")
+        app.run(debug=False, host='0.0.0.0', port=port)
+    except Exception as e:
+        import traceback
+        print(f"[MAIN] Backend failed to start: {e}")
+        traceback.print_exc()
+    
