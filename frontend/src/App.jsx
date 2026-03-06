@@ -1,5 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+
+// Define API_URL for backend requests
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Pages
 import Documentation from './pages/documentation.jsx';
@@ -14,7 +18,7 @@ import CyberLogin3D from './CyberLogin3D';
 
 // Detect if running on localhost and show a banner
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const frontendPort = window.location.port || '5173';
+const frontendPort = window.location.port || '5174';
 // Try to extract backend port from API_URL, fallback to 5000
 let backendPort = '5000';
 try {
@@ -215,32 +219,7 @@ function AuthSuccessPage() {
 // --- Main App Logic ---
 
 function App() {
-    // Show download modal if registration just completed and user lands on main window
-    useEffect(() => {
-      const params = new URLSearchParams(window.location.search);
-      const regComplete = params.get('reg_complete');
-      if (regComplete && !showDownloadModal && !vaultPage) {
-        // Try to fetch the registration result directly
-        fetch(`${API_URL}/api/register/complete`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reg_id: regComplete })
-        })
-          .then(res => res.json())
-          .then(data => {
-            if (data.status === 'success') {
-              setLocalShare(data.local_share);
-              setGoldenKey(data.golden_key);
-              setVaultUser(data.username);
-              setShowDownloadModal(true);
-              window.history.replaceState({}, document.title, window.location.pathname); // Clean up URL
-            } else {
-              setError(data.message || 'Registration failed.');
-            }
-          })
-          .catch(() => setError('Failed to complete registration.'));
-      }
-    }, [showDownloadModal, vaultPage]);
+  // --- Move all useState hooks to the top ---
   const [page, setPage] = useState('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -253,6 +232,33 @@ function App() {
   const [localShare, setLocalShare] = useState(null);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [showAbout, setShowAbout] = useState(() => !sessionStorage.getItem('about_seen'));
+
+  // Show download modal if registration just completed and user lands on main window
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const regComplete = params.get('reg_complete');
+    if (regComplete && !showDownloadModal && !vaultPage) {
+      // Try to fetch the registration result directly
+      fetch(`${API_URL}/api/register/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reg_id: regComplete })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            setLocalShare(data.local_share);
+            setGoldenKey(data.golden_key);
+            setVaultUser(data.username);
+            setShowDownloadModal(true);
+            window.history.replaceState({}, document.title, window.location.pathname); // Clean up URL
+          } else {
+            setError(data.message || 'Registration failed.');
+          }
+        })
+        .catch(() => setError('Failed to complete registration.'));
+    }
+  }, [showDownloadModal, vaultPage]);
 
   // OAuth Message Listener
   useEffect(() => {

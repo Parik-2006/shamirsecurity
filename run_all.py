@@ -82,6 +82,10 @@ def start_project():
         print('Waiting for frontend to respond...')
         if wait_for_url(frontend_url, timeout=12):
             print('Frontend is up')
+            print('\n==============================')
+            print('Frontend is running at: http://localhost:5174')
+            print('Open this URL in your browser to access the app.')
+            print('==============================\n')
         else:
             print('Warning: frontend did not respond within timeout')
 
