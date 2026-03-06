@@ -6,6 +6,15 @@ import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
 import VaultPage from './VaultPage';
 
+// --- Onboarding Modal (only popup) ---
+// ...existing code...
+
+// --- Dev Info Panel (shows only in development) ---
+// ...existing code...
+
+// --- Error Boundary for UI safety ---
+// ...existing code...
+
 // --- Top Navigation with 3D Buttons ---
 const TopRightNav = ({ onNavigate }) => {
   const btn3D = {
@@ -70,6 +79,42 @@ function AboutModal({ show, onClose }) {
         <p style={{ fontSize: 18, color: '#FFD700bb', wordBreak: 'break-word', lineHeight: 1.7, marginTop: 24, textAlign: 'center' }}>
           For feedback or bug reports, email <a href="mailto:parikshithbb.cs25@rvce.edu.in" style={{ color: '#FFD700', textDecoration: 'underline', fontSize: 18 }}>mail</a> or join our <a href="https://discord.gg/YEwrW4M2" style={{ color: '#FFD700', textDecoration: 'underline', fontSize: 18 }}>Discord</a>.
         </p>
+      </div>
+    </motion.div>
+  );
+}
+
+function DownloadShareModal({ show, onDownload, onClose }) {
+  if (!show) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0B0D10ee', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      aria-modal="true" role="dialog" tabIndex={-1}
+    >
+      <div style={{ background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 420, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
+        <button onClick={onClose} aria-label="Close download modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
+        <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 18 }}>Download Your Vault Share</h2>
+        <p style={{ fontSize: 17, marginBottom: 24 }}>Click below to download your <b>local_share.enc</b> file. <br />Keep it safe! You need it to unlock your vault.</p>
+        <button
+          style={{
+            marginTop: 8,
+            padding: '14px 32px',
+            fontSize: 18,
+            fontWeight: 700,
+            background: '#FFD66B',
+            color: '#151A21',
+            border: 'none',
+            borderRadius: 10,
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px #FFD66B33',
+          }}
+          onClick={onDownload}
+        >
+          Download local_share.enc
+        </button>
       </div>
     </motion.div>
   );
@@ -407,19 +452,3 @@ export default function App() {
     </div>
   );
 }
-
-// --- Onboarding Modal (only popup) ---
-// ...existing code...
-
-// --- Dev Info Panel (shows only in development) ---
-// ...existing code...
-
-// --- Error Boundary for UI safety ---
-// ...existing code...
-
-// --- Top Navigation with 3D Buttons ---
-// ...existing code...
-
-// --- Main App Component ---
-// Only one App definition should exist. Move all logic and UI into a single export default function App.
-// ...existing code...
