@@ -6,7 +6,7 @@ import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
 import VaultPage from './VaultPage';
 
-
+// --- Top Navigation with 3D Buttons ---
 function TopRightNav({ onNavigate }) {
   const btn3D = {
     background: 'linear-gradient(145deg, #151A21 60%, #23272f 100%)',
@@ -332,74 +332,13 @@ export default function App() {
 }
 
 // --- Onboarding Modal (only popup) ---
-function AboutModal({ show, onClose }) {
-  if (!show) return null;
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0B0D10ee', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      aria-modal="true" role="dialog" tabIndex={-1}
-    >
-      <div style={{ background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
-        <button onClick={onClose} aria-label="Close onboarding modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
-        <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Welcome to Shamir Vault</h2>
-        <p style={{ fontSize: 18, marginBottom: 18 }}>This app uses advanced cryptography to keep your secrets safe.<br /><br />
-          <b>Steps to use:</b><br />
-          1. Register with a strong password<br />
-          2. Complete Google authentication<br />
-          3. Download and keep your <b>local_share.enc</b> safe<br />
-          4. Use it to unlock your vault anytime
-        </p>
-        <p style={{ fontSize: 18, color: '#FFD700bb', wordBreak: 'break-word', lineHeight: 1.7, marginTop: 24, textAlign: 'center' }}>
-          For feedback or bug reports, email <a href="mailto:parikshithbb.cs25@rvce.edu.in" style={{ color: '#FFD700', textDecoration: 'underline', fontSize: 18 }}>mail</a> or join our <a href="https://discord.gg/YEwrW4M2" style={{ color: '#FFD700', textDecoration: 'underline', fontSize: 18 }}>Discord</a>.
-        </p>
-      </div>
-    </motion.div>
-  );
-}
+// ...existing code...
 
 // --- Dev Info Panel (shows only in development) ---
-function isDev() {
-  // Use a safe check for dev mode (works in browser)
-  return (typeof window !== 'undefined' && window.location.hostname === 'localhost');
-}
-function DevInfoPanel({ username, vaultUser, goldenKey, localShare }) {
-  if (!isDev()) return null;
-  return (
-    <div style={{ position: 'fixed', bottom: 0, left: 0, background: '#23272fdd', color: '#FFD700', fontSize: 12, padding: 10, zIndex: 3000, borderTopRightRadius: 12 }}>
-      <div><b>Dev Info:</b></div>
-      <div>Username: {username}</div>
-      <div>VaultUser: {vaultUser}</div>
-      <div>GoldenKey: {goldenKey ? 'Loaded' : 'None'}</div>
-      <div>LocalShare: {localShare ? 'Loaded' : 'None'}</div>
-    </div>
-  );
-}
+// ...existing code...
 
 // --- Error Boundary for UI safety ---
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
-  }
-  componentDidCatch(error, info) {
-    // Only log in dev mode
-    if (isDev()) {
-      console.error('ErrorBoundary caught:', error, info);
-    }
-  }
-  render() {
-    if (this.state.hasError) {
-      return <div style={{ color: '#ef4444', padding: 32, textAlign: 'center' }}>Something went wrong: {this.state.error?.message || 'Unknown error.'}</div>;
-    }
-    return this.props.children;
-  }
-}
+// ...existing code...
 
 // --- Top Navigation with 3D Buttons ---
 function TopRightNav({ onNavigate }) {
