@@ -1,5 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useState } from 'react';
+
+// Global API URL for all API calls
+const API_URL = import.meta.env.VITE_API_URL;
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import FloatingShapes from './FloatingShapes';
@@ -153,7 +156,6 @@ export default function App() {
   // Step 1: Start registration, get Google OAuth URL
   const handleCreateVault = async () => {
     setError(''); setSuccess(''); setLoading(true);
-    const API_URL = import.meta.env.VITE_API_URL;
     try {
       if (!username || !password) {
         setError('Please enter username and password.'); setLoading(false); return;
