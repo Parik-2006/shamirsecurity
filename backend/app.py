@@ -11,6 +11,8 @@ import logging
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 
+# CORS support
+from flask_cors import CORS
 import traceback
 # --- GLOBAL ERROR HANDLERS FOR JSON RESPONSES ---
 @app.errorhandler(404)
@@ -131,8 +133,11 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
 
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
+# Allow CORS for deployed frontend
+CORS(app, origins=["https://shamirsecurity-1234.onrender.com"], supports_credentials=True)
 
 # --- HEALTH CHECK ENDPOINT FOR RENDER ---
 @app.route('/healthz')
