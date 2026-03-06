@@ -1,3 +1,15 @@
+// Minimal test button for window.open
+function TestWindowOpen() {
+  return (
+    <button
+      style={{
+        position: 'fixed', bottom: 24, right: 24, zIndex: 9999, padding: 16, background: '#FFD700', color: '#151A21', border: 'none', borderRadius: 12, fontWeight: 800, fontSize: 18, boxShadow: '0 2px 8px #FFD66B33', cursor: 'pointer', letterSpacing: 1.1 }}
+      onClick={() => window.open('https://accounts.google.com/', '_blank', 'noopener,noreferrer')}
+    >
+      TEST window.open
+    </button>
+  );
+}
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useState } from 'react';
 
@@ -190,144 +202,145 @@ export default function App() {
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
 
-  // Step 1: Start registration, get Google OAuth URL
-  const handleCreateVault = async () => {
-    setError(''); setSuccess(''); setLoading(true);
-    try {
-      if (!username || !password) {
-        setError('Please enter username and password.'); setLoading(false); return;
-      }
-      const res = await fetch(`${API_URL}/api/register/init`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const contentType = res.headers.get('Content-Type');
-      let raw = '';
-      let data = null;
-      try {
-        raw = await res.text();
-        if (raw && contentType && contentType.includes('application/json')) {
-          data = JSON.parse(raw);
-        } else {
-          data = null;
-        }
-      } catch (jsonErr) {
-        data = null;
-        console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-      }
-      if (data && data.auth_url) {
-        setSuccess('Redirecting to Google sign-in...');
-        window.open(data.auth_url, '_blank', 'noopener,noreferrer'); // Open Google sign-in in new tab
-        return;
-      }
-      console.error('Backend response:', raw);
-      if (data && data.message) {
-        setError('Vault creation failed: ' + data.message);
-      } else if (raw) {
-        setError('Vault creation failed. Backend says: ' + raw);
-      } else {
-        setError('Vault creation failed. No response from backend.');
-      }
-    } catch {
-      setError('Could not connect to the server. Please check your internet connection or try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Step 2: After Google OAuth, complete registration and download local_share
-  React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const regComplete = params.get('reg_complete');
-    if (regComplete) {
-      fetch(`${API_URL}/api/register/complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reg_id: regComplete })
-      })
-        .then(async res => {
-          const contentType = res.headers.get('Content-Type');
-          let raw = '';
-          let data = null;
-          try {
-            raw = await res.text();
-            if (raw && contentType && contentType.includes('application/json')) {
-              data = JSON.parse(raw);
-            }
-          } catch (jsonErr) {
-            data = null;
-            console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-          }
-          return data;
-        })
-        .then(data => {
-          if (data && data.status === 'success') {
-            // If in popup, notify opener and show close message
-            if (window.opener) {
-              window.opener.postMessage({ type: 'registration-complete', local_share: data.local_share, golden_key: data.golden_key, username: data.username }, '*');
-              setSuccess('Authentication flow complete. You may close this tab.');
-            } else {
-              setSuccess('Authentication flow complete. You may close this tab or window.');
-              setLocalShare(data.local_share);
-              setGoldenKey(data.golden_key);
-              setVaultUser(data.username);
-              setShowDownloadModal(true);
-            }
-          } else {
-            setError((data && data.message) || 'Vault creation failed.');
-          }
-        });
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
-
-  // Listen for registration-complete message from popup
-  React.useEffect(() => {
-    function handleMessage(event) {
-      if (event.data && event.data.type === 'registration-complete') {
-        // If local_share/golden_key/username are present, use them; otherwise, trigger fetch
-        if (event.data.local_share && event.data.golden_key && event.data.username) {
-          setLocalShare(event.data.local_share);
-          setGoldenKey(event.data.golden_key);
-          setVaultUser(event.data.username);
-          setShowDownloadModal(true);
-        } else if (event.data.reg_complete) {
-          // Fetch registration completion if only reg_complete is sent
-          fetch(`${API_URL}/api/register/complete`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reg_id: event.data.reg_complete })
-          })
-            .then(async res => {
-              const contentType = res.headers.get('Content-Type');
-              let raw = '';
-              let data = null;
-              try {
-                raw = await res.text();
-                if (raw && contentType && contentType.includes('application/json')) {
-                  data = JSON.parse(raw);
-                }
-              } catch (jsonErr) {
-                data = null;
-                console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-              }
-              return data;
-            })
-            .then(data => {
-              if (data && data.status === 'success') {
-                setLocalShare(data.local_share);
-                setGoldenKey(data.golden_key);
-                setVaultUser(data.username);
-                setShowDownloadModal(true);
-              }
-            });
-        }
-      }
-    }
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  return (
+    <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <FloatingShapes zIndex={0} />
+      {(page === 'login' || page === 'verification') && (
+        <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
+          <TopRightNav onNavigate={handleNavigate} />
+        </div>
+      )}
+      <AnimatePresence mode="wait">
+        {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
+        {page === 'login' && (
+          <motion.div
+            key="login"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -40 }}
+            transition={{ duration: 0.6, ease: 'anticipate' }}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
+          >
+            <CyberLogin3D zIndex={2} />
+            <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
+                <span style={{ display: 'flex', alignItems: 'center', height: 40, marginRight: 6 }}>
+                  <svg width="38" height="38" viewBox="0 0 54 64" fill="none" style={{ display: 'block', verticalAlign: 'middle' }}>
+                    <rect x="7" y="28" width="40" height="28" rx="8" fill="#FFD700" stroke="#FFF8DC" strokeWidth="3" />
+                    <rect x="20" y="38" width="14" height="10" rx="5" fill="#FFF8DC" />
+                    <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
+                  </svg>
+                </span>
+                <span style={{ fontWeight: 900, fontSize: 28, color: '#FFD700', letterSpacing: 1.2 }}>Shamir Vault</span>
+              </div>
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  fontSize: 17,
+                  borderRadius: 10,
+                  border: '1.5px solid #23272f',
+                  background: '#181c20',
+                  color: '#eaf6fb',
+                  outline: 'none',
+                  marginBottom: 22,
+                }}
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  fontSize: 17,
+                  borderRadius: 10,
+                  border: '1.5px solid #23272f',
+                  background: '#181c20',
+                  color: '#eaf6fb',
+                  outline: 'none',
+                  marginBottom: 22,
+                }}
+              />
+              <button
+                className="floating"
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  fontSize: 20,
+                  fontWeight: 800,
+                  background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
+                  color: '#FFD66B',
+                  border: '2px solid #23272f',
+                  borderRadius: 14,
+                  cursor: 'pointer',
+                  marginBottom: 18,
+                  boxShadow: '0 2px 8px #23272f55',
+                  letterSpacing: 1.1,
+                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  textShadow: '0 2px 8px #FFD66B33',
+                  opacity: loading ? 0.7 : 1,
+                }}
+                onClick={handleCreateVault}
+                disabled={loading}
+              >
+                Create New Vault
+              </button>
+              <button
+                className="floating"
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  fontSize: 20,
+                  fontWeight: 800,
+                  background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
+                  color: '#FFD66B',
+                  border: '2px solid #23272f',
+                  borderRadius: 14,
+                  cursor: 'pointer',
+                  marginBottom: 18,
+                  boxShadow: '0 2px 8px #23272f55',
+                  letterSpacing: 1.1,
+                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                  textShadow: '0 2px 8px #FFD66B33',
+                  opacity: loading ? 0.7 : 1,
+                }}
+                onClick={() => setPage('verification')}
+                disabled={loading}
+              >
+                Unlock Existing Vault
+              </button>
+              {error && <div style={{ color: '#ff4d4f', marginTop: 8, fontWeight: 700 }}>{error}</div>}
+              {success && <div style={{ color: '#00e676', marginTop: 8, fontWeight: 700 }}>{success}</div>}
+            </div>
+          </motion.div>
+        )}
+        {page === 'verification' && (
+          <Verification
+            username={username}
+            setUsername={setUsername}
+            password={password}
+            setPassword={setPassword}
+            setVaultPage={setVaultPage}
+            setGoldenKey={setGoldenKey}
+            setVaultUser={setVaultUser}
+            setLocalShare={setLocalShare}
+            setShowDownloadModal={setShowDownloadModal}
+            setError={setError}
+            setSuccess={setSuccess}
+            setPage={setPage}
+          />
+        )}
+      </AnimatePresence>
+      <DownloadShareModal show={showDownloadModal} onDownload={handleDownloadShare} onClose={() => setShowDownloadModal(false)} />
+      <TestWindowOpen />
+    </div>
+  );
 
   // Step 3: Unlock vault (user uploads local_share.enc)
   const handleUnlockVault = async () => {
@@ -377,10 +390,11 @@ export default function App() {
     }
   };
 
-  // Show AuthSuccessPage only on /auth-success route, otherwise render normal app (login page, etc.)
+  // Only show AuthSuccessPage on /auth-success route (OAuth callback)
   if (window.location.pathname.startsWith('/auth-success')) {
     return <AuthSuccessPage />;
   }
+  // Otherwise, render the normal app (login page, etc.)
   if (vaultPage && goldenKey && vaultUser) {
     return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
   }
