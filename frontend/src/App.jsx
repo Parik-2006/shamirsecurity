@@ -156,10 +156,13 @@ export default function App() {
   // Step 1: Start registration, get Google OAuth URL
   const handleCreateVault = async () => {
     setError(''); setSuccess(''); setLoading(true);
+    let popup = null;
     try {
       if (!username || !password) {
         setError('Please enter username and password.'); setLoading(false); return;
       }
+      // Open popup immediately to avoid browser popup blockers
+      popup = window.open('', '_blank', 'noopener,noreferrer');
       const res = await fetch(`${API_URL}/api/register/init`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -181,9 +184,14 @@ export default function App() {
       }
       if (data && data.auth_url) {
         setSuccess('Redirecting to Google sign-in...');
-        window.open(data.auth_url, '_blank', 'noopener,noreferrer'); // Open Google sign-in in new tab
+        if (popup) {
+          popup.location = data.auth_url;
+        } else {
+          window.open(data.auth_url, '_blank', 'noopener,noreferrer');
+        }
         return;
       }
+      if (popup) popup.close();
       console.error('Backend response:', raw);
       if (data && data.message) {
         setError('Vault creation failed: ' + data.message);
@@ -193,6 +201,7 @@ export default function App() {
         setError('Vault creation failed. No response from backend.');
       }
     } catch {
+      if (popup) popup.close();
       setError('Could not connect to the server. Please check your internet connection or try again later.');
     } finally {
       setLoading(false);
