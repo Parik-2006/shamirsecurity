@@ -180,10 +180,8 @@ export default function App() {
   const [vaultUser, setVaultUser] = useState(null);
   const [vaultPage, setVaultPage] = useState(false);
   const [localShare, setLocalShare] = useState('');
-  // regId state removed (was unused)
   const fileInputRef = useRef();
-  const [showOnboarding, setShowOnboarding] = useState(true);
-  const [showAbout, setShowAbout] = useState(true);
+  const [showAbout, setShowAbout] = useState(true); // About popup always on load
 
   // --- Navigation ---
   const handleNavigate = (target) => {
@@ -382,7 +380,6 @@ export default function App() {
         )}
         <AnimatePresence mode="wait">
           {showAbout && <AboutModal show={showAbout} onClose={handleAboutClose} />}
-          {showOnboarding && <OnboardingModal />}
           {page === 'login' && (
             <motion.div
               key="login"
@@ -426,30 +423,24 @@ export default function App() {
                     }}
                     autoComplete="username"
                   />
-                  <div style={{ width: '100%' }}>
-                    <input
-                      type="password"
-                      placeholder="Master Password"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '14px',
-                        fontSize: 17,
-                        borderRadius: 10,
-                        border: '1.5px solid #23272f',
-                        background: '#181c20',
-                        color: '#eaf6fb',
-                        outline: 'none',
-                        marginBottom: 4,
-                      }}
-                      autoComplete="current-password"
-                    />
-                    <PasswordStrengthBar password={password} />
-                  </div>
-                  <div style={{ width: '100%', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 13, color: '#FFD70099' }}>Need help?</span>
-                  </div>
+                  <input
+                    type="password"
+                    placeholder="Master Password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      fontSize: 17,
+                      borderRadius: 10,
+                      border: '1.5px solid #23272f',
+                      background: '#181c20',
+                      color: '#eaf6fb',
+                      outline: 'none',
+                      marginBottom: 22,
+                    }}
+                    autoComplete="current-password"
+                  />
                   <input
                     type="text"
                     placeholder="Paste your local_share.enc content here (for unlock)"
@@ -468,23 +459,6 @@ export default function App() {
                     }}
                     autoComplete="off"
                   />
-                  <button
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      fontSize: 15,
-                      fontWeight: 700,
-                      background: '#FFD700',
-                      color: '#151A21',
-                      border: 'none',
-                      borderRadius: 10,
-                      marginBottom: 10,
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                  >
-                    Upload local_share.enc
-                  </button>
                   <button
                     className="floating"
                     style={{
@@ -533,13 +507,13 @@ export default function App() {
                   >
                     Unlock Vault
                   </button>
-                  {loading && <LoadingSkeleton width="100%" height={32} />}
                   {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
                   {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
                 </div>
               </div>
             </motion.div>
           )}
+          {showAbout && <AboutModal show={showAbout} onClose={handleAboutClose} />}
           {page === 'documentation' && (
             <motion.div
               key="documentation"
