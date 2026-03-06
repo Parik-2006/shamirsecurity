@@ -107,17 +107,24 @@ export default function App() {
         setLoading(false);
         return;
       }
+      let data = null;
       if (contentType && contentType.includes('application/json')) {
-        const data = await res.json();
-        if (data.status === 'redirect' && data.auth_url && data.reg_id) {
-          setSuccess('Redirecting to Google for authentication...');
-          window.location.href = data.auth_url;
-        } else {
-          setError(data.message || 'Vault creation failed.');
-        }
+        data = await res.json();
       } else {
         const text = await res.text();
-        setError('Unexpected response: ' + text);
+        try {
+          data = JSON.parse(text);
+        } catch {
+          setError('Unexpected response: ' + text);
+          setLoading(false);
+          return;
+        }
+      }
+      if (data && data.status === 'redirect' && data.auth_url && data.reg_id) {
+        setSuccess('Redirecting to Google for authentication...');
+        window.location.href = data.auth_url;
+      } else if (data) {
+        setError(data.message || 'Vault creation failed.');
       }
     } catch (e) {
       setError('Network error: ' + (e?.message || e?.toString() || 'Unknown error'));
