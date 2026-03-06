@@ -1,3 +1,31 @@
+// ErrorBoundary to catch runtime errors and allow the page to load
+import React, { useState, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import Documentation from './pages/documentation.jsx';
+import Verification from './pages/verification.jsx';
+import FloatingShapes from './FloatingShapes';
+import CyberLogin3D from './CyberLogin3D';
+import VaultPage from './VaultPage';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    // You can log errorInfo to an error reporting service here
+    // console.error(error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return <div style={{ color: '#ef4444', padding: 32, fontWeight: 700, fontSize: 20 }}>An error occurred: {this.state.error?.message || 'Unknown error'}</div>;
+    }
+    return this.props.children;
+  }
+}
 
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
@@ -176,7 +204,7 @@ function AuthSuccessPage() {
 
 // --- Main App Logic ---
 
-export default function App() {
+function App() {
     // Show download modal if registration just completed and user lands on main window
     useEffect(() => {
       const params = new URLSearchParams(window.location.search);
@@ -327,6 +355,7 @@ export default function App() {
   }
 
   return (
+    <ErrorBoundary>
     <div style={{ 
       minHeight: '100vh', width: '100vw', background: '#0B0D10', 
       position: 'relative', overflow: 'hidden', display: 'flex', 
@@ -432,7 +461,9 @@ export default function App() {
         onDownload={handleDownloadShare} 
         onClose={() => setShowDownloadModal(false)} 
       />
-      <TestWindowOpen />
+      {/* <TestWindowOpen /> */}
     </div>
+    </ErrorBoundary>
   );
 }
+export default App;
