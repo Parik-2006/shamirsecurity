@@ -138,15 +138,25 @@ function AuthSuccessPage() {
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
-    // Always try to notify opener
-    if (window.opener) {
+    if (window.opener && !window.opener.closed) {
       window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
+      setTimeout(() => {
+        window.close();
+      }, 1500);
     }
-    // Always close after delay
-    setTimeout(() => {
-      window.close();
-    }, 2000);
   }, []);
+  // If not a popup, show only a static message
+  if (!window.opener) {
+    return (
+      <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
+          <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Authentication Complete</h2>
+          <p style={{ fontSize: 20, marginBottom: 18 }}>You may close this window or tab.</p>
+        </div>
+      </div>
+    );
+  }
+  // Normal popup message
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
@@ -367,7 +377,7 @@ export default function App() {
     }
   };
 
-  // Render AuthSuccessPage if on /auth-success route (with or without query params)
+  // Only show AuthSuccessPage if on /auth-success route (never load login page in new tab)
   if (window.location.pathname.startsWith('/auth-success')) {
     return <AuthSuccessPage />;
   }
