@@ -150,20 +150,12 @@ function AuthSuccessPage() {
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
-<<<<<<< HEAD
-    if (window.opener && !window.opener.closed) {
+    // Always try to notify opener
+    if (window.opener) {
       window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
-      setTimeout(() => {
-        window.close();
-      }, 1500);
-          // Always try to notify opener
-          if (window.opener) {
-            window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
-          }
-          // Always close after delay
-          setTimeout(() => {
-            window.close();
-          }, 2000);
+    }
+    // Always close after delay
+    setTimeout(() => {
       window.close();
     }, 2000);
   }, []);
@@ -339,163 +331,6 @@ export default function App() {
             setPassword={setPassword}
             setVaultPage={setVaultPage}
             setGoldenKey={setGoldenKey}
-            setVaultUser={setVaultUser}
-            setLocalShare={setLocalShare}
-            setShowDownloadModal={setShowDownloadModal}
-            setError={setError}
-            setSuccess={setSuccess}
-            setPage={setPage}
-          />
-        )}
-      </AnimatePresence>
-      <DownloadShareModal show={showDownloadModal} onDownload={handleDownloadShare} onClose={() => setShowDownloadModal(false)} />
-      <TestWindowOpen />
-    </div>
-  );
-=======
-  // Step 1: Start registration, get Google OAuth URL
-  const handleCreateVault = async () => {
-    setError(''); setSuccess(''); setLoading(true);
-    try {
-      if (!username || !password) {
-        setError('Please enter username and password.'); setLoading(false); return;
-      }
-      const res = await fetch(`${API_URL}/api/register/init`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const contentType = res.headers.get('Content-Type');
-      let raw = '';
-      let data = null;
-      try {
-        raw = await res.text();
-        if (raw && contentType && contentType.includes('application/json')) {
-          data = JSON.parse(raw);
-        } else {
-          data = null;
-        }
-      } catch (jsonErr) {
-        data = null;
-        console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-      }
-      if (data && data.auth_url) {
-        setSuccess('Redirecting to Google sign-in...');
-        window.open(data.auth_url, '_blank', 'noopener,noreferrer'); // Open Google sign-in in new tab
-        return;
-      }
-      console.error('Backend response:', raw);
-      if (data && data.message) {
-        setError('Vault creation failed: ' + data.message);
-      } else if (raw) {
-        setError('Vault creation failed. Backend says: ' + raw);
-      } else {
-        setError('Vault creation failed. No response from backend.');
-      }
-    } catch {
-      setError('Could not connect to the server. Please check your internet connection or try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Step 2: After Google OAuth, complete registration and download local_share
-  React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const regComplete = params.get('reg_complete');
-    if (regComplete) {
-      fetch(`${API_URL}/api/register/complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reg_id: regComplete })
-      })
-        .then(async res => {
-          const contentType = res.headers.get('Content-Type');
-          let raw = '';
-          let data = null;
-          try {
-            raw = await res.text();
-            if (raw && contentType && contentType.includes('application/json')) {
-              data = JSON.parse(raw);
-            }
-          } catch (jsonErr) {
-            data = null;
-            console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-          }
-          return data;
-        })
-        .then(data => {
-          if (data && data.status === 'success') {
-            // If in popup, notify opener and show close message
-            if (window.opener) {
-              window.opener.postMessage({ type: 'registration-complete', local_share: data.local_share, golden_key: data.golden_key, username: data.username }, '*');
-              setSuccess('Authentication flow complete. You may close this tab.');
-            } else {
-              setSuccess('Authentication flow complete. You may close this tab or window.');
-              setLocalShare(data.local_share);
-              setGoldenKey(data.golden_key);
-              setVaultUser(data.username);
-              setShowDownloadModal(true);
-            }
-          } else {
-            setError((data && data.message) || 'Vault creation failed.');
-          }
-        });
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
-
-  // Listen for registration-complete message from popup
-  React.useEffect(() => {
-    function handleMessage(event) {
-      if (event.data && event.data.type === 'registration-complete') {
-        // If local_share/golden_key/username are present, use them; otherwise, trigger fetch
-        if (event.data.local_share && event.data.golden_key && event.data.username) {
-          setLocalShare(event.data.local_share);
-          setGoldenKey(event.data.golden_key);
-          setVaultUser(event.data.username);
-          setShowDownloadModal(true);
-        } else if (event.data.reg_complete) {
-          // Fetch registration completion if only reg_complete is sent
-          fetch(`${API_URL}/api/register/complete`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reg_id: event.data.reg_complete })
-          })
-            .then(async res => {
-              const contentType = res.headers.get('Content-Type');
-              let raw = '';
-              let data = null;
-              try {
-                raw = await res.text();
-                if (raw && contentType && contentType.includes('application/json')) {
-                  data = JSON.parse(raw);
-                }
-              } catch (jsonErr) {
-                data = null;
-                console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-              }
-              return data;
-            })
-            .then(data => {
-              if (data && data.status === 'success') {
-                setLocalShare(data.local_share);
-                setGoldenKey(data.golden_key);
-                setVaultUser(data.username);
-                setShowDownloadModal(true);
-              }
-            });
-        }
-      }
-    }
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
->>>>>>> 1d7bf64 (fix: robust OAuth tab close and opener notification logic)
-
-  // Step 3: Unlock vault (user uploads local_share.enc)
-  const handleUnlockVault = async () => {
-    setError(''); setSuccess(''); setLoading(true);
     try {
       if (!username || !password || !localShare) {
         setError('Please enter username, password, and upload your local_share.enc file.'); setLoading(false); return;
