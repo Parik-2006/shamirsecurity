@@ -1,3 +1,19 @@
+# --- Imports and App Initialization ---
+import secrets
+import os
+import json
+import base64
+import random
+import hashlib
+# Flask and CORS
+from flask import Flask, request, jsonify, redirect, send_from_directory
+from flask_cors import CORS
+# ...existing code...
+import logging
+
+app = Flask(__name__)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
+
 # --- CHECK CREDENTIALS ENDPOINT ---
 @app.route('/api/check_credentials', methods=['POST'])
 def check_credentials():
@@ -32,12 +48,6 @@ def check_credentials():
         import traceback
         traceback.print_exc()
         return jsonify({"status": "error", "message": f"Credential check failed: {str(e)}"}), 500
-import secrets
-import os
-import json
-import base64
-import random
-import hashlib
 # Flask and CORS
 from flask import Flask, request, jsonify, redirect, send_from_directory
 from flask_cors import CORS
