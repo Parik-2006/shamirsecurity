@@ -349,6 +349,7 @@ export default function App() {
                   id="login-username"
                   name="username"
                   placeholder="Username"
+                  autoComplete="username"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   style={{
@@ -368,6 +369,7 @@ export default function App() {
                   id="login-password"
                   name="password"
                   placeholder="Master Password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   style={{

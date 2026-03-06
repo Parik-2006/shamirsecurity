@@ -627,6 +627,7 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
                   id="vault-service"
                   name="service"
                   placeholder="Service (e.g. GitHub, Netflix)" 
+                  autoComplete="organization"
                   value={newService} 
                   onChange={e => setNewService(e.target.value)}
                 />
@@ -642,6 +643,7 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
                   id="vault-service-username"
                   name="serviceUsername"
                   placeholder="Service Username (optional)" 
+                  autoComplete="username"
                   value={newServiceUser} 
                   onChange={e => setNewServiceUser(e.target.value)}
                 />
@@ -658,6 +660,7 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
                   id="vault-password"
                   name="password"
                   placeholder="Password to encrypt" 
+                  autoComplete="new-password"
                   value={newPass} 
                   onChange={e => setNewPass(e.target.value)}
                 />
