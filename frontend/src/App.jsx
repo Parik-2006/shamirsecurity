@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 
 // Global API URL for all API calls
 const API_URL = import.meta.env.VITE_API_URL;
-import Documentation from './pages/documentation';
-import Verification from './pages/verification';
+import Documentation from './pages/documentation.jsx';
+import Verification from './pages/verification.jsx';
 import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
 import VaultPage from './VaultPage';
@@ -243,6 +243,8 @@ export default function App() {
         });
       window.history.replaceState({}, document.title, window.location.pathname);
     }
+  }, []);
+
   // Listen for registration-complete message from popup
   React.useEffect(() => {
     function handleMessage(event) {
@@ -255,7 +257,6 @@ export default function App() {
     }
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
   }, []);
 
   // Step 3: Unlock vault (user uploads local_share.enc)
