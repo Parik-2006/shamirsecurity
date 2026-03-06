@@ -218,17 +218,12 @@ export default function App() {
         })
         .then(data => {
           if (data && data.status === 'success') {
-            // If in popup, notify opener and show close message
+            // Always try to notify opener
             if (window.opener) {
               window.opener.postMessage({ type: 'registration-complete', local_share: data.local_share, golden_key: data.golden_key, username: data.username }, '*');
-              setSuccess('Authentication flow complete. You may close this tab.');
-            } else {
-              setSuccess('Authentication flow complete. You may close this tab or window.');
-              setLocalShare(data.local_share);
-              setGoldenKey(data.golden_key);
-              setVaultUser(data.username);
-              setShowDownloadModal(true);
             }
+            // Always show the close message in this tab
+            setSuccess('Authentication flow complete. You may now close this window.');
           } else {
             setError((data && data.message) || 'Vault creation failed.');
           }
@@ -366,7 +361,13 @@ function AuthSuccessPage() {
   {page === 'auth-success' && <AuthSuccessPage />}
 
   if (isAuthTab) {
-    return <AuthSuccessPage />;
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0B0D10' }}>
+        <div style={{ background: '#151A21', borderRadius: 24, padding: 48, color: '#FFD66B', fontWeight: 800, fontSize: 28, textAlign: 'center', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99' }}>
+          {success || 'Authentication Flow Complete. You may now close this window.'}
+        </div>
+      </div>
+    );
   }
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
