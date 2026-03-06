@@ -1,3 +1,37 @@
+# --- CHECK CREDENTIALS ENDPOINT ---
+@app.route('/api/check_credentials', methods=['POST'])
+def check_credentials():
+    """
+    Step 1: Validate username and password only (no local_share required).
+    Used for the first step of the new unlock flow.
+    """
+    try:
+        data = request.json
+        username = data.get('username')
+        password = data.get('password')
+        if not username or not password:
+            return jsonify({"status": "error", "message": "Username and password required."}), 400
+
+        # Fetch share2 from Supabase to check if user exists
+        try:
+            response = supabase_retry(lambda: supabase.table("shares").select("share_data").eq("username", username).not_.is_("share_data", "null").execute())
+        except Exception as e:
+            print(f"[CHECK_CREDENTIALS] Supabase fetch error for user {username}: {e}")
+            return jsonify({"status": "error", "message": f"Supabase fetch error: {e}"}), 500
+        if not response.data:
+            print(f"[CHECK_CREDENTIALS] No vault found for user {username}")
+            return jsonify({"status": "error", "message": f"No vault found for user '{username}'"}), 404
+
+        # Try to fetch salt from user's local_share.enc in Supabase (if stored), or just return success (since we can't check password without local_share)
+        # For now, just return success if user exists. Password will be checked in the next step with local_share.
+        # Optionally, you could store a password hash in Supabase for stricter checking.
+        print(f"[CHECK_CREDENTIALS] User {username} exists. Password will be checked with local_share in next step.")
+        return jsonify({"status": "success", "message": "User exists. Proceed to upload local_share."})
+    except Exception as e:
+        print(f"[CHECK_CREDENTIALS] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": f"Credential check failed: {str(e)}"}), 500
 import secrets
 import os
 import json
