@@ -57,60 +57,68 @@ if (typeof window !== 'undefined') {
 
 // --- OAuth callback page for registration completion ---
 function AuthSuccessPage() {
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const regComplete = params.get('reg_complete');
-    async function notifyOpener() {
-      if (regComplete) {
+  const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const params = new URLSearchParams(window.location.search);
+  const regComplete = params.get('reg_complete');
+
+  const handleContinue = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      if (regComplete && window.opener && !window.opener.closed) {
+        const res = await fetch(`${API_URL}/api/register/complete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reg_id: regComplete })
+        });
+        const contentType = res.headers.get('Content-Type');
+        let raw = '';
+        let data = null;
         try {
-          localStorage.setItem('reg_complete', regComplete);
-        } catch {}
-      }
-      if (window.opener && !window.opener.closed && regComplete) {
-        try {
-          const res = await fetch(`${API_URL}/api/register/complete`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reg_id: regComplete })
-          });
-          const contentType = res.headers.get('Content-Type');
-          let raw = '';
-          let data = null;
-          try {
-            raw = await res.text();
-            if (raw && contentType && contentType.includes('application/json')) {
-              data = JSON.parse(raw);
-            }
-          } catch (jsonErr) {
-            data = null;
+          raw = await res.text();
+          if (raw && contentType && contentType.includes('application/json')) {
+            data = JSON.parse(raw);
           }
-          if (data && data.status === 'success') {
-            window.opener.postMessage({
-              type: 'registration-complete',
-              reg_complete: regComplete,
-              local_share: data.local_share,
-              golden_key: data.golden_key,
-              username: data.username
-            }, '*');
-            setTimeout(() => { if (window.opener && !window.opener.closed) window.close(); }, 2000);
-          } else {
-            window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: (data && data.message) || 'Unknown error' }, '*');
-            setTimeout(() => { if (window.opener && !window.opener.closed) window.close(); }, 3000);
-          }
-        } catch (err) {
-          window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: err.message || 'Network error' }, '*');
-          setTimeout(() => { if (window.opener && !window.opener.closed) window.close(); }, 3000);
+        } catch (jsonErr) {
+          data = null;
+        }
+        if (data && data.status === 'success') {
+          window.opener.postMessage({
+            type: 'registration-complete',
+            reg_complete: regComplete,
+            local_share: data.local_share,
+            golden_key: data.golden_key,
+            username: data.username
+          }, '*');
+          setDone(true);
+          setTimeout(() => { if (window.opener && !window.opener.closed) window.close(); }, 2000);
+        } else {
+          window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: (data && data.message) || 'Unknown error' }, '*');
+          setError((data && data.message) || 'Unknown error');
         }
       }
+    } catch (err) {
+      window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: err.message || 'Network error' }, '*');
+      setError(err.message || 'Network error');
+    } finally {
+      setLoading(false);
     }
-    notifyOpener();
-  }, []);
+  };
+
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
         <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Authentication Complete</h2>
         <p style={{ fontSize: 20, marginBottom: 18 }}>Authentication flow complete.<br />You may close this window or tab.</p>
-        <p style={{ fontSize: 16, color: '#FFD66B99' }}>(This tab will close automatically.)</p>
+        {!done && (
+          <button onClick={handleContinue} disabled={loading} style={{ marginTop: 24, padding: '12px 32px', fontSize: 18, fontWeight: 700, borderRadius: 12, background: '#FFD700', color: '#151A21', border: 'none', cursor: 'pointer' }}>
+            {loading ? 'Processing...' : 'Continue'}
+          </button>
+        )}
+        {done && <p style={{ color: '#FFD700', marginTop: 18 }}>You may now close this window.</p>}
+        {error && <p style={{ color: 'red', marginTop: 18 }}>{error}</p>}
       </div>
     </div>
   );
@@ -240,8 +248,9 @@ export default function App() {
         data = null;
       }
       if (data && data.auth_url) {
-        setSuccess('Redirecting to Google sign-in...');
-        window.location.href = data.auth_url;
+        setSuccess('Opening Google sign-in in a new tab...');
+        window.open(data.auth_url, '_blank', 'noopener,noreferrer');
+        setLoading(false);
         return;
       }
       if (data && data.message) {
