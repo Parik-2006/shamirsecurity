@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 // Cybersecurity-themed 3D animated elements for VaultPage
-export default function Vault3DCyberElements({ zIndex = 1 }) {
+  if (zIndex === undefined || zIndex === null) zIndex = 1;
   return (
     <>
       {/* Animated 3D Safe */}

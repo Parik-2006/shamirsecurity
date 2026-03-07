@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 // Cybersecurity 3D animated elements for login page
-export default function CyberLogin3D({ zIndex = 1 }) {
+  if (zIndex === undefined || zIndex === null) zIndex = 1;
   return (
     <>
       {/* Removed animated 3D Padlock (lock) as requested */}

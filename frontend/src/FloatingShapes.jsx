@@ -12,7 +12,8 @@ const COLORS = {
   charcoal: '#181c20',
 };
 
-export default function FloatingShapes({ style = {}, zIndex = 0 }) {
+  if (zIndex === undefined || zIndex === null) zIndex = 0;
+  if (!style) style = {};
   return (
     <>
       {/* Cyan ring */}
