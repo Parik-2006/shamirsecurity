@@ -170,6 +170,25 @@ function AuthSuccessPage() {
 // removed conflict marker
 
 export default function App() {
+    // Interval polling for reg_complete after registration attempt
+    React.useEffect(() => {
+      if (!window.sessionStorage.getItem('registration_attempted')) return;
+      const onLoginPage = window.location.pathname === '/' || window.location.pathname === '/login';
+      let intervalId;
+      if (onLoginPage) {
+        intervalId = setInterval(() => {
+          const regCompleteStored = localStorage.getItem('reg_complete');
+          if (regCompleteStored) {
+            console.log('[App.jsx] Polling: Found reg_complete in localStorage:', regCompleteStored);
+            navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
+            localStorage.removeItem('reg_complete');
+            window.sessionStorage.removeItem('registration_attempted');
+            clearInterval(intervalId);
+          }
+        }, 500);
+      }
+      return () => intervalId && clearInterval(intervalId);
+    }, [navigate]);
   const [page, setPage] = useState('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
