@@ -1,19 +1,16 @@
-// FloatingShapes.jsx
-import React from "react";
+import React, { memo } from "react";
 import { motion } from "framer-motion";
 
-// Quantum Cyber Security color palette
 const COLORS = {
   blue: "#0a192f",
   cyan: "#00fff7",
   green: "#00ff85",
   yellow: "#ffe600",
-  charcoal: "#181c20",
 };
 
-export default function FloatingShapes({ style = {}, zIndex = 0 }) {
+function FloatingShapes({ style = {}, zIndex = 0 }) {
   return (
-    <div>
+    <>
       {/* Cyan Ring */}
       <motion.div
         style={{
@@ -117,6 +114,8 @@ export default function FloatingShapes({ style = {}, zIndex = 0 }) {
         animate={{ y: [0, -16, 0], opacity: [0.7, 1, 0.7] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
-    </div>
+    </>
   );
 }
+
+export default memo(FloatingShapes);

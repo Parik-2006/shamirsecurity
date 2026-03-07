@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import Documentation from './pages/documentation.jsx';
@@ -7,19 +7,11 @@ import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
 import VaultPage from './VaultPage';
 
-// Global API URL for all API calls
-const API_URL = import.meta.env.VITE_API_URL;
+// Safely resolve API URL from environment
+const API_URL = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL
+  : '';
 
-// --- Onboarding Modal (only popup) ---
-// ...existing code...
-
-// --- Dev Info Panel (shows only in development) ---
-// ...existing code...
-
-// --- Error Boundary for UI safety ---
-// ...existing code...
-
-// --- Top Navigation with 3D Buttons ---
 const TopRightNav = ({ onNavigate }) => {
   const btn3D = {
     background: 'linear-gradient(145deg, #151A21 60%, #23272f 100%)',
@@ -88,8 +80,6 @@ function AboutModal({ show, onClose }) {
   );
 }
 
-// DownloadShareModal removed (popup logic eliminated)
-
 // Global handler for WebGL context loss
 if (typeof window !== 'undefined') {
   window.addEventListener('error', function(e) {
@@ -98,21 +88,21 @@ if (typeof window !== 'undefined') {
     }
   });
 }
-// removed conflict marker
-// removed conflict marker
 
+// --- OAuth callback page for registration completion ---
 function AuthSuccessPage() {
-  React.useEffect(() => {
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
     async function notifyOpener() {
       if (regComplete) {
-        // Always store reg_complete in localStorage for main tab, regardless of window.opener
-        localStorage.setItem('reg_complete', regComplete);
+        try {
+          localStorage.setItem('reg_complete', regComplete);
+        } catch {}
       }
       if (window.opener && !window.opener.closed && regComplete) {
         try {
-          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/register/complete`, {
+          const res = await fetch(`${API_URL}/api/register/complete`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ reg_id: regComplete })
@@ -127,7 +117,6 @@ function AuthSuccessPage() {
             }
           } catch (jsonErr) {
             data = null;
-            console.error('[AuthSuccessPage] Failed to parse JSON:', jsonErr, 'Raw response:', raw);
           }
           if (data && data.status === 'success') {
             window.opener.postMessage({
@@ -137,27 +126,14 @@ function AuthSuccessPage() {
               golden_key: data.golden_key,
               username: data.username
             }, '*');
-            if (window.opener && !window.opener.closed) {
-              setTimeout(() => {
-                window.close();
-              }, 2000);
-            }
+            setTimeout(() => { if (window.opener && !window.opener.closed) window.close(); }, 2000);
           } else {
-            window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: data && data.message ? data.message : 'Unknown error' }, '*');
-            if (window.opener && !window.opener.closed) {
-              setTimeout(() => {
-                window.close();
-              }, 3000);
-            }
+            window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: (data && data.message) || 'Unknown error' }, '*');
+            setTimeout(() => { if (window.opener && !window.opener.closed) window.close(); }, 3000);
           }
         } catch (err) {
-          console.error('[AuthSuccessPage] Error fetching registration data:', err);
           window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: err.message || 'Network error' }, '*');
-          if (window.opener && !window.opener.closed) {
-            setTimeout(() => {
-              window.close();
-            }, 3000);
-          }
+          setTimeout(() => { if (window.opener && !window.opener.closed) window.close(); }, 3000);
         }
       }
     }
@@ -173,28 +149,10 @@ function AuthSuccessPage() {
     </div>
   );
 }
-// removed conflict marker
 
 export default function App() {
-    // Interval polling for reg_complete after registration attempt
-    React.useEffect(() => {
-      if (!window.sessionStorage.getItem('registration_attempted')) return;
-      const onLoginPage = window.location.pathname === '/' || window.location.pathname === '/login';
-      let intervalId;
-      if (onLoginPage) {
-        intervalId = setInterval(() => {
-          const regCompleteStored = localStorage.getItem('reg_complete');
-          if (regCompleteStored) {
-            console.log('[App.jsx] Polling: Found reg_complete in localStorage:', regCompleteStored);
-            navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
-            localStorage.removeItem('reg_complete');
-            window.sessionStorage.removeItem('registration_attempted');
-            clearInterval(intervalId);
-          }
-        }, 500);
-      }
-      return () => intervalId && clearInterval(intervalId);
-    }, [navigate]);
+  // --- HOOKS: All hooks at the top, correct order ---
+  const navigate = useNavigate(); // Must be first in component
   const [page, setPage] = useState('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -205,69 +163,86 @@ export default function App() {
   const [vaultUser, setVaultUser] = useState(null);
   const [vaultPage, setVaultPage] = useState(false);
   const [localShare, setLocalShare] = useState(null);
-  // Show About modal only once per session
   const [showAbout, setShowAbout] = useState(() => {
-    const seen = sessionStorage.getItem('about_seen');
-    return !seen;
+    try {
+      const seen = sessionStorage.getItem('about_seen');
+      return !seen;
+    } catch {
+      return true;
+    }
   });
-  const navigate = useNavigate();
 
-  // Listen for registration-complete message from AuthSuccessPage
-  // Robust redirect logic: listen for postMessage and check localStorage
-  React.useEffect(() => {
+  // --- Poll for registration completion after registration attempt ---
+  useEffect(() => {
+    let intervalId;
+    try {
+      if (!window.sessionStorage.getItem('registration_attempted')) return;
+      const onLoginPage = window.location.pathname === '/' || window.location.pathname === '/login';
+      if (onLoginPage) {
+        intervalId = setInterval(() => {
+          let regCompleteStored = null;
+          try { regCompleteStored = localStorage.getItem('reg_complete'); } catch {}
+          if (regCompleteStored) {
+            navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
+            try { localStorage.removeItem('reg_complete'); } catch {}
+            try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
+            clearInterval(intervalId);
+          }
+        }, 500);
+      }
+    } catch {}
+    return () => intervalId && clearInterval(intervalId);
+  }, [navigate]);
+
+  // --- Listen for registration-complete message from AuthSuccessPage ---
+  useEffect(() => {
     function handleRegistrationComplete(event) {
       if (event.data && event.data.type === 'registration-complete') {
         if (event.data.reg_complete) {
-          console.log('[App.jsx] Received reg_complete from postMessage:', event.data.reg_complete);
-          localStorage.setItem('reg_complete', event.data.reg_complete);
+          try { localStorage.setItem('reg_complete', event.data.reg_complete); } catch {}
           navigate(`/download-share?reg_complete=${encodeURIComponent(event.data.reg_complete)}`);
         } else if (event.data.username) {
-          console.log('[App.jsx] Received username from postMessage:', event.data.username);
           navigate(`/download-share?username=${encodeURIComponent(event.data.username)}`);
         }
       }
     }
     window.addEventListener('message', handleRegistrationComplete);
     // On mount, check localStorage for reg_complete
-    const regCompleteStored = localStorage.getItem('reg_complete');
+    let regCompleteStored = null;
+    try { regCompleteStored = localStorage.getItem('reg_complete'); } catch {}
     const onLoginPage = window.location.pathname === '/' || window.location.pathname === '/login';
     if (regCompleteStored && window.location.pathname !== '/download-share') {
-      console.log('[App.jsx] Found reg_complete in localStorage:', regCompleteStored);
       navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
-      localStorage.removeItem('reg_complete');
-      window.sessionStorage.removeItem('registration_attempted');
+      try { localStorage.removeItem('reg_complete'); } catch {}
+      try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
     } else if (window.sessionStorage.getItem('registration_attempted') && onLoginPage) {
-      console.warn('[App.jsx] No reg_complete found in localStorage after registration attempt.');
+      // No reg_complete found after registration attempt
     }
     // Also check URL params for reg_complete on login page
     if (onLoginPage) {
       const params = new URLSearchParams(window.location.search);
       const regComplete = params.get('reg_complete');
       if (regComplete) {
-        console.log('[App.jsx] Found reg_complete in URL params:', regComplete);
         navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
-        window.sessionStorage.removeItem('registration_attempted');
-      } else if (window.sessionStorage.getItem('registration_attempted')) {
-        console.warn('[App.jsx] No reg_complete found in URL params after registration attempt.');
+        try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
       }
     }
     return () => window.removeEventListener('message', handleRegistrationComplete);
   }, [navigate]);
 
-
-  // ...existing code...
-
-  // Step 1: Start registration, get Google OAuth URL
+  // --- Step 1: Start registration, get Google OAuth URL ---
   const handleCreateVault = async () => {
     setError(''); setSuccess(''); setLoading(true);
-    window.sessionStorage.setItem('registration_attempted', '1');
+    try { window.sessionStorage.setItem('registration_attempted', '1'); } catch {}
     try {
       if (!username || !password) {
         setError('Please enter username and password.'); setLoading(false); return;
       }
-      // Add timeout to fetch
+      if (!API_URL) {
+        setError('API URL is not configured.'); setLoading(false); return;
+      }
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000); // 4 seconds max
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
       let res;
       try {
         res = await fetch(`${API_URL}/api/register/init`, {
@@ -294,19 +269,15 @@ export default function App() {
         raw = await res.text();
         if (raw && contentType && contentType.includes('application/json')) {
           data = JSON.parse(raw);
-        } else {
-          data = null;
         }
       } catch (jsonErr) {
         data = null;
-        console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
       }
       if (data && data.auth_url) {
         setSuccess('Redirecting to Google sign-in...');
         window.location.href = data.auth_url;
         return;
       }
-      console.error('Backend response:', raw);
       if (data && data.message) {
         setError('Vault creation failed: ' + data.message);
       } else if (raw) {
@@ -321,24 +292,24 @@ export default function App() {
     }
   };
 
-  // Step 2: After Google OAuth, complete registration and redirect to download page
-  React.useEffect(() => {
+  // --- Step 2: After Google OAuth, complete registration and redirect to download page ---
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
     if (regComplete) {
-      // Redirect to new download page with reg_complete param
       navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
     }
   }, [navigate]);
 
-  // Popup message logic removed
-
-  // Step 3: Unlock vault (user uploads local_share.enc)
+  // --- Step 3: Unlock vault (user uploads local_share.enc) ---
   const handleUnlockVault = async () => {
     setError(''); setSuccess(''); setLoading(true);
     try {
       if (!username || !password || !localShare) {
         setError('Please enter username, password, and upload your local_share.enc file.'); setLoading(false); return;
+      }
+      if (!API_URL) {
+        setError('API URL is not configured.'); setLoading(false); return;
       }
       const res = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
@@ -353,9 +324,8 @@ export default function App() {
         if (raw && contentType && contentType.includes('application/json')) {
           data = JSON.parse(raw);
         }
-      } catch (jsonErr) {
+      } catch {
         data = null;
-        console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
       }
       if (data && data.status === 'success') {
         setGoldenKey(data.golden_key);
@@ -375,19 +345,18 @@ export default function App() {
   const handleNavigate = (target) => {
     if (target === 'about') {
       setShowAbout(true);
-      sessionStorage.setItem('about_seen', '1');
+      try { sessionStorage.setItem('about_seen', '1'); } catch {}
     } else {
       setPage(target);
     }
   };
 
-  // Only show AuthSuccessPage on /auth-success route (OAuth callback)
+  // --- Route: OAuth callback ---
   if (window.location.pathname.startsWith('/auth-success')) {
     return <AuthSuccessPage />;
   }
-  // Otherwise, render the normal app (login page, etc.)
-  // Only allow entering the vault page if the download modal is not open
-  // Fix: showDownloadModal is not defined. Remove from condition, keep rest unchanged.
+
+  // --- Route: Vault page ---
   if (vaultPage && goldenKey && vaultUser) {
     if (!vaultUser || !goldenKey) {
       return <div style={{ color: 'red', padding: 40, textAlign: 'center' }}>Error: Missing credentials for vault access.</div>;
@@ -395,8 +364,7 @@ export default function App() {
     return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
   }
 
-  // Download handler removed (handled in new download page)
-
+  // --- Main App UI ---
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <FloatingShapes zIndex={0} />
@@ -522,7 +490,6 @@ export default function App() {
                 </button>
                 {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
                 {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
-                {/* Download button now appears in modal only */}
               </div>
             </div>
           </motion.div>
@@ -551,65 +518,7 @@ export default function App() {
             <Verification onBack={() => setPage('login')} />
           </motion.div>
         )}
-        {/* DownloadShareModal removed */}
       </AnimatePresence>
     </div>
   );
-}
-
-// --- Registration Completion Refactor ---
-// Always try to fetch registration data until we get local_share, golden_key, and username, or a clear error.
-function ensureRegistrationData(regComplete, setLocalShare, setGoldenKey, setVaultUser, setShowDownloadModal, setDownloadError, maxAttempts = 5) {
-  let attempts = 0;
-  async function tryFetch() {
-    attempts++;
-    try {
-      const res = await fetch(`${API_URL}/api/register/complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reg_id: regComplete })
-      });
-      const contentType = res.headers.get('Content-Type');
-      let raw = '';
-      let data = null;
-      try {
-        raw = await res.text();
-        if (raw && contentType && contentType.includes('application/json')) {
-          data = JSON.parse(raw);
-        } else {
-          throw new Error('Response is not JSON: ' + raw);
-        }
-      } catch (jsonErr) {
-        setDownloadError('Failed to parse registration data.\n' + (jsonErr.message || jsonErr) + '\nRaw: ' + raw);
-        setShowDownloadModal(true);
-        return;
-      }
-      if (data && data.status === 'success' && data.local_share && data.golden_key && data.username) {
-        setLocalShare(data.local_share);
-        setGoldenKey(data.golden_key);
-        setVaultUser(data.username);
-        setShowDownloadModal(true);
-        setDownloadError('');
-      } else if (data && data.status === 'error') {
-        let msg = 'Backend error: ' + (data.message || 'Unknown error.');
-        setDownloadError(msg);
-        setShowDownloadModal(true);
-      } else if (attempts < maxAttempts) {
-        setTimeout(tryFetch, 1000); // Retry after 1s
-      } else {
-        let msg = 'Registration complete, but failed to retrieve vault share after multiple attempts.';
-        if (data && data.message) msg += '\n' + data.message;
-        setDownloadError(msg);
-        setShowDownloadModal(true);
-      }
-    } catch (err) {
-      if (attempts < maxAttempts) {
-        setTimeout(tryFetch, 1000);
-      } else {
-        setDownloadError('Network or unexpected error fetching registration data.\n' + (err.message || err));
-        setShowDownloadModal(true);
-      }
-    }
-  }
-  tryFetch();
 }

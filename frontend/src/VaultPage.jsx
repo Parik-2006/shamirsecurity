@@ -3,8 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import * as FM from 'framer-motion';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
+
 import FloatingShapes from './FloatingShapes';
+import FloatingOrbs from './FloatingOrbs';   // ✅ ADD THIS
 import Vault3DCyberElements from './Vault3DCyberElements';
+
 import { getErrorMessage } from './utils';
 
 // API base URL - uses env variable in production

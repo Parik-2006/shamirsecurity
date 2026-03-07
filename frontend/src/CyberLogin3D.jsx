@@ -15,7 +15,6 @@ export default function CyberLogin3D() {
       }}
     >
       {/* Background animated shapes */}
-      <FloatingShapes zIndex={0} />
       <Cyber3DShapes zIndex={0} />
 
       {/* Login Card */}
