@@ -388,29 +388,16 @@ def get_google_flow():
     """Create a Google OAuth Flow for web-based authentication.
     Works with both 'web' and 'installed' type credentials.json.
     Each user signs in with THEIR OWN Google account."""
-    # Try to load credentials.json from disk first (convenient for local dev).
-    creds_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'credentials.json')
 
-    creds_data = None
-    if os.path.exists(creds_path):
-        try:
-            with open(creds_path, 'r') as f:
-                creds_data = json.load(f)
-        except Exception as e:
-            print(f"[GOOGLE] Failed to read credentials.json: {e}")
-
-    # If credentials.json not present, try loading from environment variable
-    if creds_data is None:
-        env_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
-        if env_json:
-            try:
-                creds_data = json.loads(env_json)
-                print("[GOOGLE] Loaded credentials from GOOGLE_CREDENTIALS_JSON env var")
-            except Exception as e:
-                print(f"[GOOGLE] Failed to parse GOOGLE_CREDENTIALS_JSON: {e}")
-
-    if creds_data is None:
-        raise FileNotFoundError("credentials.json not found and GOOGLE_CREDENTIALS_JSON not set")
+    # Only use GOOGLE_CREDENTIALS_JSON for cloud deployment
+    env_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
+    if not env_json:
+        raise FileNotFoundError("GOOGLE_CREDENTIALS_JSON environment variable not set. Please add your Google OAuth credentials JSON as an environment variable in Render.")
+    try:
+        creds_data = json.loads(env_json)
+        print("[GOOGLE] Loaded credentials from GOOGLE_CREDENTIALS_JSON env var")
+    except Exception as e:
+        raise RuntimeError(f"[GOOGLE] Failed to parse GOOGLE_CREDENTIALS_JSON: {e}")
 
     # Support both 'installed' (desktop) and 'web' credentials formats
     if 'installed' in creds_data:
