@@ -209,8 +209,8 @@ export default function App() {
       console.log('[App.jsx] Found reg_complete in localStorage:', regCompleteStored);
       navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
       localStorage.removeItem('reg_complete');
-    } else {
-      console.log('[App.jsx] No reg_complete found in localStorage.');
+    } else if (window.sessionStorage.getItem('registration_attempted')) {
+      console.warn('[App.jsx] No reg_complete found in localStorage after registration attempt.');
     }
     // Also check URL params for reg_complete on login page
     if (window.location.pathname === '/' || window.location.pathname === '/login') {
@@ -219,8 +219,8 @@ export default function App() {
       if (regComplete) {
         console.log('[App.jsx] Found reg_complete in URL params:', regComplete);
         navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
-      } else {
-        console.log('[App.jsx] No reg_complete found in URL params.');
+      } else if (window.sessionStorage.getItem('registration_attempted')) {
+        console.warn('[App.jsx] No reg_complete found in URL params after registration attempt.');
       }
     }
     return () => window.removeEventListener('message', handleRegistrationComplete);
@@ -232,6 +232,7 @@ export default function App() {
   // Step 1: Start registration, get Google OAuth URL
   const handleCreateVault = async () => {
     setError(''); setSuccess(''); setLoading(true);
+    window.sessionStorage.setItem('registration_attempted', '1');
     try {
       if (!username || !password) {
         setError('Please enter username and password.'); setLoading(false); return;
