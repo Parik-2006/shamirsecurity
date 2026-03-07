@@ -31,6 +31,19 @@ function AuthSuccessPage() {
       window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
     }
   }, []);
+
+  // Handler for Continue button
+  const handleContinue = () => {
+    const params = new URLSearchParams(window.location.search);
+    const regComplete = params.get('reg_complete');
+    if (window.opener && !window.opener.closed && regComplete) {
+      window.opener.postMessage({ type: 'registration-finish', reg_complete: regComplete }, '*');
+    }
+    setShowCloseMsg(true);
+    setTimeout(() => {
+      window.close();
+    }, 1200);
+  };
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
@@ -40,10 +53,10 @@ function AuthSuccessPage() {
         ) : !showCloseMsg ? (
           <>
             <p style={{ fontSize: 20, marginBottom: 18 }}>Registration successful.<br />Click continue to finish.</p>
-            <button onClick={() => setShowCloseMsg(true)} style={{ marginTop: 24, background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 18, border: 'none', borderRadius: 12, padding: '12px 32px', cursor: 'pointer', boxShadow: '0 2px 12px #0006' }}>Continue</button>
+            <button onClick={handleContinue} style={{ marginTop: 24, background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 18, border: 'none', borderRadius: 12, padding: '12px 32px', cursor: 'pointer', boxShadow: '0 2px 12px #0006' }}>Continue</button>
           </>
         ) : (
-          <p style={{ fontSize: 20, marginBottom: 18 }}>Google authentication flow complete.<br />You may close this window.</p>
+          <p style={{ fontSize: 20, marginBottom: 18 }}>Google authentication flow complete.<br />This window will close automatically.</p>
         )}
       </div>
     </div>
@@ -82,6 +95,14 @@ function App() {
         setRegistrationComplete(true);
         try { localStorage.setItem('reg_complete', event.data.reg_complete); } catch {}
       }
+      // Listen for finish message to auto-navigate
+      if (event.data && event.data.type === 'registration-finish') {
+        try { localStorage.setItem('reg_complete', event.data.reg_complete); } catch {}
+        setRegistrationComplete(false);
+        navigate(`/download-share?reg_complete=${encodeURIComponent(event.data.reg_complete)}`);
+        try { localStorage.removeItem('reg_complete'); } catch {}
+        try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
+      }
     }
     window.addEventListener('message', handleRegistrationComplete);
     return () => window.removeEventListener('message', handleRegistrationComplete);
@@ -114,10 +135,17 @@ function App() {
           setLoading(false);
           return;
         } else {
-          throw err;
+          setError('Network error: ' + err.message + (err.stack ? ('\n' + err.stack) : ''));
+          setLoading(false);
+          return;
         }
       } finally {
         clearTimeout(timeoutId);
+      }
+      if (!res) {
+        setError('No response received from backend.');
+        setLoading(false);
+        return;
       }
       const contentType = res.headers.get('Content-Type');
       let raw = '';
@@ -128,7 +156,9 @@ function App() {
           data = JSON.parse(raw);
         }
       } catch (jsonErr) {
-        data = null;
+        setError('Error parsing backend response: ' + jsonErr.message + '\nRaw: ' + raw);
+        setLoading(false);
+        return;
       }
       if (data && data.auth_url) {
         setSuccess('Please complete Google sign-in in the new tab.');
@@ -143,8 +173,8 @@ function App() {
       } else {
         setError('Vault creation failed. No response from backend.');
       }
-    } catch {
-      setError('Could not connect to the server. Please check your internet connection or try again later.');
+    } catch (err) {
+      setError('Could not connect to the server. Error: ' + err.message + (err.stack ? ('\n' + err.stack) : ''));
     } finally {
       setLoading(false);
     }
