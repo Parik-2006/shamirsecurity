@@ -99,14 +99,26 @@ def login_google_callback():
         code = request.args.get('code')
         error = request.args.get('error')
         if error:
-            print(f"[LOGIN CALLBACK] Error from Google: {error}")
-            return jsonify({"status": "error", "message": "Google authentication was denied"}), 400
-        flow = get_google_flow()
+            print(f"[LOGIN CALLBACK][ERROR] Error from Google: {error}")
+            return jsonify({"status": "error", "message": "Google authentication was denied", "debug": error}), 400
+        try:
+            flow = get_google_flow()
+        except Exception as e:
+            print(f"[LOGIN CALLBACK][ERROR] Failed to create Google OAuth flow: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({"status": "error", "message": "Failed to create Google OAuth flow", "debug": str(e)}), 500
         code_verifier = request.args.get('code_verifier')
-        if code_verifier:
-            flow.fetch_token(code=code, code_verifier=code_verifier)
-        else:
-            flow.fetch_token(code=code)
+        try:
+            if code_verifier:
+                flow.fetch_token(code=code, code_verifier=code_verifier)
+            else:
+                flow.fetch_token(code=code)
+        except Exception as e:
+            print(f"[LOGIN CALLBACK][ERROR] Failed to fetch token: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({"status": "error", "message": "Failed to fetch token from Google", "debug": str(e)}), 500
         credentials = flow.credentials
         id_token = credentials.id_token
         import jwt
@@ -118,12 +130,16 @@ def login_google_callback():
                 if 'mfa' in amr or 'otp' in amr or 'sms' in amr:
                     mfa_enabled = True
             except Exception as e:
-                print(f"[LOGIN CALLBACK] Failed to decode ID token for MFA check: {e}")
+                print(f"[LOGIN CALLBACK][ERROR] Failed to decode ID token for MFA check: {e}")
+                import traceback
+                traceback.print_exc()
         print(f"[LOGIN CALLBACK] MFA enabled: {mfa_enabled}")
         return jsonify({"status": "success", "mfa_enabled": mfa_enabled})
     except Exception as e:
-        print(f"[LOGIN CALLBACK] Error: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        print(f"[LOGIN CALLBACK][FATAL ERROR] Exception: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e), "debug": "Exception in login_google_callback"}), 500
 
 # --- GOOGLE LOGIN ENDPOINT (for unlocking vault) ---
 @app.route('/api/login/google')
@@ -134,20 +150,34 @@ def login_google():
     - If not, warn on frontend but allow login.
     """
     try:
-        flow = get_google_flow()
-        auth_url, _ = flow.authorization_url(
-            access_type='offline',
-            prompt='consent',
-            max_auth_age=0  # Always require fresh login and MFA if enabled
-        )
-        # Store code_verifier in session or temp store if needed (not required for login-only flow)
+        try:
+            flow = get_google_flow()
+        except Exception as e:
+            print(f"[LOGIN GOOGLE][ERROR] Failed to create Google OAuth flow: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({"status": "error", "message": "Failed to create Google OAuth flow", "debug": str(e)}), 500
+        try:
+            auth_url, _ = flow.authorization_url(
+                access_type='offline',
+                prompt='consent',
+                max_auth_age=0  # Always require fresh login and MFA if enabled
+            )
+        except Exception as e:
+            print(f"[LOGIN GOOGLE][ERROR] Failed to generate authorization URL: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({"status": "error", "message": "Failed to generate Google authorization URL", "debug": str(e)}), 500
+        print(f"[LOGIN GOOGLE] Generated auth_url: {auth_url}")
         return jsonify({
             "status": "redirect",
             "auth_url": auth_url
         })
     except Exception as e:
-        print(f"[LOGIN GOOGLE] Error: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        print(f"[LOGIN GOOGLE][FATAL ERROR] Exception: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e), "debug": "Exception in login_google"}), 500
 
 # --- HEALTH CHECK ENDPOINT FOR RENDER ---
 def check_frontend_build():
@@ -394,7 +424,6 @@ def get_google_flow():
     Works with both 'web' and 'installed' type credentials.json.
     Each user signs in with THEIR OWN Google account."""
 
-    # Only use GOOGLE_CREDENTIALS_JSON for cloud deployment
     env_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
     if not env_json:
         raise FileNotFoundError("GOOGLE_CREDENTIALS_JSON environment variable not set. Please add your Google OAuth credentials JSON as an environment variable in Render.")
@@ -404,8 +433,16 @@ def get_google_flow():
     except Exception as e:
         raise RuntimeError(f"[GOOGLE] Failed to parse GOOGLE_CREDENTIALS_JSON: {e}")
 
-    # Support both 'installed' (desktop) and 'web' credentials formats
-    if 'installed' in creds_data:
+    # Always use 'web' credentials format for OAuth web flow
+    if 'web' in creds_data:
+        # Patch redirect_uris to ensure all allowed URIs are present
+        redirect_uris = creds_data['web'].get('redirect_uris', [])
+        if GOOGLE_REDIRECT_URI not in redirect_uris:
+            redirect_uris.append(GOOGLE_REDIRECT_URI)
+        creds_data['web']['redirect_uris'] = redirect_uris
+        flow = Flow.from_client_config({'web': creds_data['web']}, scopes=GOOGLE_SCOPES)
+    elif 'installed' in creds_data:
+        # Convert installed credentials to web format
         print("[GOOGLE] Using 'installed' credentials adapted for web flow")
         client_config = {
             'web': {
@@ -417,16 +454,8 @@ def get_google_flow():
             }
         }
         flow = Flow.from_client_config(client_config, scopes=GOOGLE_SCOPES)
-
     else:
-        # Use web client config structure, with extra error handling
-        try:
-            flow = Flow.from_client_config(creds_data, scopes=GOOGLE_SCOPES)
-        except Exception as e:
-            print(f"[GOOGLE] Failed to create OAuth flow from config: {e}")
-            import traceback
-            traceback.print_exc()
-            raise RuntimeError("Google OAuth configuration failed. Please check your GOOGLE_CREDENTIALS_JSON environment variable and its format.")
+        raise RuntimeError("Google OAuth credentials JSON must contain a 'web' or 'installed' key.")
 
     flow.redirect_uri = GOOGLE_REDIRECT_URI
     return flow
