@@ -87,7 +87,7 @@ function AboutModal({ show, onClose }) {
   );
 }
 
-function DownloadShareModal({ show, onDownload, onClose }) {
+function DownloadShareModal({ show, onDownload, onClose, error }) {
   if (!show) return null;
   return (
     <motion.div
@@ -101,6 +101,9 @@ function DownloadShareModal({ show, onDownload, onClose }) {
         <button onClick={onClose} aria-label="Close download modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
         <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 18 }}>Download Your Vault Share</h2>
         <p style={{ fontSize: 17, marginBottom: 24 }}>Click below to download your <b>local_share.enc</b> file. <br />Keep it safe! You need it to unlock your vault.</p>
+        {error && (
+          <div style={{ color: '#ef4444', margin: '10px 0 18px 0', fontWeight: 600, fontSize: 16, whiteSpace: 'pre-wrap' }}>{error}</div>
+        )}
         <button
           style={{
             marginTop: 8,
@@ -216,6 +219,7 @@ export default function App() {
   // State to trigger add password mode after registration
   // const [openVaultAdd, setOpenVaultAdd] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [downloadError, setDownloadError] = useState('');
 
 
   // ...existing code...
@@ -333,39 +337,17 @@ export default function App() {
         } else if (event.data.reg_complete) {
           console.log('[ShamirVault] Got reg_complete, fetching registration completion...');
           // Fetch registration completion if only reg_complete is sent
-          fetch(`${API_URL}/api/register/complete`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reg_id: event.data.reg_complete })
-          })
-            .then(async res => {
-              const contentType = res.headers.get('Content-Type');
-              let raw = '';
-              let data = null;
-              try {
-                raw = await res.text();
-                if (raw && contentType && contentType.includes('application/json')) {
-                  data = JSON.parse(raw);
-                }
-              } catch (jsonErr) {
-                data = null;
-                console.error('[ShamirVault] Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-              }
-              return data;
-            })
-            .then(data => {
-              console.log('[ShamirVault] register/complete API response:', data);
-              if (data && data.status === 'success') {
-                setLocalShare(data.local_share);
-                setGoldenKey(data.golden_key);
-                setVaultUser(data.username);
-                setShowDownloadModal(true);
-              } else {
-                console.error('[ShamirVault] register/complete API failed:', data);
-              }
-            });
+          ensureRegistrationData(
+            event.data.reg_complete,
+            setLocalShare,
+            setGoldenKey,
+            setVaultUser,
+            setShowDownloadModal,
+            setDownloadError
+          );
         } else {
-          console.warn('[ShamirVault] registration-complete message missing expected fields:', event.data);
+          setDownloadError('Registration-complete message missing expected fields. Please refresh or contact support.');
+          setShowDownloadModal(true);
         }
       }
     }
@@ -373,42 +355,17 @@ export default function App() {
     // Fallback: poll backend if message not received after 2 seconds
     const pollTimeout = setTimeout(() => {
       if (!received) {
-        console.warn('[ShamirVault] No registration-complete message received. Polling backend for registration status...');
         const params = new URLSearchParams(window.location.search);
         const regComplete = params.get('reg_complete');
         if (regComplete) {
-          fetch(`${API_URL}/api/register/complete`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reg_id: regComplete })
-          })
-            .then(async res => {
-              const contentType = res.headers.get('Content-Type');
-              let raw = '';
-              let data = null;
-              try {
-                raw = await res.text();
-                if (raw && contentType && contentType.includes('application/json')) {
-                  data = JSON.parse(raw);
-                }
-              } catch (jsonErr) {
-                data = null;
-                console.error('[ShamirVault] Fallback: Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-              }
-              return data;
-            })
-            .then(data => {
-              console.log('[ShamirVault] Fallback register/complete API response:', data);
-              if (data && data.status === 'success') {
-                setLocalShare(data.local_share);
-                setGoldenKey(data.golden_key);
-                setVaultUser(data.username);
-                setShowDownloadModal(true);
-              } else {
-                setError('Registration complete, but failed to retrieve vault share. Please refresh or contact support.');
-                console.error('[ShamirVault] Fallback register/complete API failed:', data);
-              }
-            });
+          ensureRegistrationData(
+            regComplete,
+            setLocalShare,
+            setGoldenKey,
+            setVaultUser,
+            setShowDownloadModal,
+            setDownloadError
+          );
         }
       }
     }, 2000);
@@ -489,16 +446,16 @@ export default function App() {
         a.click();
         document.body.removeChild(a);
         setShowDownloadModal(false);
-        // After download, go to vault page
+        setDownloadError('');
         setVaultPage(true);
       } catch (err) {
-        setError('Download failed. Please try again or refresh the page.');
+        setDownloadError('Download failed. Please try again or refresh the page.');
         setShowDownloadModal(true);
         setVaultPage(false);
         console.error('[ShamirVault] Download error:', err);
       }
     } else {
-      setError('Download failed: local_share.enc is missing. Please refresh and try again.');
+      setDownloadError('Download failed: local_share.enc is missing. Please refresh and try again.');
       setShowDownloadModal(true);
       setVaultPage(false);
       console.error('[ShamirVault] Tried to download, but localShare is missing!');
@@ -659,7 +616,67 @@ export default function App() {
             <Verification onBack={() => setPage('login')} />
           </motion.div>
         )}
+        {showDownloadModal && (
+          <DownloadShareModal show={showDownloadModal} onDownload={handleDownloadShare} onClose={() => setShowDownloadModal(false)} error={downloadError} />
+        )}
       </AnimatePresence>
     </div>
   );
+}
+
+// --- Registration Completion Refactor ---
+// Always try to fetch registration data until we get local_share, golden_key, and username, or a clear error.
+function ensureRegistrationData(regComplete, setLocalShare, setGoldenKey, setVaultUser, setShowDownloadModal, setDownloadError, maxAttempts = 5) {
+  let attempts = 0;
+  async function tryFetch() {
+    attempts++;
+    try {
+      const res = await fetch(`${API_URL}/api/register/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reg_id: regComplete })
+      });
+      const contentType = res.headers.get('Content-Type');
+      let raw = '';
+      let data = null;
+      try {
+        raw = await res.text();
+        if (raw && contentType && contentType.includes('application/json')) {
+          data = JSON.parse(raw);
+        } else {
+          throw new Error('Response is not JSON: ' + raw);
+        }
+      } catch (jsonErr) {
+        setDownloadError('Failed to parse registration data.\n' + (jsonErr.message || jsonErr) + '\nRaw: ' + raw);
+        setShowDownloadModal(true);
+        return;
+      }
+      if (data && data.status === 'success' && data.local_share && data.golden_key && data.username) {
+        setLocalShare(data.local_share);
+        setGoldenKey(data.golden_key);
+        setVaultUser(data.username);
+        setShowDownloadModal(true);
+        setDownloadError('');
+      } else if (data && data.status === 'error') {
+        let msg = 'Backend error: ' + (data.message || 'Unknown error.');
+        setDownloadError(msg);
+        setShowDownloadModal(true);
+      } else if (attempts < maxAttempts) {
+        setTimeout(tryFetch, 1000); // Retry after 1s
+      } else {
+        let msg = 'Registration complete, but failed to retrieve vault share after multiple attempts.';
+        if (data && data.message) msg += '\n' + data.message;
+        setDownloadError(msg);
+        setShowDownloadModal(true);
+      }
+    } catch (err) {
+      if (attempts < maxAttempts) {
+        setTimeout(tryFetch, 1000);
+      } else {
+        setDownloadError('Network or unexpected error fetching registration data.\n' + (err.message || err));
+        setShowDownloadModal(true);
+      }
+    }
+  }
+  tryFetch();
 }
