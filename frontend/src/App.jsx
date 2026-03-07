@@ -105,27 +105,7 @@ export default function App() {
   });
   const [registrationComplete, setRegistrationComplete] = useState(false);
 
-  // --- Poll for registration completion after registration attempt ---
-  useEffect(() => {
-    let intervalId;
-    try {
-      if (!window.sessionStorage.getItem('registration_attempted')) return;
-      const onLoginPage = window.location.pathname === '/' || window.location.pathname === '/login';
-      if (onLoginPage) {
-        intervalId = setInterval(() => {
-          let regCompleteStored = null;
-          try { regCompleteStored = localStorage.getItem('reg_complete'); } catch {}
-          if (regCompleteStored) {
-            navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
-            try { localStorage.removeItem('reg_complete'); } catch {}
-            try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
-            clearInterval(intervalId);
-          }
-        }, 500);
-      }
-    } catch {}
-    return () => intervalId && clearInterval(intervalId);
-  }, [navigate]);
+  // No polling for registration completion in main app; handled by postMessage only
 
   // --- Listen for registration-complete message from AuthSuccessPage ---
   useEffect(() => {
@@ -203,13 +183,7 @@ export default function App() {
   };
 
   // --- Step 2: After Google OAuth, complete registration and redirect to download page ---
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const regComplete = params.get('reg_complete');
-    if (regComplete) {
-      navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
-    }
-  }, [navigate]);
+  // No auto-redirect on reg_complete param; handled by postMessage only
 
   // --- Step 3: Unlock vault (user uploads local_share.enc) ---
   const handleUnlockVault = async () => {
