@@ -1,3 +1,6 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 export default function DownloadShare() {
   // Defensive: check for window and location
   if (typeof window === 'undefined' || !window.location) {
