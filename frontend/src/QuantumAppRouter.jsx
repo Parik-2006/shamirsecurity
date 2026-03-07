@@ -6,7 +6,7 @@ import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import DownloadShare from './pages/DownloadShare';
 import Nav3D from './components/Nav3D';
-import Login from './pages/Login';
+import App from './App';
 
 export default function QuantumAppRouter({ username, goldenKey, onLogout }) {
   return (
@@ -15,7 +15,7 @@ export default function QuantumAppRouter({ username, goldenKey, onLogout }) {
       <FloatingShapes zIndex={0} />
       <div style={{ marginLeft: 120, minHeight: '100vh', position: 'relative', zIndex: 1 }}>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<App />} />
           <Route path="/documentation" element={<Documentation />} />
           <Route path="/verification" element={<Verification />} />
           <Route path="/vault" element={<VaultPage username={username} goldenKey={goldenKey} onLogout={onLogout} />} />
