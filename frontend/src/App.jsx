@@ -297,7 +297,8 @@ export default function App() {
       }
       if (data && data.auth_url) {
         setSuccess('Redirecting to Google sign-in...');
-        window.location.href = data.auth_url;
+        // Open Google sign-in in a new tab/popup
+        window.open(data.auth_url, '_blank', 'width=500,height=700');
         return;
       }
       console.error('Backend response:', raw);
