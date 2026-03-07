@@ -170,6 +170,8 @@ function AuthSuccessPage() {
 // removed conflict marker
 
 export default function App() {
+    // State for missing reg_complete error
+    const [missingRegComplete, setMissingRegComplete] = React.useState(false);
     // Interval polling for reg_complete after registration attempt
     React.useEffect(() => {
       if (!window.sessionStorage.getItem('registration_attempted')) return;
@@ -183,6 +185,7 @@ export default function App() {
             navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
             localStorage.removeItem('reg_complete');
             window.sessionStorage.removeItem('registration_attempted');
+            setMissingRegComplete(false);
             clearInterval(intervalId);
           }
         }, 500);
@@ -225,7 +228,6 @@ export default function App() {
     // On mount, check localStorage for reg_complete
     const regCompleteStored = localStorage.getItem('reg_complete');
     const onLoginPage = window.location.pathname === '/' || window.location.pathname === '/login';
-    const [missingRegComplete, setMissingRegComplete] = React.useState(false);
     if (regCompleteStored && window.location.pathname !== '/download-share') {
       console.log('[App.jsx] Found reg_complete in localStorage:', regCompleteStored);
       navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
@@ -256,7 +258,7 @@ export default function App() {
         setMissingRegComplete(false);
       }
     return () => window.removeEventListener('message', handleRegistrationComplete);
-  }, [navigate]);
+  }, [navigate, missingRegComplete]);
 
 
   // ...existing code...
