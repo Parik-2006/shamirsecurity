@@ -225,13 +225,16 @@ export default function App() {
     // On mount, check localStorage for reg_complete
     const regCompleteStored = localStorage.getItem('reg_complete');
     const onLoginPage = window.location.pathname === '/' || window.location.pathname === '/login';
+    const [missingRegComplete, setMissingRegComplete] = React.useState(false);
     if (regCompleteStored && window.location.pathname !== '/download-share') {
       console.log('[App.jsx] Found reg_complete in localStorage:', regCompleteStored);
       navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
       localStorage.removeItem('reg_complete');
       window.sessionStorage.removeItem('registration_attempted');
+      setMissingRegComplete(false);
     } else if (window.sessionStorage.getItem('registration_attempted') && onLoginPage) {
       console.warn('[App.jsx] No reg_complete found in localStorage after registration attempt.');
+      setMissingRegComplete(true);
     }
     // Also check URL params for reg_complete on login page
     if (onLoginPage) {
@@ -241,10 +244,17 @@ export default function App() {
         console.log('[App.jsx] Found reg_complete in URL params:', regComplete);
         navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
         window.sessionStorage.removeItem('registration_attempted');
+        setMissingRegComplete(false);
       } else if (window.sessionStorage.getItem('registration_attempted')) {
         console.warn('[App.jsx] No reg_complete found in URL params after registration attempt.');
+        setMissingRegComplete(true);
       }
     }
+      // Show visible alert if reg_complete is missing after registration attempt
+      if (typeof missingRegComplete !== 'undefined' && missingRegComplete && (window.location.pathname === '/' || window.location.pathname === '/login')) {
+        alert('Registration failed: Could not retrieve registration token. Please try again or contact support.');
+        setMissingRegComplete(false);
+      }
     return () => window.removeEventListener('message', handleRegistrationComplete);
   }, [navigate]);
 
