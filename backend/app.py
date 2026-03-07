@@ -12,8 +12,11 @@ from flask_cors import CORS
 # ...existing code...
 import logging
 
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
+# Enable CORS for all routes (allow all origins by default)
+CORS(app)
 
 # --- CHECK CREDENTIALS ENDPOINT ---
 @app.route('/api/check_credentials', methods=['POST'])
