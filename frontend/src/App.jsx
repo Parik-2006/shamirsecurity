@@ -1,14 +1,14 @@
-import { AnimatePresence, motion } from 'framer-motion';
 import React, { useState } from 'react';
-
-// Global API URL for all API calls
-const API_URL = import.meta.env.VITE_API_URL;
+import { AnimatePresence, motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import Documentation from './pages/documentation.jsx';
 import Verification from './pages/verification.jsx';
 import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
 import VaultPage from './VaultPage';
-import { useNavigate } from 'react-router-dom';
+
+// Global API URL for all API calls
+const API_URL = import.meta.env.VITE_API_URL;
 
 // --- Onboarding Modal (only popup) ---
 // ...existing code...

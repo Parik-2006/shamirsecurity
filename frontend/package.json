@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@react-three/drei": "^9.56.7",
+    "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^8.0.27",
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.9.1",
@@ -18,8 +18,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.13.1",
-     "three": "^0.183.2",
-     "three-mesh-bvh": "^0.8.0"
+    "three": "^0.183.2",
+    "three-mesh-bvh": "^0.8.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
