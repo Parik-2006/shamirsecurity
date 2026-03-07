@@ -362,7 +362,7 @@ function App() {
                 {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
               </div>
             </div>
-          </motion.div>
+            </div>
         )}
         {page === 'documentation' && (
           <motion.div
@@ -388,7 +388,6 @@ function App() {
             <Verification onBack={() => setPage('login')} />
           </motion.div>
         )}
-      </AnimatePresence>
     </div>
   );
 }
