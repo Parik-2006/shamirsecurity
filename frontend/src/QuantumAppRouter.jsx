@@ -7,6 +7,7 @@ import Verification from './pages/verification';
 import DownloadShare from './pages/DownloadShare';
 import Nav3D from './components/Nav3D';
 import App from './App';
+import Login from './pages/Login';
 
 
 const Layout = ({ children }) => {
@@ -33,7 +34,7 @@ export default function QuantumAppRouter({ username, goldenKey, onLogout }) {
     <Router>
       <Layout>
         <Routes>
-          <Route path="/" element={<App />} />
+          <Route path="/" element={<Login />} />
           <Route path="/documentation" element={<Documentation />} />
           <Route path="/verification" element={<Verification />} />
           <Route
