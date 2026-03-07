@@ -182,6 +182,23 @@ export default function App() {
   });
   const navigate = useNavigate();
 
+  // Listen for registration-complete message from AuthSuccessPage
+  React.useEffect(() => {
+    function handleRegistrationComplete(event) {
+      if (event.data && event.data.type === 'registration-complete') {
+        // Redirect to download page with reg_complete param
+        if (event.data.reg_complete) {
+          navigate(`/download-share?reg_complete=${encodeURIComponent(event.data.reg_complete)}`);
+        } else if (event.data.username) {
+          // fallback: redirect with username if reg_complete missing
+          navigate(`/download-share?username=${encodeURIComponent(event.data.username)}`);
+        }
+      }
+    }
+    window.addEventListener('message', handleRegistrationComplete);
+    return () => window.removeEventListener('message', handleRegistrationComplete);
+  }, [navigate]);
+
 
   // ...existing code...
 
