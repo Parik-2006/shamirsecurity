@@ -4,6 +4,9 @@ import VaultPage from './VaultPage';
 import './App.css';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Set your backend API URL here:
+const API_URL = "https://shamirsecurity-098.onrender.com"; // <-- CHANGE THIS to your backend URL
+
 // Global handler for WebGL context loss
 if (typeof window !== 'undefined') {
   window.addEventListener('error', function(e) {
@@ -216,16 +219,11 @@ function App() {
   // --- Main App UI ---
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <AnimatePresence mode="wait">
-        {page === 'login' && (
-          <motion.div
-            key="login"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -40 }}
-            transition={{ duration: 0.6, ease: 'anticipate' }}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
-          >
+      {/* AnimatePresence and motion.div removed for static UI */}
+      {page === 'login' && (
+        <div
+          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
+        >
             <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
                 <span style={{ display: 'flex', alignItems: 'center', height: 40, marginRight: 6 }}>
@@ -235,7 +233,7 @@ function App() {
                     <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
                   </svg>
                 </span>
-                <h1 className="floating" style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', margin: 0, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55', lineHeight: 1, verticalAlign: 'middle' }}>Shamir Vault</h1>
+                <h1 style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', margin: 0, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55', lineHeight: 1, verticalAlign: 'middle' }}>Shamir Vault</h1>
               </div>
               <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
                 Secure Multi-Key Secret Management
@@ -282,7 +280,6 @@ function App() {
                   }}
                 />
                 <button
-                  className="floating"
                   style={{
                     width: '100%',
                     padding: '16px',
@@ -307,7 +304,6 @@ function App() {
                 </button>
                 {registrationComplete && (
                   <button
-                    className="floating"
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -340,7 +336,6 @@ function App() {
                   </button>
                 )}
                 <button
-                  className="floating"
                   style={{
                     width: '100%',
                     padding: '16px',
