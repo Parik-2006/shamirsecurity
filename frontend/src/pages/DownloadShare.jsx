@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-
+export default function DownloadShare() {
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
