@@ -11,132 +11,107 @@ import Verification from './pages/verification.jsx';
 import VaultPage from './VaultPage';
 
 // 3D & UI Components
-import FloatingShapes from './FloatingShapes';
-import CyberLogin3D from './CyberLogin3D';
-
-
-
-
-// ErrorBoundary to catch runtime errors and allow the page to load
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
-  }
-  componentDidCatch(error, errorInfo) {
-    // You can log errorInfo to an error reporting service here
-    // console.error(error, errorInfo);
-  }
-  render() {
-    if (this.state.hasError) {
-      return <div style={{ color: '#ef4444', padding: 32, fontWeight: 700, fontSize: 20 }}>An error occurred: {this.state.error?.message || 'Unknown error'}</div>;
-    }
-    return this.props.children;
-  }
-}
-
-
-
-
-// --- Helper Components ---
-
-/**
- * Minimal test button for debugging window.open functionality
- */
-// (TestWindowOpen removed)
-
-/**
- * Top Navigation with 3D Styled Buttons
- */
-const TopRightNav = ({ onNavigate }) => {
-  const btn3D = {
-    background: 'linear-gradient(145deg, #151A21 60%, #23272f 100%)',
-    color: '#FFD700',
-    border: '2.5px solid #FFD700',
-    borderRadius: 14,
-    fontWeight: 800,
-    fontSize: 15,
-    padding: '12px 28px',
-    margin: 0,
-    boxShadow: '4px 4px 16px #0a192f99, -4px -4px 16px #23272f55, 0 2px 8px #FFD70033',
-    cursor: 'pointer',
-    outline: 'none',
-    transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-    textShadow: '0 2px 8px #FFD70044',
-    letterSpacing: 0.7,
-    display: 'flex',
-    alignItems: 'center',
-    perspective: 400,
-    transformStyle: 'preserve-3d',
-  };
-
   return (
-    <div style={{ display: 'flex', gap: 16 }}>
-      <button onClick={() => onNavigate('documentation')} style={btn3D}>
-        <span style={{ color: '#FFD700' }}>Documentation</span>
-      </button>
-      <button onClick={() => onNavigate('verification')} style={btn3D}>
-        <span style={{ color: '#FFD700' }}>Verification</span>
-      </button>
-      <button onClick={() => onNavigate('about')} style={btn3D}>
-        <span style={{ color: '#FFD700' }}>About</span>
-      </button>
-    </div>
-  );
-};
-
-/**
- * Information Modal
- */
-function AboutModal({ show, onClose }) {
-  if (!show) return null;
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      style={{ 
-        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', 
-        background: '#0B0D10ee', zIndex: 2000, display: 'flex', 
-        alignItems: 'center', justifyContent: 'center' 
-      }}
-    >
-      <div style={{ 
-        background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 480, 
-        width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', 
-        color: '#FFD66B', textAlign: 'center', position: 'relative' 
-      }}>
-        <button onClick={onClose} style={{ 
-          position: 'absolute', top: 16, right: 16, background: 'none', 
-          border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' 
-        }}>×</button>
-        <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Welcome to Shamir Vault</h2>
-        <p style={{ fontSize: 18, marginBottom: 18 }}>
-          This app uses advanced cryptography to keep your secrets safe.<br /><br />
-          <b>Steps to use:</b><br />
-          1. Register with a strong password<br />
-          2. Complete Google authentication<br />
-          3. Download and keep your <b>local_share.enc</b> safe<br />
-          4. Use it to unlock your vault anytime
-        </p>
-        <p style={{ fontSize: 18, color: '#FFD700bb', marginTop: 24 }}>
-          For feedback, email <a href="mailto:parikshithbb.cs25@rvce.edu.in" style={{ color: '#FFD700' }}>mail</a>.
-        </p>
+    <ErrorBoundary>
+      <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <FloatingShapes zIndex={0} />
+        {(page === 'login' || page === 'verification') && (
+          <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
+            <TopRightNav onNavigate={handleNavigate} />
+          </div>
+        )}
+        <AnimatePresence mode="wait">
+          {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
+          {page === 'login' && (
+            <motion.div
+              key="login"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -40 }}
+              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
+            >
+              <CyberLogin3D zIndex={2} />
+              <div style={{
+                maxWidth: 420, width: '95vw', padding: '40px 24px',
+                background: '#151A21', borderRadius: 28,
+                boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                zIndex: 3
+              }}>
+                {/* Animated Logo and Heading */}
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10, gap: 14 }}>
+                  <svg width="38" height="38" viewBox="0 0 54 64" fill="none">
+                    <rect x="7" y="28" width="40" height="28" rx="8" fill="#FFD700" stroke="#FFF8DC" strokeWidth="3" />
+                    <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
+                  </svg>
+                  <span style={{ fontWeight: 900, fontSize: 32, color: '#FFD700' }}>Shamir Vault</span>
+                </div>
+                {/* Subheading */}
+                <div style={{ color: '#FFD66B', fontSize: 18, fontWeight: 600, marginBottom: 24, letterSpacing: 1.1, textAlign: 'center', width: '100%' }}>
+                  Multi-Key Secret Management
+                </div>
+                {/* Inputs */}
+                <input
+                  id="login-username"
+                  name="username"
+                  type="text"
+                  placeholder="Username"
+                  autoComplete="username"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  style={{ width: '100%', padding: '14px', borderRadius: 10, border: '1.5px solid #23272f', background: '#181c20', color: '#fff', marginBottom: 14 }}
+                />
+                <input
+                  id="login-password"
+                  name="password"
+                  type="password"
+                  placeholder="Master Password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  style={{ width: '100%', padding: '14px', borderRadius: 10, border: '1.5px solid #23272f', background: '#181c20', color: '#fff', marginBottom: 22 }}
+                />
+                {/* Button Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 0, width: '100%', background: '#FFD66B', borderRadius: 18, marginTop: 8, marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#23272f', fontSize: 16, paddingLeft: 10, textAlign: 'left' }}>
+                    Create<br />New<br />Vault
+                  </div>
+                  <button
+                    className="btn-gold"
+                    style={{ width: '100%', fontWeight: 800, fontSize: 20, padding: '18px 0', borderRadius: 14, background: '#FFD66B', color: '#23272f', border: 'none', boxShadow: 'none' }}
+                    onClick={() => { window.location.href = API_URL + '/api/google/login'; }}
+                    disabled={loading}
+                  >
+                    {loading ? 'Creating...' : 'Create New Vault'}
+                  </button>
+                  <button
+                    className="btn-dark"
+                    style={{ width: '100%', fontWeight: 700, fontSize: 16, padding: '0 0', borderRadius: 14, background: 'transparent', color: '#23272f', border: 'none', textAlign: 'right', paddingRight: 10 }}
+                    onClick={handleUnlock}
+                    disabled={loading}
+                  >
+                    {'>'} Unlock<br />Existing<br />Vault
+                  </button>
+                </div>
+                {error && <div style={{ color: '#ef4444', marginTop: 12 }}>{error}</div>}
+                {success && <div style={{ color: '#FFD66B', marginTop: 12 }}>{success}</div>}
+              </div>
+            </motion.div>
+          )}
+          {page === 'documentation' && (
+            <motion.div key="doc" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ width: '100%', height: '100%' }}>
+              <Documentation onBack={() => setPage('login')} />
+            </motion.div>
+          )}
+          {page === 'verification' && (
+            <motion.div key="verify" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ width: '100%', height: '100%' }}>
+              <Verification onBack={() => setPage('login')} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <DownloadShareModal show={showDownloadModal} onDownload={handleDownloadShare} onClose={() => setShowDownloadModal(false)} />
       </div>
-    </motion.div>
-  );
-}
-
-/**
- * Modal to trigger the download of the local share file
- */
-function DownloadShareModal({ show, onDownload }) {
-  if (!show) return null;
-  return (
-    <motion.div
+    </ErrorBoundary>
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
