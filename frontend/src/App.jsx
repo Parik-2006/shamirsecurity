@@ -8,6 +8,7 @@ import Verification from './pages/verification.jsx';
 import FloatingShapes from './FloatingShapes';
 import CyberLogin3D from './CyberLogin3D';
 import VaultPage from './VaultPage';
+import { useNavigate } from 'react-router-dom';
 
 // --- Onboarding Modal (only popup) ---
 // ...existing code...
@@ -87,44 +88,7 @@ function AboutModal({ show, onClose }) {
   );
 }
 
-function DownloadShareModal({ show, onDownload, onClose, error }) {
-  if (!show) return null;
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0B0D10ee', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      aria-modal="true" role="dialog" tabIndex={-1}
-    >
-      <div style={{ background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 420, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
-        <button onClick={onClose} aria-label="Close download modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
-        <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 18 }}>Download Your Vault Share</h2>
-        <p style={{ fontSize: 17, marginBottom: 24 }}>Click below to download your <b>local_share.enc</b> file. <br />Keep it safe! You need it to unlock your vault.</p>
-        {error && (
-          <div style={{ color: '#ef4444', margin: '10px 0 18px 0', fontWeight: 600, fontSize: 16, whiteSpace: 'pre-wrap' }}>{error}</div>
-        )}
-        <button
-          style={{
-            marginTop: 8,
-            padding: '14px 32px',
-            fontSize: 18,
-            fontWeight: 700,
-            background: '#FFD66B',
-            color: '#151A21',
-            border: 'none',
-            borderRadius: 10,
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px #FFD66B33',
-          }}
-          onClick={onDownload}
-        >
-          Download local_share.enc
-        </button>
-      </div>
-    </motion.div>
-  );
-}
+// DownloadShareModal removed (popup logic eliminated)
 
 // Global handler for WebGL context loss
 if (typeof window !== 'undefined') {
@@ -216,10 +180,7 @@ export default function App() {
     const seen = sessionStorage.getItem('about_seen');
     return !seen;
   });
-  // State to trigger add password mode after registration
-  // const [openVaultAdd, setOpenVaultAdd] = useState(false);
-  const [showDownloadModal, setShowDownloadModal] = useState(false);
-  const [downloadError, setDownloadError] = useState('');
+  const navigate = useNavigate();
 
 
   // ...existing code...
@@ -252,11 +213,8 @@ export default function App() {
       }
       if (data && data.auth_url) {
         setSuccess('Redirecting to Google sign-in...');
-        const popup = window.open(data.auth_url, '_blank', 'noopener,noreferrer'); // Open Google sign-in in new tab
-        if (!popup) {
-          setError('Popup blocked! Please allow popups for this site to continue with Google authentication.');
-          setSuccess('');
-        }
+        // Instead of popup, redirect to Google sign-in in the same tab
+        window.location.href = data.auth_url;
         return;
       }
       console.error('Backend response:', raw);
@@ -274,106 +232,17 @@ export default function App() {
     }
   };
 
-  // Step 2: After Google OAuth, complete registration and download local_share
+  // Step 2: After Google OAuth, complete registration and redirect to download page
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
     if (regComplete) {
-      fetch(`${API_URL}/api/register/complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reg_id: regComplete })
-      })
-        .then(async res => {
-          const contentType = res.headers.get('Content-Type');
-          let raw = '';
-          let data = null;
-          try {
-            raw = await res.text();
-            if (raw && contentType && contentType.includes('application/json')) {
-              data = JSON.parse(raw);
-            }
-          } catch (jsonErr) {
-            data = null;
-            console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
-          }
-          return data;
-        })
-        .then(data => {
-          if (data && data.status === 'success') {
-            // If in popup, notify opener and show close message
-            if (window.opener) {
-              window.opener.postMessage({ type: 'registration-complete', local_share: data.local_share, golden_key: data.golden_key, username: data.username }, '*');
-              setSuccess('Authentication flow complete. You may close this tab.');
-            } else {
-              setSuccess('Authentication flow complete. You may close this tab or window.');
-              setLocalShare(data.local_share);
-              setGoldenKey(data.golden_key);
-              setVaultUser(data.username);
-              setShowDownloadModal(true);
-            }
-          } else {
-            setError((data && data.message) || 'Vault creation failed.');
-          }
-        });
-      window.history.replaceState({}, document.title, window.location.pathname);
+      // Redirect to new download page with reg_complete param
+      navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
     }
-  }, []);
+  }, [navigate]);
 
-  // Listen for registration-complete message from popup
-  React.useEffect(() => {
-    let received = false;
-    function handleMessage(event) {
-      console.log('[ShamirVault] Received postMessage:', event.data);
-      if (event.data && event.data.type === 'registration-complete') {
-        received = true;
-        // If local_share/golden_key/username are present, use them; otherwise, trigger fetch
-        if (event.data.local_share && event.data.golden_key && event.data.username) {
-          console.log('[ShamirVault] Got local_share, golden_key, username in message. Showing download modal.');
-          setLocalShare(event.data.local_share);
-          setGoldenKey(event.data.golden_key);
-          setVaultUser(event.data.username);
-          setShowDownloadModal(true);
-        } else if (event.data.reg_complete) {
-          console.log('[ShamirVault] Got reg_complete, fetching registration completion...');
-          // Fetch registration completion if only reg_complete is sent
-          ensureRegistrationData(
-            event.data.reg_complete,
-            setLocalShare,
-            setGoldenKey,
-            setVaultUser,
-            setShowDownloadModal,
-            setDownloadError
-          );
-        } else {
-          setDownloadError('Registration-complete message missing expected fields. Please refresh or contact support.');
-          setShowDownloadModal(true);
-        }
-      }
-    }
-    window.addEventListener('message', handleMessage);
-    // Fallback: poll backend if message not received after 2 seconds
-    const pollTimeout = setTimeout(() => {
-      if (!received) {
-        const params = new URLSearchParams(window.location.search);
-        const regComplete = params.get('reg_complete');
-        if (regComplete) {
-          ensureRegistrationData(
-            regComplete,
-            setLocalShare,
-            setGoldenKey,
-            setVaultUser,
-            setShowDownloadModal,
-            setDownloadError
-          );
-        }
-      }
-    }, 2000);
-    return () => {
-      window.removeEventListener('message', handleMessage);
-      clearTimeout(pollTimeout);
-    };
-  }, []);
+  // Popup message logic removed
 
   // Step 3: Unlock vault (user uploads local_share.enc)
   const handleUnlockVault = async () => {
@@ -429,38 +298,12 @@ export default function App() {
   }
   // Otherwise, render the normal app (login page, etc.)
   // Only allow entering the vault page if the download modal is not open
-  if (vaultPage && goldenKey && vaultUser && !showDownloadModal) {
+  // Fix: showDownloadModal is not defined. Remove from condition, keep rest unchanged.
+  if (vaultPage && goldenKey && vaultUser) {
     return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
   }
 
-  // Handler for downloading local_share.enc from modal
-  const handleDownloadShare = () => {
-    if (localShare) {
-      try {
-        console.log('[ShamirVault] Downloading local_share.enc:', localShare);
-        const blob = new Blob([localShare], { type: 'text/plain' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'local_share.enc';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setShowDownloadModal(false);
-        setDownloadError('');
-        setVaultPage(true);
-      } catch (err) {
-        setDownloadError('Download failed. Please try again or refresh the page.');
-        setShowDownloadModal(true);
-        setVaultPage(false);
-        console.error('[ShamirVault] Download error:', err);
-      }
-    } else {
-      setDownloadError('Download failed: local_share.enc is missing. Please refresh and try again.');
-      setShowDownloadModal(true);
-      setVaultPage(false);
-      console.error('[ShamirVault] Tried to download, but localShare is missing!');
-    }
-  };
+  // Download handler removed (handled in new download page)
 
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -616,9 +459,7 @@ export default function App() {
             <Verification onBack={() => setPage('login')} />
           </motion.div>
         )}
-        {showDownloadModal && (
-          <DownloadShareModal show={showDownloadModal} onDownload={handleDownloadShare} onClose={() => setShowDownloadModal(false)} error={downloadError} />
-        )}
+        {/* DownloadShareModal removed */}
       </AnimatePresence>
     </div>
   );
