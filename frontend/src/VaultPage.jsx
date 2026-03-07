@@ -4,9 +4,7 @@ import { motion } from 'framer-motion';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 
-import FloatingShapes from './FloatingShapes';
-import FloatingOrbs from './FloatingOrbs';   // ✅ ADD THIS
-import Vault3DCyberElements from './Vault3DCyberElements';
+// ...existing code...
 
 import { getErrorMessage } from './utils';
 
@@ -600,8 +598,7 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
     return (
       <div className="app-wrapper">
         <ParticlesBackground />
-        <FloatingShapes />
-        <FloatingOrbs />
+        {/* 3D elements removed */}
         
         <div style={{ 
           position: 'absolute', 
