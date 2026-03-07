@@ -30,33 +30,23 @@ function AuthSuccessPage() {
     if (window.opener && !window.opener.closed && regComplete) {
       window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
     }
+    // Notify main tab on close
+    const handleUnload = () => {
+      if (window.opener && !window.opener.closed && regComplete) {
+        window.opener.postMessage({ type: 'registration-finish', reg_complete: regComplete }, '*');
+      }
+    };
+    window.addEventListener('unload', handleUnload);
+    return () => window.removeEventListener('unload', handleUnload);
   }, []);
-
-  // Handler for Continue button
-  const handleContinue = () => {
-    const params = new URLSearchParams(window.location.search);
-    const regComplete = params.get('reg_complete');
-    if (window.opener && !window.opener.closed && regComplete) {
-      window.opener.postMessage({ type: 'registration-finish', reg_complete: regComplete }, '*');
-    }
-    setShowCloseMsg(true);
-    setTimeout(() => {
-      window.close();
-    }, 1200);
-  };
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
         <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Authentication Complete</h2>
         {errorMsg ? (
           <p style={{ fontSize: 20, marginBottom: 18, color: '#ff6b6b' }}>{errorMsg}<br />You may close this window.</p>
-        ) : !showCloseMsg ? (
-          <>
-            <p style={{ fontSize: 20, marginBottom: 18 }}>Registration successful.<br />Click continue to finish.</p>
-            <button onClick={handleContinue} style={{ marginTop: 24, background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 18, border: 'none', borderRadius: 12, padding: '12px 32px', cursor: 'pointer', boxShadow: '0 2px 12px #0006' }}>Continue</button>
-          </>
         ) : (
-          <p style={{ fontSize: 20, marginBottom: 18 }}>Google authentication flow complete.<br />This window will close automatically.</p>
+          <p style={{ fontSize: 20, marginBottom: 18 }}>Google authentication flow complete.<br />You may close this window.</p>
         )}
       </div>
     </div>
@@ -332,39 +322,7 @@ function App() {
                 >
                   Create New Vault
                 </button>
-                {registrationComplete && (
-                  <button
-                    style={{
-                      width: '100%',
-                      padding: '16px',
-                      fontSize: 20,
-                      fontWeight: 800,
-                      background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                      color: '#FFD66B',
-                      border: '2px solid #23272f',
-                      borderRadius: 14,
-                      cursor: 'pointer',
-                      marginBottom: 8,
-                      boxShadow: '0 2px 8px #23272f55',
-                      letterSpacing: 1.1,
-                      transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                      textShadow: '0 2px 8px #FFD66B33',
-                      opacity: 1,
-                    }}
-                    onClick={() => {
-                      // After registration, allow user to continue to download share
-                      const regCompleteStored = localStorage.getItem('reg_complete');
-                      if (regCompleteStored) {
-                        navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
-                        try { localStorage.removeItem('reg_complete'); } catch {}
-                        try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
-                        setRegistrationComplete(false);
-                      }
-                    }}
-                  >
-                    Continue
-                  </button>
-                )}
+                {/* registrationComplete button removed; navigation is now automatic on tab close */}
                 <button
                   style={{
                     width: '100%',
