@@ -106,6 +106,10 @@ function AuthSuccessPage() {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
     async function notifyOpener() {
+      if (regComplete) {
+        // Always store reg_complete in localStorage for main tab, regardless of window.opener
+        localStorage.setItem('reg_complete', regComplete);
+      }
       if (window.opener && !window.opener.closed && regComplete) {
         try {
           const res = await fetch(`${import.meta.env.VITE_API_URL}/api/register/complete`, {
@@ -126,10 +130,6 @@ function AuthSuccessPage() {
             console.error('[AuthSuccessPage] Failed to parse JSON:', jsonErr, 'Raw response:', raw);
           }
           if (data && data.status === 'success') {
-            // Store reg_complete in localStorage for main tab
-            if (regComplete) {
-              localStorage.setItem('reg_complete', regComplete);
-            }
             window.opener.postMessage({
               type: 'registration-complete',
               reg_complete: regComplete,
@@ -141,9 +141,6 @@ function AuthSuccessPage() {
               window.close();
             }, 2000);
           } else {
-            if (regComplete) {
-              localStorage.setItem('reg_complete', regComplete);
-            }
             window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: data && data.message ? data.message : 'Unknown error' }, '*');
             setTimeout(() => {
               window.close();
