@@ -138,12 +138,52 @@ function AuthSuccessPage() {
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
-    if (window.opener && !window.opener.closed) {
-      window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
-      setTimeout(() => {
-        window.close();
-      }, 2000);
+    async function notifyOpener() {
+      if (window.opener && !window.opener.closed && regComplete) {
+        try {
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/register/complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reg_id: regComplete })
+          });
+          const contentType = res.headers.get('Content-Type');
+          let raw = '';
+          let data = null;
+          try {
+            raw = await res.text();
+            if (raw && contentType && contentType.includes('application/json')) {
+              data = JSON.parse(raw);
+            }
+          } catch (jsonErr) {
+            data = null;
+            console.error('[AuthSuccessPage] Failed to parse JSON:', jsonErr, 'Raw response:', raw);
+          }
+          if (data && data.status === 'success') {
+            window.opener.postMessage({
+              type: 'registration-complete',
+              local_share: data.local_share,
+              golden_key: data.golden_key,
+              username: data.username
+            }, '*');
+            setTimeout(() => {
+              window.close();
+            }, 2000);
+          } else {
+            window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: data && data.message ? data.message : 'Unknown error' }, '*');
+            setTimeout(() => {
+              window.close();
+            }, 3000);
+          }
+        } catch (err) {
+          console.error('[AuthSuccessPage] Error fetching registration data:', err);
+          window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: err.message || 'Network error' }, '*');
+          setTimeout(() => {
+            window.close();
+          }, 3000);
+        }
+      }
     }
+    notifyOpener();
   }, []);
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
