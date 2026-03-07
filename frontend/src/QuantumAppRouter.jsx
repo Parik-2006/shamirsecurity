@@ -1,3 +1,13 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import FloatingShapes from './FloatingShapes';
+import VaultPage from './VaultPage';
+import Documentation from './pages/documentation';
+import Verification from './pages/verification';
+import DownloadShare from './pages/DownloadShare';
+import Nav3D from './components/Nav3D';
+import App from './App';
+
 export default function QuantumAppRouter({ username, goldenKey, onLogout }) {
   function Layout({ children }) {
     const location = useLocation();
