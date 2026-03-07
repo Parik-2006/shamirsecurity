@@ -1,16 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-function App() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [authComplete, setAuthComplete] = useState(false); // Google OAuth complete
-  const [downloadComplete, setDownloadComplete] = useState(false); // local_share.enc downloaded
-  const [vaultUnlocked, setVaultUnlocked] = useState(false); // Vault access granted
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState("login"); // login | download | vault
-  const downloadLinkRef = useRef(null);
-  // ...existing AboutModal and other components...
-// ...existing code...
 
 // Global handler for WebGL context loss
 if (typeof window !== 'undefined') {
