@@ -591,14 +591,14 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
     }
   };
 
-  // (removed unused animation variant objects)
+  // ...existing code...
 
   // Add Entry Form View
   if (page === 'add') {
     return (
       <div className="app-wrapper">
         <ParticlesBackground />
-        {/* 3D elements removed */}
+        {/* cleaned up */}
         
         <div style={{ 
           position: 'absolute', 
@@ -758,7 +758,7 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
     <div className="app-wrapper">
       <ParticlesBackground />
       <FloatingShapes zIndex={0} />
-      <Vault3DCyberElements zIndex={1} />
+      {/* cleaned up */}
       
       <div style={{ 
         position: 'fixed', 

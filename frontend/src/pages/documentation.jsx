@@ -1,8 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import FloatingShapes from '../FloatingShapes';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 
 
 const palette = {
@@ -29,7 +27,7 @@ const gridBg = {
 };
 
 function AnimatedGrid({ position, color, size = 2 }) {
-  // Simple animated 3D grid using react-three-fiber
+  // ...existing code...
   return (
     <Canvas style={{ position: 'absolute', ...position, width: 180, height: 180, pointerEvents: 'none', zIndex: 2 }} camera={{ position: [0, 0, 6], fov: 50 }}>
       <ambientLight intensity={0.6} />

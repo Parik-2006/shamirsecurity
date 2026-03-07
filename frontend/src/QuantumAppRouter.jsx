@@ -17,7 +17,7 @@ function Layout({ children }) {
 
   return (
     <>
-      {/* 3D elements removed */}
+      {/* cleaned up */}
 
       <div style={containerStyle}>
         {children}
