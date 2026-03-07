@@ -57,11 +57,11 @@ if (typeof window !== 'undefined') {
 
 // --- OAuth callback page for registration completion ---
 function AuthSuccessPage() {
-  useEffect(() => {
+  const [showCloseMsg, setShowCloseMsg] = React.useState(false);
+  React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
     if (window.opener && !window.opener.closed && regComplete) {
-      // Notify main window registration is complete
       window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
     }
   }, []);
@@ -69,7 +69,14 @@ function AuthSuccessPage() {
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
         <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Authentication Complete</h2>
-        <p style={{ fontSize: 20, marginBottom: 18 }}>Authentication flow complete.<br />You may close this window or tab.</p>
+        {!showCloseMsg ? (
+          <>
+            <p style={{ fontSize: 20, marginBottom: 18 }}>Registration successful.<br />Click continue to finish.</p>
+            <button onClick={() => setShowCloseMsg(true)} style={{ marginTop: 24, background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 18, border: 'none', borderRadius: 12, padding: '12px 32px', cursor: 'pointer', boxShadow: '0 2px 12px #0006' }}>Continue</button>
+          </>
+        ) : (
+          <p style={{ fontSize: 20, marginBottom: 18 }}>Google authentication flow complete.<br />You may close this window.</p>
+        )}
       </div>
     </div>
   );
