@@ -532,7 +532,6 @@ export default function App() {
         {/* Exception handling for ReferenceError: z (removed due to syntax error) */}
         {/* [App.jsx] No reg_complete found in localStorage after registration attempt. */}
         {/* [App.jsx] No reg_complete found in URL params after registration attempt. */}
-        )}
         {page === 'documentation' && (
           <motion.div
             key="documentation"
