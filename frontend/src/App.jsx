@@ -210,6 +210,14 @@ export default function App() {
       navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
       localStorage.removeItem('reg_complete');
     }
+    // Also check URL params for reg_complete on login page
+    if (window.location.pathname === '/' || window.location.pathname === '/login') {
+      const params = new URLSearchParams(window.location.search);
+      const regComplete = params.get('reg_complete');
+      if (regComplete) {
+        navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
+      }
+    }
     return () => window.removeEventListener('message', handleRegistrationComplete);
   }, [navigate]);
 
