@@ -196,9 +196,11 @@ export default function App() {
     function handleRegistrationComplete(event) {
       if (event.data && event.data.type === 'registration-complete') {
         if (event.data.reg_complete) {
+          console.log('[App.jsx] Received reg_complete from postMessage:', event.data.reg_complete);
           localStorage.setItem('reg_complete', event.data.reg_complete);
           navigate(`/download-share?reg_complete=${encodeURIComponent(event.data.reg_complete)}`);
         } else if (event.data.username) {
+          console.log('[App.jsx] Received username from postMessage:', event.data.username);
           navigate(`/download-share?username=${encodeURIComponent(event.data.username)}`);
         }
       }
@@ -207,15 +209,21 @@ export default function App() {
     // On mount, check localStorage for reg_complete
     const regCompleteStored = localStorage.getItem('reg_complete');
     if (regCompleteStored && window.location.pathname !== '/download-share') {
+      console.log('[App.jsx] Found reg_complete in localStorage:', regCompleteStored);
       navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
       localStorage.removeItem('reg_complete');
+    } else {
+      console.log('[App.jsx] No reg_complete found in localStorage.');
     }
     // Also check URL params for reg_complete on login page
     if (window.location.pathname === '/' || window.location.pathname === '/login') {
       const params = new URLSearchParams(window.location.search);
       const regComplete = params.get('reg_complete');
       if (regComplete) {
+        console.log('[App.jsx] Found reg_complete in URL params:', regComplete);
         navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
+      } else {
+        console.log('[App.jsx] No reg_complete found in URL params.');
       }
     }
     return () => window.removeEventListener('message', handleRegistrationComplete);

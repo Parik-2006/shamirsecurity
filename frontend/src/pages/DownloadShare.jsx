@@ -10,10 +10,13 @@ export default function DownloadShare() {
     const params = new URLSearchParams(location.search);
     const regComplete = params.get('reg_complete');
     if (!regComplete) {
+      console.log('[DownloadShare.jsx] Missing reg_complete in URL params.');
       setTimeout(() => {
         setError('Missing registration completion token.');
       }, 0);
       return;
+    } else {
+      console.log('[DownloadShare.jsx] reg_complete found:', regComplete);
     }
     fetch(`${import.meta.env.VITE_API_URL}/api/register/complete`, {
       method: 'POST',
@@ -31,18 +34,22 @@ export default function DownloadShare() {
           }
         } catch {
           data = null;
+          console.log('[DownloadShare.jsx] Exception parsing backend response:', raw);
         }
         return data;
       })
       .then(data => {
         if (data && data.status === 'success' && data.local_share) {
           setLocalShareData(data.local_share);
+          console.log('[DownloadShare.jsx] Successfully received local_share.');
         } else {
           setError((data && data.message) || 'Failed to retrieve vault share.');
+          console.log('[DownloadShare.jsx] Failed to retrieve vault share:', data);
         }
       })
       .catch(() => {
         setError('Network error while fetching vault share.');
+        console.log('[DownloadShare.jsx] Network error while fetching vault share.');
       });
   }, [location]);
 
