@@ -11,10 +11,9 @@ const COLORS = {
   charcoal: "#181c20",
 };
 
-function FloatingShapes({ style = {}, zIndex = 0 }) {
+export default function FloatingShapes({ style = {}, zIndex = 0 }) {
   return (
-    <React.Fragment>
-      
+    <div>
       {/* Cyan Ring */}
       <motion.div
         style={{
@@ -118,9 +117,6 @@ function FloatingShapes({ style = {}, zIndex = 0 }) {
         animate={{ y: [0, -16, 0], opacity: [0.7, 1, 0.7] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
-
-    </React.Fragment>
+    </div>
   );
 }
-
-export default FloatingShapes;
