@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import TopRightNav from './components/Nav3D';
+import TopRightNav from './components/Nav3D.jsx';
 import VaultPage from './VaultPage';
 import './App.css';
 import { motion, AnimatePresence } from 'framer-motion';
