@@ -7,7 +7,7 @@ import VaultPage from './VaultPage';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import DownloadShare from './pages/DownloadShare';
-import App from './App';
+// Duplicate import removed
 
 function Layout({ children }) {
   const location = useLocation();
