@@ -42,6 +42,8 @@ function Button3D({ label, to, icon, color = palette.cyan }) {
   );
 }
 
+
+export default function Nav3D() {
   return (
     <nav style={{ position: 'fixed', left: 0, top: 0, height: '100vh', width: 120, background: 'rgba(10,25,47,0.96)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 0', zIndex: 100 }}>
       <Button3D label="Render" to="/" icon={<span>🔄</span>} color={palette.yellow} />
