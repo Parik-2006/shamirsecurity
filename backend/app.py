@@ -414,8 +414,14 @@ def get_google_flow():
         flow = Flow.from_client_config(client_config, scopes=GOOGLE_SCOPES)
 
     else:
-        # Use web client config structure only
-        flow = Flow.from_client_config(creds_data, scopes=GOOGLE_SCOPES)
+        # Use web client config structure, with extra error handling
+        try:
+            flow = Flow.from_client_config(creds_data, scopes=GOOGLE_SCOPES)
+        except Exception as e:
+            print(f"[GOOGLE] Failed to create OAuth flow from config: {e}")
+            import traceback
+            traceback.print_exc()
+            raise RuntimeError("Google OAuth configuration failed. Please check your GOOGLE_CREDENTIALS_JSON environment variable and its format.")
 
     flow.redirect_uri = GOOGLE_REDIRECT_URI
     return flow
