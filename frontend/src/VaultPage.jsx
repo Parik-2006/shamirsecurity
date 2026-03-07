@@ -1,7 +1,7 @@
 // frontend/src/VaultPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import * as FM from 'framer-motion';
-import Particles from '@tsparticles/react';
+import Particles, { initParticlesEngine } from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 
 import FloatingShapes from './FloatingShapes';
@@ -31,16 +31,23 @@ const particlesConfig = {
   detectRetina: true
 };
 
-// Particles Background Component
+// Particles Background Component (tsparticles v3 API)
 const ParticlesBackground = () => {
-  const particlesInit = useCallback(async (engine) => {
-    await loadSlim(engine);
+  const [engineReady, setEngineReady] = useState(false);
+
+  useEffect(() => {
+    initParticlesEngine(async (engine) => {
+      await loadSlim(engine);
+    }).then(() => {
+      setEngineReady(true);
+    });
   }, []);
+
+  if (!engineReady) return null;
 
   return (
     <Particles
       id="tsparticles-vault"
-      init={particlesInit}
       options={particlesConfig}
       style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}
     />
