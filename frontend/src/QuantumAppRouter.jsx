@@ -1,3 +1,5 @@
+import App, { AuthSuccessPage } from './App';
+  <Route path="/auth-success" element={<AuthSuccessPage />} />
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 

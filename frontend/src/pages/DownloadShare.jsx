@@ -106,7 +106,6 @@ export default function DownloadShare() {
             <p style={{ color: '#FFD66B', fontWeight: 600, marginTop: 18 }}>Download started! Redirecting to your vault...</p>
           )}
         </div>
-      )}
     </div>
   );
 }

@@ -17,7 +17,7 @@ if (typeof window !== 'undefined') {
 }
 
 // --- OAuth callback page for registration completion ---
-function AuthSuccessPage() {
+export function AuthSuccessPage() {
   const [showCloseMsg, setShowCloseMsg] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState("");
   React.useEffect(() => {
@@ -223,10 +223,6 @@ function App() {
     }
   };
 
-  // --- Route: OAuth callback ---
-  if (window.location.pathname.startsWith('/auth-success')) {
-    return <AuthSuccessPage />;
-  }
 
   // --- Route: Vault page ---
   if (vaultPage && goldenKey && vaultUser) {
