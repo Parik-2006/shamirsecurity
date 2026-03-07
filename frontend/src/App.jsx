@@ -137,21 +137,27 @@ function AuthSuccessPage() {
               golden_key: data.golden_key,
               username: data.username
             }, '*');
-            setTimeout(() => {
-              window.close();
-            }, 2000);
+            if (window.opener && !window.opener.closed) {
+              setTimeout(() => {
+                window.close();
+              }, 2000);
+            }
           } else {
             window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: data && data.message ? data.message : 'Unknown error' }, '*');
-            setTimeout(() => {
-              window.close();
-            }, 3000);
+            if (window.opener && !window.opener.closed) {
+              setTimeout(() => {
+                window.close();
+              }, 3000);
+            }
           }
         } catch (err) {
           console.error('[AuthSuccessPage] Error fetching registration data:', err);
           window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: err.message || 'Network error' }, '*');
-          setTimeout(() => {
-            window.close();
-          }, 3000);
+          if (window.opener && !window.opener.closed) {
+            setTimeout(() => {
+              window.close();
+            }, 3000);
+          }
         }
       }
     }
@@ -170,8 +176,6 @@ function AuthSuccessPage() {
 // removed conflict marker
 
 export default function App() {
-    // State for missing reg_complete error
-    const [missingRegComplete, setMissingRegComplete] = React.useState(false);
     // Interval polling for reg_complete after registration attempt
     React.useEffect(() => {
       if (!window.sessionStorage.getItem('registration_attempted')) return;
@@ -185,7 +189,6 @@ export default function App() {
             navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
             localStorage.removeItem('reg_complete');
             window.sessionStorage.removeItem('registration_attempted');
-            setMissingRegComplete(false);
             clearInterval(intervalId);
           }
         }, 500);
@@ -233,10 +236,8 @@ export default function App() {
       navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
       localStorage.removeItem('reg_complete');
       window.sessionStorage.removeItem('registration_attempted');
-      setMissingRegComplete(false);
     } else if (window.sessionStorage.getItem('registration_attempted') && onLoginPage) {
       console.warn('[App.jsx] No reg_complete found in localStorage after registration attempt.');
-      setMissingRegComplete(true);
     }
     // Also check URL params for reg_complete on login page
     if (onLoginPage) {
@@ -246,19 +247,12 @@ export default function App() {
         console.log('[App.jsx] Found reg_complete in URL params:', regComplete);
         navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
         window.sessionStorage.removeItem('registration_attempted');
-        setMissingRegComplete(false);
       } else if (window.sessionStorage.getItem('registration_attempted')) {
         console.warn('[App.jsx] No reg_complete found in URL params after registration attempt.');
-        setMissingRegComplete(true);
       }
     }
-      // Show visible alert if reg_complete is missing after registration attempt
-      if (typeof missingRegComplete !== 'undefined' && missingRegComplete && (window.location.pathname === '/' || window.location.pathname === '/login')) {
-        alert('Registration failed: Could not retrieve registration token. Please try again or contact support.');
-        setMissingRegComplete(false);
-      }
     return () => window.removeEventListener('message', handleRegistrationComplete);
-  }, [navigate, missingRegComplete]);
+  }, [navigate]);
 
 
   // ...existing code...
@@ -309,8 +303,7 @@ export default function App() {
       }
       if (data && data.auth_url) {
         setSuccess('Redirecting to Google sign-in...');
-        // Open Google sign-in in a new tab/popup
-        window.open(data.auth_url, '_blank', 'width=500,height=700');
+        window.location.href = data.auth_url;
         return;
       }
       console.error('Backend response:', raw);
@@ -531,9 +524,6 @@ export default function App() {
             </div>
           </motion.div>
         )}
-        {/* Exception handling for ReferenceError: z (removed due to syntax error) */}
-        {/* [App.jsx] No reg_complete found in localStorage after registration attempt. */}
-        {/* [App.jsx] No reg_complete found in URL params after registration attempt. */}
         {page === 'documentation' && (
           <motion.div
             key="documentation"
