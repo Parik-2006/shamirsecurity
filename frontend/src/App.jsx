@@ -279,14 +279,17 @@ export default function App() {
   // Listen for registration-complete message from popup
   React.useEffect(() => {
     function handleMessage(event) {
+      console.log('[ShamirVault] Received postMessage:', event.data);
       if (event.data && event.data.type === 'registration-complete') {
         // If local_share/golden_key/username are present, use them; otherwise, trigger fetch
         if (event.data.local_share && event.data.golden_key && event.data.username) {
+          console.log('[ShamirVault] Got local_share, golden_key, username in message. Showing download modal.');
           setLocalShare(event.data.local_share);
           setGoldenKey(event.data.golden_key);
           setVaultUser(event.data.username);
           setShowDownloadModal(true);
         } else if (event.data.reg_complete) {
+          console.log('[ShamirVault] Got reg_complete, fetching registration completion...');
           // Fetch registration completion if only reg_complete is sent
           fetch(`${API_URL}/api/register/complete`, {
             method: 'POST',
@@ -304,18 +307,23 @@ export default function App() {
                 }
               } catch (jsonErr) {
                 data = null;
-                console.error('Failed to parse JSON:', jsonErr, 'Raw response:', raw);
+                console.error('[ShamirVault] Failed to parse JSON:', jsonErr, 'Raw response:', raw);
               }
               return data;
             })
             .then(data => {
+              console.log('[ShamirVault] register/complete API response:', data);
               if (data && data.status === 'success') {
                 setLocalShare(data.local_share);
                 setGoldenKey(data.golden_key);
                 setVaultUser(data.username);
                 setShowDownloadModal(true);
+              } else {
+                console.error('[ShamirVault] register/complete API failed:', data);
               }
             });
+        } else {
+          console.warn('[ShamirVault] registration-complete message missing expected fields:', event.data);
         }
       }
     }
@@ -383,6 +391,7 @@ export default function App() {
   // Handler for downloading local_share.enc from modal
   const handleDownloadShare = () => {
     if (localShare) {
+      console.log('[ShamirVault] Downloading local_share.enc:', localShare);
       const blob = new Blob([localShare], { type: 'text/plain' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -393,6 +402,8 @@ export default function App() {
       setShowDownloadModal(false);
       // After download, go to vault page
       setVaultPage(true);
+    } else {
+      console.error('[ShamirVault] Tried to download, but localShare is missing!');
     }
   };
 
