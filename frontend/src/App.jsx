@@ -55,7 +55,7 @@ function AuthSuccessPage() {
   );
 }
 
-export default function App() {
+function App() {
   // --- HOOKS: All hooks at the top, correct order ---
   const navigate = useNavigate(); // Must be first in component
   const [page, setPage] = useState('login');
@@ -411,3 +411,5 @@ export default function App() {
     </div>
   );
 }
+
+export default App;
