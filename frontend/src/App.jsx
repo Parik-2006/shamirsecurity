@@ -216,7 +216,6 @@ function App() {
   // --- Main App UI ---
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      {/* TopRightNav removed for build stability */}
       <AnimatePresence mode="wait">
         {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
         {page === 'login' && (
