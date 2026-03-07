@@ -412,13 +412,10 @@ def get_google_flow():
             }
         }
         flow = Flow.from_client_config(client_config, scopes=GOOGLE_SCOPES)
+
     else:
-        # Use web client config structure
-        try:
-            flow = Flow.from_client_config(creds_data, scopes=GOOGLE_SCOPES)
-        except Exception:
-            # Fallback to file-based method if possible
-            flow = Flow.from_client_secrets_file(creds_path, scopes=GOOGLE_SCOPES)
+        # Use web client config structure only
+        flow = Flow.from_client_config(creds_data, scopes=GOOGLE_SCOPES)
 
     flow.redirect_uri = GOOGLE_REDIRECT_URI
     return flow
