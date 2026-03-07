@@ -384,25 +384,36 @@ export default function App() {
     return <AuthSuccessPage />;
   }
   // Otherwise, render the normal app (login page, etc.)
-  if (vaultPage && goldenKey && vaultUser) {
+  // Only allow entering the vault page if the download modal is not open
+  if (vaultPage && goldenKey && vaultUser && !showDownloadModal) {
     return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
   }
 
   // Handler for downloading local_share.enc from modal
   const handleDownloadShare = () => {
     if (localShare) {
-      console.log('[ShamirVault] Downloading local_share.enc:', localShare);
-      const blob = new Blob([localShare], { type: 'text/plain' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'local_share.enc';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setShowDownloadModal(false);
-      // After download, go to vault page
-      setVaultPage(true);
+      try {
+        console.log('[ShamirVault] Downloading local_share.enc:', localShare);
+        const blob = new Blob([localShare], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'local_share.enc';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setShowDownloadModal(false);
+        // After download, go to vault page
+        setVaultPage(true);
+      } catch (err) {
+        setError('Download failed. Please try again or refresh the page.');
+        setShowDownloadModal(true);
+        setVaultPage(false);
+        console.error('[ShamirVault] Download error:', err);
+      }
     } else {
+      setError('Download failed: local_share.enc is missing. Please refresh and try again.');
+      setShowDownloadModal(true);
+      setVaultPage(false);
       console.error('[ShamirVault] Tried to download, but localShare is missing!');
     }
   };
