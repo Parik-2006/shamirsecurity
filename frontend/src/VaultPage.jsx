@@ -1,12 +1,7 @@
 // frontend/src/VaultPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-<<<<<<< HEAD
 import { motion } from 'framer-motion';
 import Particles from '@tsparticles/react';
-=======
-import { motion } from 'framer-motion';
-import Particles from '@tsparticles/react';
->>>>>>> 615d157 (Fix: refactor all three.js, tsparticles, and framer-motion imports for compatibility)
 import { loadSlim } from '@tsparticles/slim';
 
 import FloatingShapes from './FloatingShapes';
