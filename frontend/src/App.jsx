@@ -394,16 +394,24 @@ function App() {
               display: 'flex', flexDirection: 'column', alignItems: 'center', 
               zIndex: 3 
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20, gap: 14 }}>
+
+              {/* Animated Logo and Heading */}
+              <motion.div
+                style={{ display: 'flex', alignItems: 'center', marginBottom: 18, gap: 14 }}
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
+              >
                 <svg width="38" height="38" viewBox="0 0 54 64" fill="none">
                   <rect x="7" y="28" width="40" height="28" rx="8" fill="#FFD700" stroke="#FFF8DC" strokeWidth="3" />
                   <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
                 </svg>
                 <span style={{ fontWeight: 900, fontSize: 32, color: '#FFD700' }}>Shamir Vault</span>
+              </motion.div>
+
+              {/* Subheading centered above input, with extra margin */}
+              <div style={{ color: '#FFD66B', fontSize: 18, fontWeight: 600, marginBottom: 24, letterSpacing: 1.1, textAlign: 'center', width: '100%' }}>
+                Multi-Key Secret Management
               </div>
-                <div style={{ color: '#FFD66B', fontSize: 18, fontWeight: 600, marginTop: 8, letterSpacing: 1.1, textAlign: 'center' }}>
-                  Multi-Key Secret Management
-                </div>
 
               <input
                 id="login-username"
