@@ -192,11 +192,28 @@ export default function App() {
       if (!username || !password) {
         setError('Please enter username and password.'); setLoading(false); return;
       }
-      const res = await fetch(`${API_URL}/api/register/init`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
+      // Add timeout to fetch
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000); // 4 seconds max
+      let res;
+      try {
+        res = await fetch(`${API_URL}/api/register/init`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+          signal: controller.signal
+        });
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          setError('Vault creation timed out. Please try again or check your connection.');
+          setLoading(false);
+          return;
+        } else {
+          throw err;
+        }
+      } finally {
+        clearTimeout(timeoutId);
+      }
       const contentType = res.headers.get('Content-Type');
       let raw = '';
       let data = null;
@@ -213,7 +230,6 @@ export default function App() {
       }
       if (data && data.auth_url) {
         setSuccess('Redirecting to Google sign-in...');
-        // Instead of popup, redirect to Google sign-in in the same tab
         window.location.href = data.auth_url;
         return;
       }
