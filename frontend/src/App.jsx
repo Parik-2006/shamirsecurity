@@ -389,6 +389,9 @@ export default function App() {
   // Only allow entering the vault page if the download modal is not open
   // Fix: showDownloadModal is not defined. Remove from condition, keep rest unchanged.
   if (vaultPage && goldenKey && vaultUser) {
+    if (!vaultUser || !goldenKey) {
+      return <div style={{ color: 'red', padding: 40, textAlign: 'center' }}>Error: Missing credentials for vault access.</div>;
+    }
     return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
   }
 

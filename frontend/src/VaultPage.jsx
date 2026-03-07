@@ -493,6 +493,13 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
 };
 
 function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
+  if (!username || !goldenKey) {
+    return (
+      <div style={{ color: 'red', padding: 40, textAlign: 'center' }}>
+        Error: Missing required credentials. Please log in again.
+      </div>
+    );
+  }
   const [vaultData, setVaultData] = useState([]);
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const [error, setError] = useState('');

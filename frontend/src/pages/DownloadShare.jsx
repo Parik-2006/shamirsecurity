@@ -1,4 +1,8 @@
 export default function DownloadShare() {
+  // Defensive: check for window and location
+  if (typeof window === 'undefined' || !window.location) {
+    return <div style={{ color: 'red', padding: 40 }}>Error: Environment not supported.</div>;
+  }
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);

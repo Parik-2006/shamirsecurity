@@ -20,6 +20,9 @@ function GlowingCog() {
 }
 
 export default function Verification({ onBack }) {
+  if (typeof onBack !== 'function') {
+    return <div style={{ color: 'red', padding: 40 }}>Error: Missing navigation handler.</div>;
+  }
   return (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 0.7, ease: 'anticipate' }} style={{ minHeight: '100vh', minWidth: '100vw', width: '100%', background: '#0a192f', position: 'absolute', top: 0, left: 0, zIndex: 0, overflow: 'hidden' }}>
       <FloatingShapes zIndex={1} />
