@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import TopRightNav from './components/Nav3D.jsx';
 import VaultPage from './VaultPage';
 import './App.css';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -217,11 +216,7 @@ function App() {
   // --- Main App UI ---
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      {(page === 'login' || page === 'verification') && (
-        <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
-          <TopRightNav onNavigate={handleNavigate} />
-        </div>
-      )}
+      {/* TopRightNav removed for build stability */}
       <AnimatePresence mode="wait">
         {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
         {page === 'login' && (
