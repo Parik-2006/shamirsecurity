@@ -11,12 +11,7 @@ const COLORS = {
   charcoal: "#181c20",
 };
 
-<<<<<<< HEAD
-  if (zIndex === undefined || zIndex === null) zIndex = 0;
-  if (!style) style = {};
-=======
 function FloatingShapes({ style = {}, zIndex = 0 }) {
->>>>>>> parik
   return (
     <React.Fragment>
       
