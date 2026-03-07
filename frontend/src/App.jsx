@@ -126,6 +126,10 @@ function AuthSuccessPage() {
             console.error('[AuthSuccessPage] Failed to parse JSON:', jsonErr, 'Raw response:', raw);
           }
           if (data && data.status === 'success') {
+            // Store reg_complete in localStorage for main tab
+            if (regComplete) {
+              localStorage.setItem('reg_complete', regComplete);
+            }
             window.opener.postMessage({
               type: 'registration-complete',
               reg_complete: regComplete,
@@ -137,6 +141,9 @@ function AuthSuccessPage() {
               window.close();
             }, 2000);
           } else {
+            if (regComplete) {
+              localStorage.setItem('reg_complete', regComplete);
+            }
             window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: data && data.message ? data.message : 'Unknown error' }, '*');
             setTimeout(() => {
               window.close();
@@ -184,19 +191,25 @@ export default function App() {
   const navigate = useNavigate();
 
   // Listen for registration-complete message from AuthSuccessPage
+  // Robust redirect logic: listen for postMessage and check localStorage
   React.useEffect(() => {
     function handleRegistrationComplete(event) {
       if (event.data && event.data.type === 'registration-complete') {
-        // Redirect to download page with reg_complete param
         if (event.data.reg_complete) {
+          localStorage.setItem('reg_complete', event.data.reg_complete);
           navigate(`/download-share?reg_complete=${encodeURIComponent(event.data.reg_complete)}`);
         } else if (event.data.username) {
-          // fallback: redirect with username if reg_complete missing
           navigate(`/download-share?username=${encodeURIComponent(event.data.username)}`);
         }
       }
     }
     window.addEventListener('message', handleRegistrationComplete);
+    // On mount, check localStorage for reg_complete
+    const regCompleteStored = localStorage.getItem('reg_complete');
+    if (regCompleteStored && window.location.pathname !== '/download-share') {
+      navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
+      localStorage.removeItem('reg_complete');
+    }
     return () => window.removeEventListener('message', handleRegistrationComplete);
   }, [navigate]);
 
