@@ -436,15 +436,8 @@ function App() {
                 }}
               />
 
-              <button 
-                onClick={handleCreateVault} 
-                disabled={loading}
-                style={{ 
-                  width: '100%', padding: 16, background: '#FFD66B', color: '#151A21', 
-                  borderRadius: 14, fontWeight: 800, cursor: 'pointer', marginBottom: 12 
-                }}
-              >
-                Create New Vault
+
+
               <button
                 className="btn-gold"
                 style={{ width: '100%', marginBottom: 14, fontWeight: 800, fontSize: 18, padding: '14px', borderRadius: 12 }}
@@ -456,6 +449,12 @@ function App() {
               >
                 {loading ? 'Creating...' : 'Create New Vault'}
               </button>
+
+              <button
+                className="btn-dark"
+                style={{ width: '100%', fontWeight: 800, fontSize: 18, padding: '14px', borderRadius: 12, background: '#23272f', color: '#FFD700', border: '2px solid #FFD700', marginBottom: 8 }}
+                onClick={handleUnlock}
+                disabled={loading}
               >
                 Unlock Existing Vault
               </button>
