@@ -208,7 +208,11 @@ export default function App() {
       }
       if (data && data.auth_url) {
         setSuccess('Redirecting to Google sign-in...');
-        window.open(data.auth_url, '_blank', 'noopener,noreferrer'); // Open Google sign-in in new tab
+        const popup = window.open(data.auth_url, '_blank', 'noopener,noreferrer'); // Open Google sign-in in new tab
+        if (!popup) {
+          setError('Popup blocked! Please allow popups for this site to continue with Google authentication.');
+          setSuccess('');
+        }
         return;
       }
       console.error('Backend response:', raw);
