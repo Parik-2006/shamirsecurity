@@ -278,9 +278,11 @@ export default function App() {
 
   // Listen for registration-complete message from popup
   React.useEffect(() => {
+    let received = false;
     function handleMessage(event) {
       console.log('[ShamirVault] Received postMessage:', event.data);
       if (event.data && event.data.type === 'registration-complete') {
+        received = true;
         // If local_share/golden_key/username are present, use them; otherwise, trigger fetch
         if (event.data.local_share && event.data.golden_key && event.data.username) {
           console.log('[ShamirVault] Got local_share, golden_key, username in message. Showing download modal.');
@@ -328,7 +330,52 @@ export default function App() {
       }
     }
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    // Fallback: poll backend if message not received after 2 seconds
+    const pollTimeout = setTimeout(() => {
+      if (!received) {
+        console.warn('[ShamirVault] No registration-complete message received. Polling backend for registration status...');
+        const params = new URLSearchParams(window.location.search);
+        const regComplete = params.get('reg_complete');
+        if (regComplete) {
+          fetch(`${API_URL}/api/register/complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reg_id: regComplete })
+          })
+            .then(async res => {
+              const contentType = res.headers.get('Content-Type');
+              let raw = '';
+              let data = null;
+              try {
+                raw = await res.text();
+                if (raw && contentType && contentType.includes('application/json')) {
+                  data = JSON.parse(raw);
+                }
+              } catch (jsonErr) {
+                data = null;
+                console.error('[ShamirVault] Fallback: Failed to parse JSON:', jsonErr, 'Raw response:', raw);
+              }
+              return data;
+            })
+            .then(data => {
+              console.log('[ShamirVault] Fallback register/complete API response:', data);
+              if (data && data.status === 'success') {
+                setLocalShare(data.local_share);
+                setGoldenKey(data.golden_key);
+                setVaultUser(data.username);
+                setShowDownloadModal(true);
+              } else {
+                setError('Registration complete, but failed to retrieve vault share. Please refresh or contact support.');
+                console.error('[ShamirVault] Fallback register/complete API failed:', data);
+              }
+            });
+        }
+      }
+    }, 2000);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      clearTimeout(pollTimeout);
+    };
   }, []);
 
   // Step 3: Unlock vault (user uploads local_share.enc)
