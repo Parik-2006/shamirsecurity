@@ -518,6 +518,20 @@ export default function App() {
               </div>
             </div>
           </motion.div>
+          {/* Exception handling for ReferenceError: z */}
+          {(() => {
+            try {
+              // If z is used anywhere, catch ReferenceError
+              if (typeof z !== 'undefined') {
+                return <div style={{ color: '#ef4444' }}>z value: {z}</div>;
+              }
+            } catch (err) {
+              if (err instanceof ReferenceError) {
+                return <div style={{ color: '#ef4444' }}>Exception: {err.message}</div>;
+              }
+            }
+            return null;
+          })()}
         )}
         {page === 'documentation' && (
           <motion.div
