@@ -1,12 +1,10 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
-import FloatingShapes from './FloatingShapes';
 import VaultPage from './VaultPage';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import DownloadShare from './pages/DownloadShare';
-import Nav3D from './components/Nav3D';
 import App from './App';
 
 function Layout({ children }) {
@@ -19,8 +17,7 @@ function Layout({ children }) {
 
   return (
     <>
-      {!isLogin && <Nav3D />}
-      <FloatingShapes zIndex={0} />
+      {/* 3D elements removed */}
 
       <div style={containerStyle}>
         {children}
