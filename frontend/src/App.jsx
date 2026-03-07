@@ -57,68 +57,19 @@ if (typeof window !== 'undefined') {
 
 // --- OAuth callback page for registration completion ---
 function AuthSuccessPage() {
-  const [done, setDone] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const params = new URLSearchParams(window.location.search);
-  const regComplete = params.get('reg_complete');
-
-  const handleContinue = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      if (regComplete && window.opener && !window.opener.closed) {
-        const res = await fetch(`${API_URL}/api/register/complete`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reg_id: regComplete })
-        });
-        const contentType = res.headers.get('Content-Type');
-        let raw = '';
-        let data = null;
-        try {
-          raw = await res.text();
-          if (raw && contentType && contentType.includes('application/json')) {
-            data = JSON.parse(raw);
-          }
-        } catch (jsonErr) {
-          data = null;
-        }
-        if (data && data.status === 'success') {
-          window.opener.postMessage({
-            type: 'registration-complete',
-            reg_complete: regComplete,
-            local_share: data.local_share,
-            golden_key: data.golden_key,
-            username: data.username
-          }, '*');
-          setDone(true);
-          setTimeout(() => { if (window.opener && !window.opener.closed) window.close(); }, 2000);
-        } else {
-          window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: (data && data.message) || 'Unknown error' }, '*');
-          setError((data && data.message) || 'Unknown error');
-        }
-      }
-    } catch (err) {
-      window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete, error: err.message || 'Network error' }, '*');
-      setError(err.message || 'Network error');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const regComplete = params.get('reg_complete');
+    if (window.opener && !window.opener.closed && regComplete) {
+      // Notify main window registration is complete
+      window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
     }
-  };
-
+  }, []);
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
         <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Authentication Complete</h2>
         <p style={{ fontSize: 20, marginBottom: 18 }}>Authentication flow complete.<br />You may close this window or tab.</p>
-        {!done && (
-          <button onClick={handleContinue} disabled={loading} style={{ marginTop: 24, padding: '12px 32px', fontSize: 18, fontWeight: 700, borderRadius: 12, background: '#FFD700', color: '#151A21', border: 'none', cursor: 'pointer' }}>
-            {loading ? 'Processing...' : 'Continue'}
-          </button>
-        )}
-        {done && <p style={{ color: '#FFD700', marginTop: 18 }}>You may now close this window.</p>}
-        {error && <p style={{ color: 'red', marginTop: 18 }}>{error}</p>}
       </div>
     </div>
   );
@@ -145,6 +96,7 @@ export default function App() {
       return true;
     }
   });
+  const [registrationComplete, setRegistrationComplete] = useState(false);
 
   // --- Poll for registration completion after registration attempt ---
   useEffect(() => {
@@ -172,37 +124,13 @@ export default function App() {
   useEffect(() => {
     function handleRegistrationComplete(event) {
       if (event.data && event.data.type === 'registration-complete') {
-        if (event.data.reg_complete) {
-          try { localStorage.setItem('reg_complete', event.data.reg_complete); } catch {}
-          navigate(`/download-share?reg_complete=${encodeURIComponent(event.data.reg_complete)}`);
-        } else if (event.data.username) {
-          navigate(`/download-share?username=${encodeURIComponent(event.data.username)}`);
-        }
+        setRegistrationComplete(true);
+        try { localStorage.setItem('reg_complete', event.data.reg_complete); } catch {}
       }
     }
     window.addEventListener('message', handleRegistrationComplete);
-    // On mount, check localStorage for reg_complete
-    let regCompleteStored = null;
-    try { regCompleteStored = localStorage.getItem('reg_complete'); } catch {}
-    const onLoginPage = window.location.pathname === '/' || window.location.pathname === '/login';
-    if (regCompleteStored && window.location.pathname !== '/download-share') {
-      navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
-      try { localStorage.removeItem('reg_complete'); } catch {}
-      try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
-    } else if (window.sessionStorage.getItem('registration_attempted') && onLoginPage) {
-      // No reg_complete found after registration attempt
-    }
-    // Also check URL params for reg_complete on login page
-    if (onLoginPage) {
-      const params = new URLSearchParams(window.location.search);
-      const regComplete = params.get('reg_complete');
-      if (regComplete) {
-        navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
-        try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
-      }
-    }
     return () => window.removeEventListener('message', handleRegistrationComplete);
-  }, [navigate]);
+  }, []);
 
   // --- Step 1: Start registration, get Google OAuth URL ---
   const handleCreateVault = async () => {
@@ -216,8 +144,7 @@ export default function App() {
         setError('API URL is not configured.'); setLoading(false); return;
       }
       const controller = new AbortController();
-      // Increased timeout to 10 seconds for slow backend
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
       let res;
       try {
         res = await fetch(`${API_URL}/api/register/init`, {
@@ -229,13 +156,11 @@ export default function App() {
       } catch (err) {
         if (err.name === 'AbortError') {
           setError('Vault creation timed out. Please try again or check your connection.');
-        } else if (err.message && err.message.includes('Failed to fetch')) {
-          setError('Could not connect to the server. Please check your internet connection or try again later.');
+          setLoading(false);
+          return;
         } else {
-          setError('Unexpected error: ' + (err.message || 'Unknown error'));
+          throw err;
         }
-        setLoading(false);
-        return;
       } finally {
         clearTimeout(timeoutId);
       }
@@ -251,9 +176,9 @@ export default function App() {
         data = null;
       }
       if (data && data.auth_url) {
-        setSuccess('Opening Google sign-in in a new tab...');
+        setSuccess('Please complete Google sign-in in the new tab.');
+        // Open Google OAuth in a new tab
         window.open(data.auth_url, '_blank', 'noopener,noreferrer');
-        setLoading(false);
         return;
       }
       if (data && data.message) {
@@ -440,6 +365,40 @@ export default function App() {
                 >
                   Create New Vault
                 </button>
+                {registrationComplete && (
+                  <button
+                    className="floating"
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      fontSize: 20,
+                      fontWeight: 800,
+                      background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
+                      color: '#FFD66B',
+                      border: '2px solid #23272f',
+                      borderRadius: 14,
+                      cursor: 'pointer',
+                      marginBottom: 8,
+                      boxShadow: '0 2px 8px #23272f55',
+                      letterSpacing: 1.1,
+                      transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+                      textShadow: '0 2px 8px #FFD66B33',
+                      opacity: 1,
+                    }}
+                    onClick={() => {
+                      // After registration, allow user to continue to download share
+                      const regCompleteStored = localStorage.getItem('reg_complete');
+                      if (regCompleteStored) {
+                        navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
+                        try { localStorage.removeItem('reg_complete'); } catch {}
+                        try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
+                        setRegistrationComplete(false);
+                      }
+                    }}
+                  >
+                    Continue
+                  </button>
+                )}
                 <button
                   className="floating"
                   style={{
