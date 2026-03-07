@@ -7,8 +7,8 @@ import FloatingShapes from './FloatingShapes';
 import Vault3DCyberElements from './Vault3DCyberElements';
 import { getErrorMessage } from './utils';
 
-// API base URL - uses env variable in production, localhost in dev
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// API base URL - uses env variable in production
+const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-1tv2.onrender.com';
 
 // Particles configuration for vault page
 const particlesConfig = {
@@ -24,7 +24,8 @@ const particlesConfig = {
     shape: { type: 'circle' },
     size: { value: { min: 1, max: 2 } },
   },
-  detectRetina: true,
+
+  detectRetina: true
 };
 
 // Particles Background Component

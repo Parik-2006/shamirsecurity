@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
-// Define API_URL for backend requests
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// Define API_URL for backend requests (Render default)
+const API_URL = import.meta.env.VITE_API_URL || "https://shamirsecurity-1tv2.onrender.com";
 
 // Pages
 import Documentation from './pages/documentation.jsx';
@@ -16,17 +16,6 @@ import CyberLogin3D from './CyberLogin3D';
 
 
 
-// Detect if running on localhost and show a banner
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const frontendPort = window.location.port || '5174';
-// Try to extract backend port from API_URL, fallback to 5000
-let backendPort = '5000';
-try {
-  if (API_URL) {
-    const url = new URL(API_URL);
-    backendPort = url.port || backendPort;
-  }
-} catch {}
 
 // ErrorBoundary to catch runtime errors and allow the page to load
 class ErrorBoundary extends React.Component {
@@ -372,11 +361,7 @@ function App() {
 
   return (
     <ErrorBoundary>
-    {isLocalhost && (
-      <div style={{ background: '#23272f', color: '#FFD700', padding: '10px 0', textAlign: 'center', fontWeight: 700, fontSize: 16, letterSpacing: 1, zIndex: 9999 }}>
-        Running on <b>localhost</b> | Frontend: <b>:{frontendPort}</b> | Backend: <b>:{backendPort}</b>
-      </div>
-    )}
+
     <div style={{ 
       minHeight: '100vh', width: '100vw', background: '#0B0D10', 
       position: 'relative', overflow: 'hidden', display: 'flex', 

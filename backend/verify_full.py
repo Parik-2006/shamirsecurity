@@ -9,7 +9,7 @@ from supabase import create_client, ClientOptions
 
 # --- CONFIGURATION ---
 GOOGLE_SCOPES = ['https://www.googleapis.com/auth/drive.file']
-SUPABASE_URL = "https://tacsrdvzgcsucparujcr.supabase.co"
+SUPABASE_URL = "https://tacsrdvzgcsucparujcr.supabase.co"  # Not Codespace-specific, left unchanged
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhY3NyZHZ6Z2NzdWNwYXJ1amNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3NDE5NjYsImV4cCI6MjA4MjMxNzk2Nn0.bp5qZG28mODVoeSIEWoWF-tbwtmCIXM1GQ1JvM9XmpA"
 
 # Get the directory where this script is located

@@ -19,14 +19,14 @@ def start_project():
 
     # Frontend: use npm (must be on PATH)
     npm = shutil.which('npm') or 'npm'
-    frontend_cmd = [npm, 'run', 'dev', '--', '--port', '5174']
+    frontend_cmd = [npm, 'run', 'dev', '--', '--port', '3000']
 
     print("\n" + "="*30)
     print("   SHAMIR VAULT SYSTEM   ")
     print("="*30)
     print(f"Root: {root_dir}")
-    print("Backend API:  http://127.0.0.1:5000")
-    print("Frontend URL: http://localhost:5174") # Updated output link
+    print("Backend API:  https://shamirsecurity-1tv2.onrender.com")
+    print("Frontend URL: https://shamirsecurity-1-aclh.onrender.com") # Updated output link
     print("-" * 30)
     
     procs = []
@@ -71,8 +71,8 @@ def start_project():
                         return False
                     time.sleep(interval)
 
-        backend_health = 'http://127.0.0.1:5000/api/health'
-        frontend_url = 'http://127.0.0.1:5174'
+        backend_health = 'https://shamirsecurity-1tv2.onrender.com/api/health'
+        frontend_url = 'https://shamirsecurity-1-aclh.onrender.com'
         print('Waiting for backend to respond...')
         if wait_for_url(backend_health, timeout=12):
             print('Backend is up')
@@ -83,7 +83,7 @@ def start_project():
         if wait_for_url(frontend_url, timeout=12):
             print('Frontend is up')
             print('\n==============================')
-            print('Frontend is running at: http://localhost:5174')
+
             print('Open this URL in your browser to access the app.')
             print('==============================\n')
         else:
