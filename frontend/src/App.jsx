@@ -396,17 +396,13 @@ function App() {
             }}>
 
               {/* Animated Logo and Heading */}
-              <motion.div
-                style={{ display: 'flex', alignItems: 'center', marginBottom: 18, gap: 14 }}
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
-              >
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 18, gap: 14 }}>
                 <svg width="38" height="38" viewBox="0 0 54 64" fill="none">
                   <rect x="7" y="28" width="40" height="28" rx="8" fill="#FFD700" stroke="#FFF8DC" strokeWidth="3" />
                   <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
                 </svg>
                 <span style={{ fontWeight: 900, fontSize: 32, color: '#FFD700' }}>Shamir Vault</span>
-              </motion.div>
+              </div>
 
               {/* Subheading centered above input, with extra margin */}
               <div style={{ color: '#FFD66B', fontSize: 18, fontWeight: 600, marginBottom: 24, letterSpacing: 1.1, textAlign: 'center', width: '100%' }}>
@@ -418,6 +414,7 @@ function App() {
                 name="username"
                 type="text"
                 placeholder="Username"
+                autoComplete="username"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 style={{ 
@@ -430,6 +427,7 @@ function App() {
                 name="password"
                 type="password"
                 placeholder="Master Password"
+                autoComplete="current-password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 style={{ 
@@ -447,14 +445,17 @@ function App() {
                 }}
               >
                 Create New Vault
-              </button>
-
-              <button 
-                onClick={() => setPage('verification')}
-                style={{ 
-                  width: '100%', padding: 16, background: 'transparent', color: '#FFD66B', 
-                  border: '2px solid #23272f', borderRadius: 14, fontWeight: 800, cursor: 'pointer' 
+              <button
+                className="btn-gold"
+                style={{ width: '100%', marginBottom: 14, fontWeight: 800, fontSize: 18, padding: '14px', borderRadius: 12 }}
+                onClick={() => {
+                  // Immediately trigger Google OAuth flow
+                  window.location.href = API_URL + '/api/google/login';
                 }}
+                disabled={loading}
+              >
+                {loading ? 'Creating...' : 'Create New Vault'}
+              </button>
               >
                 Unlock Existing Vault
               </button>

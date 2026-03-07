@@ -325,11 +325,16 @@ GOOGLE_SCOPES = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'openid'
 ]
-GOOGLE_REDIRECT_URI = f'{BACKEND_URL}/api/google/callback'
+GOOGLE_REDIRECT_URI = 'https://shamirsecurity-1tv2.onrender.com/api/google/callback'
 
 
 # Allow Codespace frontend origin for CORS on /api/* endpoints
-CORS(app, resources={r"/api/*": {"origins": "https://shamirsecurity-1-aclh.onrender.com"}}, supports_credentials=True)
+CORS(app, resources={r"/api/*": {"origins": [
+    "https://shamirsecurity.onrender.com",
+    "https://shamirsecurity-1.onrender.com",
+    "https://shamirsecurity-1234.onrender.com",
+    "https://shamirsecurity-1-aclh.onrender.com"
+]}}, supports_credentials=True)
 
 
 
