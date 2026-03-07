@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import TopRightNav from './components/Nav3D';
 
 // Global handler for WebGL context loss
 if (typeof window !== 'undefined') {
