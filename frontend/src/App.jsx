@@ -10,11 +10,13 @@ const API_URL = typeof import.meta !== 'undefined' && import.meta.env && import.
   ? import.meta.env.VITE_API_URL
   : '';
 
-const TopRightNav = ({ onNavigate }) => {
-  // ...existing code...
-  // ...existing code...
-  );
-};
+const TopRightNav = ({ onNavigate }) => (
+  <nav>
+    <button onClick={() => onNavigate('documentation')}>Documentation</button>
+    <button onClick={() => onNavigate('verification')}>Verification</button>
+    <button onClick={() => onNavigate('about')}>About</button>
+  </nav>
+);
 
 function AboutModal({ show, onClose }) {
   if (!show) return null;
