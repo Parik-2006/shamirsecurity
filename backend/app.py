@@ -655,11 +655,11 @@ def google_callback():
         
         if error:
             print(f"[GOOGLE CALLBACK] Error from Google: {error}")
-            return redirect(f"{FRONTEND_URL}?reg_error=Google+authentication+was+denied")
-        
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Google+authentication+was+denied")
+
         if not state or state not in pending_registrations:
             print(f"[GOOGLE CALLBACK] Invalid/expired registration state")
-            return redirect(f"{FRONTEND_URL}?reg_error=Registration+expired.+Please+try+again.")
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Registration+expired.+Please+try+again.")
         
         reg_data = pending_registrations[state]
         username = reg_data['username']
@@ -711,7 +711,7 @@ def google_callback():
     except Exception as e:
         print(f"[GOOGLE CALLBACK] Error: {e}")
         error_msg = str(e)[:200].replace(' ', '+')
-        return redirect(f"{FRONTEND_URL}?reg_error={error_msg}")
+        return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error={error_msg}")
 
 
 @app.route('/api/register/complete', methods=['POST'])

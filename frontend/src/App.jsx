@@ -1,50 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import Documentation from './pages/documentation.jsx';
-import Verification from './pages/verification.jsx';
-import VaultPage from './VaultPage';
-
-// Safely resolve API URL from environment
-const API_URL = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
-  ? import.meta.env.VITE_API_URL
-  : '';
-
-const TopRightNav = ({ onNavigate }) => (
-  <nav>
-    <button onClick={() => onNavigate('documentation')}>Documentation</button>
-    <button onClick={() => onNavigate('verification')}>Verification</button>
-    <button onClick={() => onNavigate('about')}>About</button>
-  </nav>
-);
-
-function AboutModal({ show, onClose }) {
-  if (!show) return null;
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0B0D10ee', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      aria-modal="true" role="dialog" tabIndex={-1}
-    >
-      <div style={{ background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
-        <button onClick={onClose} aria-label="Close onboarding modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
-        <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Welcome to Shamir Vault</h2>
-        <p style={{ fontSize: 18, marginBottom: 18 }}>This app uses advanced cryptography to keep your secrets safe.<br /><br />
-          <b>Steps to use:</b><br />
-          1. Register with a strong password<br />
-          2. Complete Google authentication<br />
-          3. Download and keep your <b>local_share.enc</b> safe<br />
-          4. Use it to unlock your vault anytime
-        </p>
-        <p style={{ fontSize: 18, color: '#FFD700bb', wordBreak: 'break-word', lineHeight: 1.7, marginTop: 24, textAlign: 'center' }}>
-          For feedback or bug reports, email <a href="mailto:parikshithbb.cs25@rvce.edu.in" style={{ color: '#FFD700', textDecoration: 'underline', fontSize: 18 }}>mail</a> or join our <a href="https://discord.gg/YEwrW4M2" style={{ color: '#FFD700', textDecoration: 'underline', fontSize: 18 }}>Discord</a>.
-        </p>
-      </div>
-    </motion.div>
-  );
-}
+import React, { useState, useEffect, useRef } from 'react';
+function App() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [authComplete, setAuthComplete] = useState(false); // Google OAuth complete
+  const [downloadComplete, setDownloadComplete] = useState(false); // local_share.enc downloaded
+  const [vaultUnlocked, setVaultUnlocked] = useState(false); // Vault access granted
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState("login"); // login | download | vault
+  const downloadLinkRef = useRef(null);
+  // ...existing AboutModal and other components...
+// ...existing code...
 
 // Global handler for WebGL context loss
 if (typeof window !== 'undefined') {
@@ -58,9 +24,14 @@ if (typeof window !== 'undefined') {
 // --- OAuth callback page for registration completion ---
 function AuthSuccessPage() {
   const [showCloseMsg, setShowCloseMsg] = React.useState(false);
+  const [errorMsg, setErrorMsg] = React.useState("");
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
+    const error = params.get('error');
+    if (error) {
+      setErrorMsg(decodeURIComponent(error.replace(/\+/g, ' ')));
+    }
     if (window.opener && !window.opener.closed && regComplete) {
       window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
     }
@@ -69,7 +40,9 @@ function AuthSuccessPage() {
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 480, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
         <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Authentication Complete</h2>
-        {!showCloseMsg ? (
+        {errorMsg ? (
+          <p style={{ fontSize: 20, marginBottom: 18, color: '#ff6b6b' }}>{errorMsg}<br />You may close this window.</p>
+        ) : !showCloseMsg ? (
           <>
             <p style={{ fontSize: 20, marginBottom: 18 }}>Registration successful.<br />Click continue to finish.</p>
             <button onClick={() => setShowCloseMsg(true)} style={{ marginTop: 24, background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 18, border: 'none', borderRadius: 12, padding: '12px 32px', cursor: 'pointer', boxShadow: '0 2px 12px #0006' }}>Continue</button>
