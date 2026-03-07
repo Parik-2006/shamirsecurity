@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Global handler for WebGL context loss
 if (typeof window !== 'undefined') {
