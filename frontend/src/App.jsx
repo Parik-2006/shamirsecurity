@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import Documentation from './pages/documentation.jsx';
 import Verification from './pages/verification.jsx';
-// ...existing code...
 import VaultPage from './VaultPage';
 
 // Safely resolve API URL from environment
@@ -332,7 +331,6 @@ export default function App() {
   // --- Main App UI ---
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <FloatingShapes zIndex={0} />
       {(page === 'login' || page === 'verification') && (
         <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
           <TopRightNav onNavigate={handleNavigate} />
@@ -349,7 +347,6 @@ export default function App() {
             transition={{ duration: 0.6, ease: 'anticipate' }}
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
           >
-            <CyberLogin3D zIndex={2} />
             <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
                 <span style={{ display: 'flex', alignItems: 'center', height: 40, marginRight: 6 }}>
