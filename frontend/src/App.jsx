@@ -217,7 +217,6 @@ function App() {
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <AnimatePresence mode="wait">
-        {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
         {page === 'login' && (
           <motion.div
             key="login"
