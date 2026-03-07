@@ -216,7 +216,8 @@ export default function App() {
         setError('API URL is not configured.'); setLoading(false); return;
       }
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      // Increased timeout to 10 seconds for slow backend
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       let res;
       try {
         res = await fetch(`${API_URL}/api/register/init`, {
@@ -228,11 +229,13 @@ export default function App() {
       } catch (err) {
         if (err.name === 'AbortError') {
           setError('Vault creation timed out. Please try again or check your connection.');
-          setLoading(false);
-          return;
+        } else if (err.message && err.message.includes('Failed to fetch')) {
+          setError('Could not connect to the server. Please check your internet connection or try again later.');
         } else {
-          throw err;
+          setError('Unexpected error: ' + (err.message || 'Unknown error'));
         }
+        setLoading(false);
+        return;
       } finally {
         clearTimeout(timeoutId);
       }
