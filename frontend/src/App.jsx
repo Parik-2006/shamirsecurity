@@ -128,6 +128,7 @@ function AuthSuccessPage() {
           if (data && data.status === 'success') {
             window.opener.postMessage({
               type: 'registration-complete',
+              reg_complete: regComplete,
               local_share: data.local_share,
               golden_key: data.golden_key,
               username: data.username
