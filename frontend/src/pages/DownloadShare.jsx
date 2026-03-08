@@ -14,6 +14,12 @@ export default function DownloadShare() {
   if (!localShareData || !goldenKey || !username) {
     error = 'Missing registration data. Please retry registration.';
   }
+  // Store credentials for vault page as soon as possible
+  if (username && goldenKey) {
+    localStorage.setItem('vaultUser', username);
+    localStorage.setItem('goldenKey', goldenKey);
+    localStorage.setItem('justRegistered', 'true');
+  }
 
   const handleDownload = () => {
     if (!localShareData) return;
@@ -27,12 +33,7 @@ export default function DownloadShare() {
     document.body.removeChild(a);
     setDownloading(false);
     setDownloaded(true);
-    // Store credentials for vault page
-    if (username && goldenKey) {
-      localStorage.setItem('vaultUser', username);
-      localStorage.setItem('goldenKey', goldenKey);
-      localStorage.setItem('justRegistered', 'true');
-    }
+    // Credentials are now set above on every render
     // Immediately navigate to vault after download
     navigate('/vault');
   };
