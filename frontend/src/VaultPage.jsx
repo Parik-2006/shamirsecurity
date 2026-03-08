@@ -117,7 +117,6 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
       }}
     >
       {/* HEADER */}
-
       <header
         style={{
           marginBottom: '25px',
@@ -133,7 +132,6 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
             {vaultData.length !== 1 ? 's' : ''} stored
           </p>
         </div>
-
         <div style={{ display: 'flex', gap: 10 }}>
           <button
             onClick={() => setPage('add')}
@@ -149,7 +147,6 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
           >
             Add
           </button>
-
           <button
             onClick={handleLogout}
             style={{
@@ -168,7 +165,6 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
       </header>
 
       {/* ERROR */}
-
       {error && (
         <div style={{ color: 'red', marginBottom: 20 }}>
           {error}
@@ -176,7 +172,6 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
       )}
 
       {/* ADD PASSWORD FORM */}
-
       {page === 'add' && (
         <form
           onSubmit={handleAddPassword}
@@ -185,94 +180,74 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
           <input
             placeholder="Service"
             value={newService}
-            onChange={(e) =>
-              setNewService(e.target.value)
-            }
+            onChange={(e) => setNewService(e.target.value)}
             style={{ marginRight: 8 }}
           />
-
           <input
             placeholder="Username (optional)"
             value={newServiceUser}
-            onChange={(e) =>
-              setNewServiceUser(e.target.value)
-            }
+            onChange={(e) => setNewServiceUser(e.target.value)}
             style={{ marginRight: 8 }}
           />
-
           <input
             placeholder="Password"
             value={newPass}
-            onChange={(e) =>
-              setNewPass(e.target.value)
-            }
+            onChange={(e) => setNewPass(e.target.value)}
             style={{ marginRight: 8 }}
           />
-
           <button type="submit">Save</button>
         </form>
       )}
 
-      {/* LOADING */}
-
-      {loading ? (
-        <div>Loading...</div>
-      ) : vaultData.length === 0 ? (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: 40,
-            color: '#888',
-          }}
-        >
-          Your vault is empty.
-        </div>
-      ) : (
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            background: '#23272f',
-          }}
-        >
-          <thead>
-            <tr>
-              <th style={{ color: '#FFD66B' }}>Service</th>
-              <th style={{ color: '#FFD66B' }}>Username</th>
-              <th style={{ color: '#FFD66B' }}>Password</th>
-              <th style={{ color: '#FFD66B' }}>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {vaultData.map((item, idx) => (
-              <tr key={item.id || idx}>
-                <td>{item.service}</td>
-
-                <td>{item.username}</td>
-
-                <td>
-                  {visiblePasswords[idx]
-                    ? item.password
-                    : '••••••••'}
-                </td>
-
-                <td>
-                  <button
-                    onClick={() =>
-                      handleToggleVisibility(idx)
-                    }
-                  >
-                    {visiblePasswords[idx]
-                      ? 'Hide'
-                      : 'Show'}
-                  </button>
-                </td>
+      {/* VAULT TABLE AREA: loading, empty, or table */}
+      <div style={{ minHeight: 200 }}>
+        {loading ? (
+          <div>Loading...</div>
+        ) : vaultData.length === 0 ? (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: 40,
+              color: '#888',
+            }}
+          >
+            Your vault is empty.
+          </div>
+        ) : (
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              background: '#23272f',
+            }}
+          >
+            <thead>
+              <tr>
+                <th style={{ color: '#FFD66B' }}>Service</th>
+                <th style={{ color: '#FFD66B' }}>Username</th>
+                <th style={{ color: '#FFD66B' }}>Password</th>
+                <th style={{ color: '#FFD66B' }}>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {vaultData.map((item, idx) => (
+                <tr key={item.id || idx}>
+                  <td>{item.service}</td>
+                  <td>{item.username}</td>
+                  <td>
+                    {visiblePasswords[idx] ? item.password : '••••••••'}
+                  </td>
+                  <td>
+                    <button onClick={() => handleToggleVisibility(idx)}>
+                      {visiblePasswords[idx] ? 'Hide' : 'Show'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }
