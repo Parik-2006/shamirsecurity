@@ -18,110 +18,26 @@ if (typeof window !== 'undefined') {
 
 // --- OAuth callback page for registration completion (single-tab flow) ---
 export function AuthSuccessPage() {
-  const [errorMsg, setErrorMsg] = React.useState("");
-  const [loading, setLoading] = React.useState(true);
-  const [localShareData, setLocalShareData] = React.useState(null);
-  const [downloaded, setDownloaded] = React.useState(false);
-  const [username, setUsername] = React.useState("");
   const navigate = useNavigate();
-
-  React.useEffect(() => {
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
     const error = params.get('error');
     if (error) {
-      setErrorMsg(decodeURIComponent(error.replace(/\+/g, ' ')));
-      setLoading(false);
+      // Show error if present
+      alert(decodeURIComponent(error.replace(/\+/g, ' ')));
+      navigate('/');
       return;
     }
     if (!regComplete) {
-      setErrorMsg('Missing registration completion token.');
-      setLoading(false);
+      alert('Missing registration completion token.');
+      navigate('/');
       return;
     }
-    // Fetch vault share and golden key
-    fetch(`${API_URL}/api/register/complete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reg_id: regComplete })
-    })
-      .then(async res => {
-        const contentType = res.headers.get('Content-Type');
-        let raw = '';
-        let data = null;
-        try {
-          raw = await res.text();
-          if (raw && contentType && contentType.includes('application/json')) {
-            data = JSON.parse(raw);
-          }
-        } catch {
-          data = null;
-        }
-        return data;
-      })
-      .then(data => {
-        if (data && data.status === 'success' && data.local_share) {
-          setLocalShareData(data.local_share);
-          setUsername(data.username || "");
-        } else {
-          setErrorMsg((data && data.message) || 'Failed to retrieve vault share.');
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        setErrorMsg('Network error while fetching vault share.');
-        setLoading(false);
-      });
-  }, []);
-
-  const handleDownload = () => {
-    if (!localShareData) return;
-    const blob = new Blob([localShareData], { type: 'text/plain' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'local_share.enc';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setDownloaded(true);
-    setTimeout(() => {
-      navigate('/vault', { state: { username } });
-    }, 1200);
-  };
-
-  return (
-    <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 520, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
-        <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Vault Share Download</h2>
-        {loading && <p style={{ color: '#FFD66B', fontWeight: 600 }}>Preparing your vault share...</p>}
-        {errorMsg && <p style={{ color: '#ef4444', fontWeight: 600 }}>{errorMsg}</p>}
-        {!loading && !errorMsg && !downloaded && localShareData && (
-          <>
-            <p style={{ fontSize: 18, marginBottom: 18, color: '#FFD66B' }}>
-              <b>Why download this file?</b><br />
-              <span style={{ color: '#fff', fontWeight: 400 }}>
-                <br />
-                <b>local_share.enc</b> is a critical part of your vault security. It is unique to your account and required to recover your vault or reset your password.<br /><br />
-                <b>Keep this file safe!</b> Without it, you may lose access to your vault forever. Store it in a secure location and do not share it with anyone.<br /><br />
-                You will need this file if you ever want to restore your account or access your encrypted data from a new device.
-              </span>
-            </p>
-            <button
-              onClick={handleDownload}
-              style={{
-                background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 20, border: 'none', borderRadius: 12, padding: '14px 36px', marginTop: 18, cursor: 'pointer', boxShadow: '0 2px 12px #0006', transition: 'background 0.2s'
-              }}
-            >
-              Download local_share.enc
-            </button>
-          </>
-        )}
-        {downloaded && !errorMsg && (
-          <p style={{ color: '#FFD66B', fontWeight: 600, marginTop: 18 }}>Download started! Redirecting to your vault...</p>
-        )}
-      </div>
-    </div>
-  );
+    // Redirect to download-share page with reg_complete param
+    navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
+  }, [navigate]);
+  return null;
 }
 
 function App() {
