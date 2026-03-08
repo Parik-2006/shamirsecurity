@@ -4,6 +4,7 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 import VaultPage from './VaultPage';
+import RegistrationVaultPage from './RegistrationVaultPage';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import DownloadShare from './pages/DownloadShare';
@@ -41,14 +42,17 @@ export default function QuantumAppRouter({ username, goldenKey, onLogout }) {
 
         <Route path="/auth-success" element={<AuthSuccessPage />} />
 
+
         <Route
           path="/vault"
           element={
-            <VaultPage
-              username={username}
-              goldenKey={goldenKey}
-              onLogout={onLogout}
-            />
+            localStorage.getItem('justRegistered') === 'true'
+              ? <RegistrationVaultPage />
+              : <VaultPage
+                  username={username}
+                  goldenKey={goldenKey}
+                  onLogout={onLogout}
+                />
           }
         />
 

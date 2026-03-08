@@ -256,13 +256,13 @@ function App() {
 
 
   // --- Route: Vault page ---
-  // If justRegistered, show RegistrationVaultPage (no credential checks)
+  // If justRegistered, always show RegistrationVaultPage (no credential checks)
   if (vaultPage && localStorage.getItem('justRegistered') === 'true') {
     setTimeout(() => localStorage.setItem('justRegistered', 'false'), 0);
     return <RegistrationVaultPage />;
   }
   // For unlock flow, only allow if credentials are present (set after verification)
-  if (vaultPage && credentialsReady) {
+  if (vaultPage && credentialsReady && localStorage.getItem('justRegistered') !== 'true') {
     vaultUser = localStorage.getItem('vaultUser');
     goldenKey = localStorage.getItem('goldenKey');
     return <VaultPage 
