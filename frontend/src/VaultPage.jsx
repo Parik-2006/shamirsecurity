@@ -524,13 +524,17 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
     if (!goldenKey) return;
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
-    
+    let timeoutId;
     try {
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout for fast feedback
       const res = await fetch(`${API_URL}/api/get_passwords`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, golden_key: goldenKey }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       const data = await res.json();
       if (data.status === 'success') {
         setVaultData(data.passwords);
@@ -538,10 +542,15 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
         setError('Failed to load vault: ' + (data.message || 'Unknown error'));
       }
     } catch (e) {
-      const msg = getErrorMessage(e);
-      console.error("Vault Fetch Error", e);
-      setError('Network error loading vault: ' + msg);
+      if (e.name === 'AbortError') {
+        setError('Vault fetch timed out. Please try again or check your connection.');
+      } else {
+        const msg = getErrorMessage(e);
+        console.error("Vault Fetch Error", e);
+        setError('Network error loading vault: ' + msg);
+      }
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
       setRefreshing(false);
     }
