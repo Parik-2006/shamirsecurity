@@ -388,23 +388,7 @@ print(f"[INIT] Google redirect: {GOOGLE_REDIRECT_URI}")
 # --- PENDING REGISTRATIONS (in-memory store) ---
 # Each entry: { username, share1, local_share, golden_key, created_at, completed }
 import json
-PENDING_REG_PATH = 'pending_registrations.json'
-def load_pending_registrations():
-    try:
-        with open(PENDING_REG_PATH, 'r') as f:
-            return json.load(f)
-    except Exception:
-        return {}
 
-def save_pending_registrations():
-    try:
-        with open(PENDING_REG_PATH, 'w') as f:
-            json.dump(pending_registrations, f, indent=2)
-        print(f"[PERSIST] Saved pending_registrations: {json.dumps(pending_registrations, indent=2)}")
-    except Exception as e:
-        print(f"[PERSIST] Failed to save pending_registrations: {e}")
-
-pending_registrations = load_pending_registrations()
 
 # --- RETRY HELPER FOR SUPABASE OPERATIONS ---
 def supabase_retry(operation, max_retries=3, delay=2):
@@ -595,21 +579,21 @@ def register_init():
             return jsonify({"status": "error", "message": f"Encryption error: {e}"}), 500
 
         # Create a unique registration ID and store pending data
+
         reg_id = secrets.token_urlsafe(32)
-        pending_registrations[reg_id] = {
-            'username': username,
-            'share1': share1,
-            'local_share': local_share_package,
-            'golden_key': str(golden_key_int),
-            'created_at': time.time(),
-            'completed': False
-        }
-        # Clean up expired pending registrations (> 10 min old), but never delete the current reg_id
-        now = time.time()
-        expired = [k for k, v in pending_registrations.items() if k != reg_id and now - v.get('created_at', 0) > 600]
-        for k in expired:
-            del pending_registrations[k]
-        save_pending_registrations()
+        try:
+            supabase.table("pending_registrations").insert({
+                "reg_id": reg_id,
+                "username": username,
+                "share1": share1,
+                "local_share": local_share_package,
+                "golden_key": str(golden_key_int),
+                "created_at": time.time(),
+                "completed": False
+            }).execute()
+        except Exception as e:
+            print(f"[REGISTER INIT][SUPABASE ERROR] {e}")
+            return jsonify({"status": "error", "message": f"Supabase error: {e}"}), 500
 
         # Generate Google OAuth URL -- user will sign in with THEIR Google account
         print(f"[TRACE] Generating Google OAuth URL...")
@@ -622,8 +606,10 @@ def register_init():
                 login_hint=username,
                 max_auth_age=0  # Always require fresh login and MFA
             )
-            # Store code_verifier in pending_registrations
-            pending_registrations[reg_id]['code_verifier'] = getattr(flow, 'code_verifier', None)
+            # Store code_verifier in Supabase
+            code_verifier = getattr(flow, 'code_verifier', None)
+            if code_verifier:
+                supabase.table("pending_registrations").update({"code_verifier": code_verifier}).eq("reg_id", reg_id).execute()
             print(f"[REGISTER INIT] OAuth URL generated: {auth_url}")
             return jsonify({
                 "status": "redirect",
@@ -652,9 +638,7 @@ def google_callback():
     try:
         print("[GOOGLE CALLBACK] Endpoint hit!")
         print(f"[GOOGLE CALLBACK] Query params: {dict(request.args)}")
-        # Always reload pending_registrations from disk to handle stateless deployments
-        global pending_registrations
-        pending_registrations = load_pending_registrations()
+
         code = request.args.get('code')
         state = request.args.get('state')  # This is our reg_id
         error = request.args.get('error')
@@ -663,11 +647,21 @@ def google_callback():
             print(f"[GOOGLE CALLBACK] Error from Google: {error}")
             return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Google+authentication+was+denied")
 
-        if not state or state not in pending_registrations:
-            print(f"[GOOGLE CALLBACK] Invalid/expired registration state. State: {state}. Keys: {list(pending_registrations.keys())}")
-            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Registration+expired+or+not+found.+Please+try+again.")
+        if not state:
+            print(f"[GOOGLE CALLBACK] Missing state param.")
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Missing+registration+state.")
 
-        reg_data = pending_registrations[state]
+        # Fetch registration from Supabase
+        try:
+            response = supabase.table("pending_registrations").select("*").eq("reg_id", state).execute()
+            if not response.data or len(response.data) == 0:
+                print(f"[GOOGLE CALLBACK] Registration not found for reg_id: {state}")
+                return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Registration+expired+or+not+found.+Please+try+again.")
+            reg_data = response.data[0]
+        except Exception as e:
+            print(f"[GOOGLE CALLBACK][SUPABASE ERROR] {e}")
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Supabase+error:+{str(e)}")
+
         username = reg_data.get('username')
         share1 = reg_data.get('share1')
         local_share = reg_data.get('local_share')
@@ -678,6 +672,7 @@ def google_callback():
         if not local_share or not golden_key:
             print(f"[GOOGLE CALLBACK] Missing local_share or golden_key for reg_id: {state}")
             return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Missing+share+data.+Please+retry+registration.")
+
 
         try:
             # Exchange authorization code for user's Google credentials
@@ -709,10 +704,9 @@ def google_callback():
             service.files().create(body=file_metadata, media_body=media).execute()
             print(f"[GOOGLE CALLBACK] Share1 uploaded to {username}'s Drive!")
 
-            # Mark registration as completed and persist to disk
-            reg_data['completed'] = True
-            print(f"[GOOGLE CALLBACK] Marking registration as completed for reg_id: {state}")
-            save_pending_registrations()
+            # Mark registration as completed in Supabase
+            supabase.table("pending_registrations").update({"completed": True}).eq("reg_id", state).execute()
+            print(f"[GOOGLE CALLBACK] Marked registration as completed for reg_id: {state}")
 
             # Redirect to /download-share with local_share and golden_key as URL params (base64url safe)
             import urllib.parse
@@ -740,27 +734,35 @@ def register_complete():
         data = request.json
         reg_id = data.get('reg_id')
         now = time.time()
-        # Only expire if not completed within 10 minutes
-        if not reg_id or reg_id not in pending_registrations:
+        if not reg_id:
             return jsonify({"status": "error", "message": "Invalid or expired registration. Please try again."}), 400
-        reg_data = pending_registrations[reg_id]
-        if not reg_data.get('completed'):
-            # Expire if not completed within 10 minutes
-            if now - reg_data.get('created_at', 0) > 600:
-                del pending_registrations[reg_id]
-                save_pending_registrations()
-                return jsonify({"status": "error", "message": "Registration expired. Please try again."}), 400
-            return jsonify({"status": "error", "message": "Google authentication not completed yet."}), 400
-        # Allow unlimited downloads after completion, never expire
-        username = reg_data['username']
-        result = {
-            "status": "success",
-            "local_share": reg_data['local_share'],
-            "golden_key": reg_data['golden_key'],
-            "username": username
-        }
-        print(f"[REGISTER COMPLETE] Keys delivered to {username}'s browser!")
-        return jsonify(result)
+        try:
+            response = supabase.table("pending_registrations").select("*").eq("reg_id", reg_id).execute()
+            if not response.data or len(response.data) == 0:
+                return jsonify({"status": "error", "message": "Invalid or expired registration. Please try again."}), 400
+            reg_data = response.data[0]
+            if not reg_data.get('completed'):
+                # Expire if not completed within 10 minutes
+                if now - reg_data.get('created_at', 0) > 600:
+                    # Optionally, delete from Supabase here if desired
+                    supabase.table("pending_registrations").delete().eq("reg_id", reg_id).execute()
+                    return jsonify({"status": "error", "message": "Registration expired. Please try again."}), 400
+                return jsonify({"status": "error", "message": "Google authentication not completed yet."}), 400
+            # Allow unlimited downloads after completion, never expire
+            username = reg_data['username']
+            result = {
+                "status": "success",
+                "local_share": reg_data['local_share'],
+                "golden_key": reg_data['golden_key'],
+                "username": username
+            }
+            print(f"[REGISTER COMPLETE] Keys delivered to {username}'s browser!")
+            return jsonify(result)
+        except Exception as e:
+            print(f"[REGISTER COMPLETE][SUPABASE ERROR] {e}")
+            return jsonify({"status": "error", "message": f"Supabase error: {e}"}), 500
+            # All registration state is now managed in Supabase
+            # (logic already replaced above)
     except Exception as e:
         print(f"[REGISTER COMPLETE] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
