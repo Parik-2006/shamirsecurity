@@ -50,8 +50,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [goldenKey, setGoldenKey] = useState(null);
-  const [vaultUser, setVaultUser] = useState(null);
+  // Removed goldenKey and vaultUser logic
   const [vaultPage, setVaultPage] = useState(false);
   const [localShare, setLocalShare] = useState(null);
   const [showAbout, setShowAbout] = useState(() => {
@@ -66,23 +65,9 @@ function App() {
 
   // Restore vault credentials from localStorage if missing
   useEffect(() => {
-    // If on /vault, restore credentials and set vaultPage
+    // If on /vault, just set vaultPage true
     if (location.pathname === '/vault') {
-      const storedUser = localStorage.getItem('vaultUser');
-      const storedKey = localStorage.getItem('goldenKey');
-      const justRegistered = localStorage.getItem('justRegistered');
-      if (justRegistered === 'true') {
-        setVaultPage(true);
-        // Optionally set credentials if not already set
-        if (storedUser) setVaultUser(storedUser);
-        if (storedKey) setGoldenKey(storedKey);
-        // Clear the flag so it doesn't persist
-        localStorage.removeItem('justRegistered');
-      } else if (storedUser && storedKey) {
-        setVaultUser(storedUser);
-        setGoldenKey(storedKey);
-        setVaultPage(true);
-      }
+      setVaultPage(true);
     }
   }, [location]);
 
@@ -230,7 +215,7 @@ function App() {
   // --- Route: Vault page ---
   // Always render vault page if vaultPage is true, regardless of credentials
   if (vaultPage) {
-    return <VaultPage username={vaultUser || ''} goldenKey={goldenKey || ''} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
+    return <VaultPage onLogout={() => { setVaultPage(false); setPage('login'); }} />;
   }
 
   // --- Main App UI ---
