@@ -23,9 +23,7 @@ const particlesConfig = {
   },
   detectRetina: true
 };
-
-const ParticlesBackground = () => {
-  const [engineReady, setEngineReady] = useState(false);
+  
   useEffect(() => {
     initParticlesEngine(async (engine) => {
       await loadSlim(engine);
@@ -260,4 +258,4 @@ export default function RegistrationVaultPage() {
     </div>
   );
 }
-}
+
