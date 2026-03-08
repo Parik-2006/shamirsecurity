@@ -252,6 +252,9 @@ function App() {
       {page === 'login' && unlockStep === 'login' && (
         <div
           style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
+    // Always get credentials from localStorage
+    const vaultUser = localStorage.getItem('vaultUser');
+    const goldenKey = localStorage.getItem('goldenKey');
         >
           <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
