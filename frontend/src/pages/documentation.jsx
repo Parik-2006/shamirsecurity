@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-// cleaned up
-
+import FloatingShapes from '../FloatingShapes';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 
 const palette = {
   bg: '#0a192f',
@@ -27,7 +28,6 @@ const gridBg = {
 };
 
 function AnimatedGrid({ position, color, size = 2 }) {
-  // ...existing code...
   return (
     <Canvas style={{ position: 'absolute', ...position, width: 180, height: 180, pointerEvents: 'none', zIndex: 2 }} camera={{ position: [0, 0, 6], fov: 50 }}>
       <ambientLight intensity={0.6} />
@@ -42,9 +42,6 @@ function AnimatedGrid({ position, color, size = 2 }) {
 }
 
 export default function Documentation({ onBack }) {
-  if (typeof onBack !== 'function') {
-    return <div style={{ color: 'red', padding: 40 }}>Error: Missing navigation handler.</div>;
-  }
   return (
     <div style={{ minHeight: '100vh', minWidth: '100vw', width: '100%', position: 'relative', overflow: 'hidden', background: palette.bg }}>
       {/* Background grid, always at the back */}

@@ -9,7 +9,7 @@ import { loadSlim } from '@tsparticles/slim';
 import { getErrorMessage } from './utils';
 
 // API base URL - uses env variable in production
-const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-098.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-709.onrender.com';
 
 // Particles configuration for vault page
 const particlesConfig = {

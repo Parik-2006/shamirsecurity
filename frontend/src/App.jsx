@@ -10,13 +10,83 @@ const API_URL = typeof import.meta !== 'undefined' && import.meta.env && import.
   ? import.meta.env.VITE_API_URL
   : '';
 
-const TopRightNav = ({ onNavigate }) => (
-  <nav>
-    <button onClick={() => onNavigate('documentation')}>Documentation</button>
-    <button onClick={() => onNavigate('verification')}>Verification</button>
-    <button onClick={() => onNavigate('about')}>About</button>
-  </nav>
-);
+
+// --- Top Navigation with 3D Buttons ---
+const TopRightNav = ({ onNavigate }) => {
+  const btn3D = {
+    background: 'linear-gradient(145deg, #151A21 60%, #23272f 100%)',
+    color: '#FFD700',
+    border: '2.5px solid #FFD700',
+    borderRadius: 14,
+    fontWeight: 800,
+    fontSize: 15,
+    padding: '12px 28px',
+    margin: 0,
+    boxShadow: '4px 4px 16px #0a192f99, -4px -4px 16px #23272f55, 0 2px 8px #FFD70033',
+    cursor: 'pointer',
+    outline: 'none',
+    transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
+    textShadow: '0 2px 8px #FFD70044',
+    letterSpacing: 0.7,
+    minWidth: 0,
+    minHeight: 0,
+    lineHeight: 1.2,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 0,
+    perspective: 400,
+    transformStyle: 'preserve-3d',
+  };
+  return (
+    <div style={{ display: 'flex', gap: 16 }}>
+      <button onClick={() => onNavigate('documentation')} style={btn3D}>
+        <span style={{ color: '#FFD700' }}>Documentation</span>
+      </button>
+      <button onClick={() => onNavigate('verification')} style={btn3D}>
+        <span style={{ color: '#FFD700' }}>Verification</span>
+      </button>
+      <button onClick={() => onNavigate('about')} style={btn3D}>
+        <span style={{ color: '#FFD700' }}>About</span>
+      </button>
+    </div>
+  );
+};
+// --- Download Share Modal ---
+function DownloadShareModal({ show, onDownload, onClose }) {
+  if (!show) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0B0D10ee', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      aria-modal="true" role="dialog" tabIndex={-1}
+    >
+      <div style={{ background: '#151A21', borderRadius: 24, padding: 36, maxWidth: 420, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
+        <button onClick={onClose} aria-label="Close download modal" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#FFD700', fontSize: 24, cursor: 'pointer' }}>×</button>
+        <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 18 }}>Download Your Vault Share</h2>
+        <p style={{ fontSize: 17, marginBottom: 24 }}>Click below to download your <b>local_share.enc</b> file. <br />Keep it safe! You need it to unlock your vault.</p>
+        <button
+          style={{
+            marginTop: 8,
+            padding: '14px 32px',
+            fontSize: 18,
+            fontWeight: 700,
+            background: '#FFD66B',
+            color: '#151A21',
+            border: 'none',
+            borderRadius: 10,
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px #FFD66B33',
+          }}
+          onClick={onDownload}
+        >
+          Download local_share.enc
+        </button>
+      </div>
+    </motion.div>
+  );
+}
 
 function AboutModal({ show, onClose }) {
   if (!show) return null;
@@ -331,8 +401,26 @@ export default function App() {
   }
 
   // --- Main App UI ---
+  // --- Handler for downloading local_share.enc from modal ---
+  const handleDownloadShare = () => {
+    if (localShare) {
+      const blob = new Blob([localShare], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'local_share.enc';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setShowDownloadModal(false);
+      setVaultPage(true);
+    }
+  };
+
+  // --- FloatingShapes and CyberLogin3D are visual only, skip logic ---
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      {/* FloatingShapes purely visual, import and render if available */}
+      {typeof FloatingShapes !== 'undefined' && <FloatingShapes zIndex={0} />}
       {(page === 'login' || page === 'verification') && (
         <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
           <TopRightNav onNavigate={handleNavigate} />
@@ -340,6 +428,10 @@ export default function App() {
       )}
       <AnimatePresence mode="wait">
         {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
+        {/* DownloadShareModal for local_share.enc download */}
+        {typeof DownloadShareModal !== 'undefined' && (
+          <DownloadShareModal show={showDownloadModal} onDownload={handleDownloadShare} onClose={() => setShowDownloadModal(false)} />
+        )}
         {page === 'login' && (
           <motion.div
             key="login"
@@ -349,6 +441,8 @@ export default function App() {
             transition={{ duration: 0.6, ease: 'anticipate' }}
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
           >
+            {/* CyberLogin3D purely visual, import and render if available */}
+            {typeof CyberLogin3D !== 'undefined' && <CyberLogin3D zIndex={2} />}
             <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
                 <span style={{ display: 'flex', alignItems: 'center', height: 40, marginRight: 6 }}>
