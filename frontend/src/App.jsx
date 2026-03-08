@@ -203,6 +203,7 @@ function App() {
     localStorage.setItem('vaultUser', username);
     localStorage.setItem('goldenKey', goldenKey);
     setVaultPage(true);
+    setCredentialsReady(true); // Ensure unlock flow works
     setUnlockStep('login');
     setPendingUnlock({ username: '', password: '' });
   };
