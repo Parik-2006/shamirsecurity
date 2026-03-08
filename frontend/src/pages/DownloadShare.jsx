@@ -19,6 +19,8 @@ export default function DownloadShare() {
     localStorage.setItem('vaultUser', username);
     localStorage.setItem('goldenKey', goldenKey);
     localStorage.setItem('justRegistered', 'true');
+    console.log('[DownloadShare] Setting vaultUser:', username, 'goldenKey:', goldenKey);
+    console.log('[DownloadShare] localStorage after set:', localStorage.getItem('vaultUser'), localStorage.getItem('goldenKey'));
   }
 
   const handleDownload = () => {
@@ -34,8 +36,7 @@ export default function DownloadShare() {
     setDownloading(false);
     setDownloaded(true);
     // Credentials are now set above on every render
-    // Immediately navigate to vault after download
-    navigate('/vault');
+    // User must click 'Go to Vault' button to proceed
   };
 
   return (
@@ -67,7 +68,21 @@ export default function DownloadShare() {
           </button>
         )}
         {downloaded && !error && (
-          <p style={{ color: '#FFD66B', fontWeight: 600, marginTop: 18 }}>Download started! Redirecting to your vault...</p>
+          <>
+            <p style={{ color: '#FFD66B', fontWeight: 600, marginTop: 18 }}>Download started! You can now access your vault.</p>
+            <button
+              style={{
+                background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 20, border: 'none', borderRadius: 12, padding: '14px 36px', marginTop: 18, cursor: 'pointer', boxShadow: '0 2px 12px #0006', transition: 'background 0.2s'
+              }}
+              onClick={() => navigate('/vault')}
+            >
+              Go to Vault
+            </button>
+            <div style={{ color: '#FFD66B', marginTop: 12, fontSize: 16, fontWeight: 500 }}>
+              <b>What is the Vault?</b><br />
+              The Vault is where you can securely store and manage your passwords and secrets. Click the button above to access your vault and start saving passwords!
+            </div>
+          </>
         )}
       </div>
     </div>
