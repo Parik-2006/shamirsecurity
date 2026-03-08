@@ -228,9 +228,9 @@ function App() {
 
 
   // --- Route: Vault page ---
-  // Allow vault page if justRegistered, even if credentials are missing
-  if (vaultPage && (goldenKey && vaultUser || localStorage.getItem('justRegistered') === null)) {
-    return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
+  // Always render vault page if vaultPage is true, regardless of credentials
+  if (vaultPage) {
+    return <VaultPage username={vaultUser || ''} goldenKey={goldenKey || ''} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
   }
 
   // --- Main App UI ---
