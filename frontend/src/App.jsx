@@ -48,8 +48,10 @@ function App() {
     // Only read from localStorage at the top for initial state, but always re-read before rendering VaultPage
     let vaultUser = localStorage.getItem('vaultUser');
     let goldenKey = localStorage.getItem('goldenKey');
+    let justRegistered = localStorage.getItem('justRegistered') === 'true';
     console.log('[App.jsx] (top) vaultUser from localStorage:', vaultUser);
     console.log('[App.jsx] (top) goldenKey from localStorage:', goldenKey);
+    console.log('[App.jsx] (top) justRegistered:', justRegistered);
   const navigate = useNavigate(); // Must be first in component
   const [page, setPage] = useState('login');
   const [unlockStep, setUnlockStep] = useState('login'); // 'login' or 'uploadShare'
@@ -249,21 +251,44 @@ function App() {
   // --- Route: Vault page ---
   // Always render vault page if vaultPage is true, regardless of credentials
   if (vaultPage) {
-    // Always re-read credentials before rendering VaultPage (handles refreshes and navigation)
+    // Separate logic for registration/download and unlock flows
     vaultUser = localStorage.getItem('vaultUser');
     goldenKey = localStorage.getItem('goldenKey');
-    console.log('[App.jsx] (render) Passing to VaultPage:', { username: vaultUser, goldenKey });
-    return <VaultPage 
-      username={vaultUser}
-      goldenKey={goldenKey}
-      onLogout={() => {
-        setVaultPage(false);
-        setPage('login');
-        // Clear credentials on logout for safety
-        localStorage.removeItem('vaultUser');
-        localStorage.removeItem('goldenKey');
-      }} 
-    />;
+    justRegistered = localStorage.getItem('justRegistered') === 'true';
+    console.log('[App.jsx] (render) Passing to VaultPage:', { username: vaultUser, goldenKey, justRegistered });
+    // If just registered, allow direct access and clear flag after first vault access
+    if (justRegistered) {
+      setTimeout(() => localStorage.setItem('justRegistered', 'false'), 0);
+      return <VaultPage 
+        username={vaultUser}
+        goldenKey={goldenKey}
+        onLogout={() => {
+          setVaultPage(false);
+          setPage('login');
+          localStorage.removeItem('vaultUser');
+          localStorage.removeItem('goldenKey');
+        }} 
+      />;
+    }
+    // For unlock flow, only allow if credentials are present (set after verification)
+    if (vaultUser && goldenKey) {
+      return <VaultPage 
+        username={vaultUser}
+        goldenKey={goldenKey}
+        onLogout={() => {
+          setVaultPage(false);
+          setPage('login');
+          localStorage.removeItem('vaultUser');
+          localStorage.removeItem('goldenKey');
+        }} 
+      />;
+    }
+    // Otherwise, block access
+    return (
+      <div style={{ color: 'red', padding: 40, textAlign: 'center' }}>
+        Error: Missing required credentials. Please log in again.
+      </div>
+    );
   }
 
   // --- Main App UI ---
