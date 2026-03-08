@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+// DEBUG: Log component mount
+console.log('[DownloadShare] Component loaded');
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function DownloadShare() {
@@ -7,12 +9,14 @@ export default function DownloadShare() {
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
+  console.log('[DownloadShare] location.pathname:', location.pathname, 'location.search:', location.search);
   const localShareData = params.get('local_share');
   const goldenKey = params.get('golden_key');
   const username = params.get('username');
   let error = '';
   if (!localShareData || !goldenKey || !username) {
     error = 'Missing registration data. Please retry registration.';
+    console.warn('[DownloadShare] Missing registration data:', { localShareData, goldenKey, username });
   }
   // Store credentials for vault page as soon as possible
   if (username && goldenKey) {
@@ -24,6 +28,7 @@ export default function DownloadShare() {
   }
 
   const handleDownload = () => {
+    console.log('[DownloadShare] Download button clicked');
     if (!localShareData) return;
     setDownloading(true);
     const blob = new Blob([localShareData], { type: 'text/plain' });
@@ -35,6 +40,7 @@ export default function DownloadShare() {
     document.body.removeChild(a);
     setDownloading(false);
     // Immediately navigate to registration vault page after download (SPA navigation)
+    console.log('[DownloadShare] Navigating to /registration-vault');
     navigate('/registration-vault', { replace: true });
   };
 

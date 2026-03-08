@@ -85,9 +85,12 @@ const Icons = {
 
 // --- Main RegistrationVaultPage ---
 export default function RegistrationVaultPage() {
+  // DEBUG: Log component mount
+  console.log('[RegistrationVaultPage] Rendered!');
   // Use localStorage for username/goldenKey, but do not block rendering if missing
   const username = localStorage.getItem('username') || 'User';
   const goldenKey = localStorage.getItem('goldenKey') || '';
+  console.log('[RegistrationVaultPage] username:', username, 'goldenKey:', goldenKey);
 
   // ...copy all VaultPage logic, but remove credential checks and error for missing creds...
   // ...fetchVault, add password, UI, etc. (use goldenKey if present, else skip fetch)...
