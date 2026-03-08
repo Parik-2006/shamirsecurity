@@ -12,8 +12,8 @@ export default function RegistrationVaultPage() {
   const [newServiceUser, setNewServiceUser] = useState('');
   const [newPass, setNewPass] = useState('');
 
-  useEffect(() => {
-    if (!goldenKey) { setLoading(false); return; }
+  // Helper to fetch vault
+  const fetchVault = () => {
     setLoading(true);
     fetch(`${API_URL}/api/get_passwords`, {
       method: 'POST',
@@ -27,6 +27,11 @@ export default function RegistrationVaultPage() {
       })
       .catch(() => setError('Network error loading vault.'))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    if (!goldenKey) { setLoading(false); return; }
+    fetchVault();
   }, [username, goldenKey]);
 
   const handleAddPassword = async (e) => {
@@ -54,7 +59,7 @@ export default function RegistrationVaultPage() {
         setNewService('');
         setNewServiceUser('');
         setNewPass('');
-        setVaultData(data.passwords || []);
+        fetchVault(); // Fetch latest vault after add
       } else {
         setError('Save Error: ' + (data.message || 'Unknown error'));
       }
@@ -65,9 +70,18 @@ export default function RegistrationVaultPage() {
     }
   };
 
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
   return (
     <div style={{ maxWidth: 600, margin: '40px auto', padding: 24, background: '#181a20', borderRadius: 16, color: '#fff' }}>
-      <h2>Welcome, {username}!</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>Welcome, {username}!</h2>
+        <button onClick={handleLogout} style={{ background: '#FFD66B', color: '#181a20', fontWeight: 700, border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer' }}>Logout</button>
+      </div>
       <h3>Your Vault</h3>
       {error && <div style={{ color: 'red', marginBottom: 12 }}>{error}</div>}
       <form onSubmit={handleAddPassword} style={{ marginBottom: 24 }}>
