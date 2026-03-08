@@ -54,7 +54,7 @@ This project simulates secret management across critical security use cases:
 
 | Scenario | The Challenge | The Solution |
 | --- | --- | --- |
-| **🔑 Digital Vaults** | Protecting a Master Root Key. | **Threshold Logic:** Distribute 5 shares; require any 3 to open the vault. |
+| **🔑 Digital Vaults** | Protecting a Master Root Key. | **Threshold Logic:** Distribute 3 shares; require any 2 to open the vault. |
 | **🛰️ Nuclear/Military** | Preventing unauthorized launch. | **Multi-Sig Auth:** Multiple officers must provide their shares simultaneously. |
 | **☁️ Cloud Sharding** | Storing keys across different nodes. | **Distributed Storage:** Even if one node is breached, the secret is safe. |
 | **🧬 Inheritance** | Passing digital assets to heirs. | **Partial Disclosure:** Heirs receive shares that only work when combined. |
