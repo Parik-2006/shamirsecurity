@@ -45,10 +45,11 @@ function App() {
     const location = useLocation();
   // --- HOOKS: All hooks at the top, correct order ---
     // Always get credentials from localStorage at the top
-    const vaultUser = localStorage.getItem('vaultUser');
-    const goldenKey = localStorage.getItem('goldenKey');
-    console.log('[App.jsx] vaultUser from localStorage:', vaultUser);
-    console.log('[App.jsx] goldenKey from localStorage:', goldenKey);
+    // Only read from localStorage at the top for initial state, but always re-read before rendering VaultPage
+    let vaultUser = localStorage.getItem('vaultUser');
+    let goldenKey = localStorage.getItem('goldenKey');
+    console.log('[App.jsx] (top) vaultUser from localStorage:', vaultUser);
+    console.log('[App.jsx] (top) goldenKey from localStorage:', goldenKey);
   const navigate = useNavigate(); // Must be first in component
   const [page, setPage] = useState('login');
   const [unlockStep, setUnlockStep] = useState('login'); // 'login' or 'uploadShare'
@@ -248,11 +249,20 @@ function App() {
   // --- Route: Vault page ---
   // Always render vault page if vaultPage is true, regardless of credentials
   if (vaultPage) {
-    console.log('[App.jsx] Rendering VaultPage with:', { username: vaultUser, goldenKey });
+    // Always re-read credentials before rendering VaultPage (handles refreshes and navigation)
+    vaultUser = localStorage.getItem('vaultUser');
+    goldenKey = localStorage.getItem('goldenKey');
+    console.log('[App.jsx] (render) Passing to VaultPage:', { username: vaultUser, goldenKey });
     return <VaultPage 
       username={vaultUser}
       goldenKey={goldenKey}
-      onLogout={() => { setVaultPage(false); setPage('login'); }} 
+      onLogout={() => {
+        setVaultPage(false);
+        setPage('login');
+        // Clear credentials on logout for safety
+        localStorage.removeItem('vaultUser');
+        localStorage.removeItem('goldenKey');
+      }} 
     />;
   }
 
