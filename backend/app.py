@@ -603,9 +603,9 @@ def register_init():
             'created_at': time.time(),
             'completed': False
         }
-        # Clean up expired pending registrations (> 10 min old)
+        # Clean up expired pending registrations (> 10 min old), but never delete the current reg_id
         now = time.time()
-        expired = [k for k, v in pending_registrations.items() if now - v.get('created_at', 0) > 600]
+        expired = [k for k, v in pending_registrations.items() if k != reg_id and now - v.get('created_at', 0) > 600]
         for k in expired:
             del pending_registrations[k]
         save_pending_registrations()
@@ -658,16 +658,20 @@ def google_callback():
             return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Google+authentication+was+denied")
 
         if not state or state not in pending_registrations:
-            print(f"[GOOGLE CALLBACK] Invalid/expired registration state")
-            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Registration+expired.+Please+try+again.")
+            print(f"[GOOGLE CALLBACK] Invalid/expired registration state. State: {state}. Keys: {list(pending_registrations.keys())}")
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Registration+expired+or+not+found.+Please+try+again.")
 
         reg_data = pending_registrations[state]
-        username = reg_data['username']
-        share1 = reg_data['share1']
-        local_share = reg_data['local_share']
-        golden_key = reg_data['golden_key']
+        username = reg_data.get('username')
+        share1 = reg_data.get('share1')
+        local_share = reg_data.get('local_share')
+        golden_key = reg_data.get('golden_key')
 
-        print(f"[GOOGLE CALLBACK] Processing for user: {username}")
+        print(f"[GOOGLE CALLBACK] Processing for user: {username}, reg_id: {state}")
+        print(f"[GOOGLE CALLBACK] local_share present: {bool(local_share)}, golden_key present: {bool(golden_key)}")
+        if not local_share or not golden_key:
+            print(f"[GOOGLE CALLBACK] Missing local_share or golden_key for reg_id: {state}")
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Missing+share+data.+Please+retry+registration.")
 
         # Exchange authorization code for user's Google credentials
         flow = get_google_flow()
