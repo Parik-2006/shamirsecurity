@@ -1,8 +1,3 @@
-# --- TEST CALLBACK ENDPOINT ---
-@app.route('/api/test-callback')
-def test_callback():
-    print("[TEST CALLBACK] Hit!")
-    return "Callback reached!", 200
 #!/usr/bin/env python
 # --- Imports and App Initialization ---
 import secrets
@@ -22,6 +17,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 # Enable CORS for all routes (allow all origins by default)
 CORS(app)
+
 
 # --- CHECK CREDENTIALS ENDPOINT ---
 @app.route('/api/check_credentials', methods=['POST'])
@@ -57,11 +53,11 @@ def check_credentials():
         import traceback
         traceback.print_exc()
         return jsonify({"status": "error", "message": f"Credential check failed: {str(e)}"}), 500
-# Flask and CORS
-from flask import Flask, request, jsonify, redirect, send_from_directory
-from flask_cors import CORS
-# ...existing code...
-import logging
+# --- TEST CALLBACK ENDPOINT ---
+@app.route('/api/test-callback')
+def test_callback():
+    print("[TEST CALLBACK] Hit!")
+    return "Callback reached!", 200
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
