@@ -127,6 +127,7 @@ function App() {
           signal: controller.signal
         });
       } catch (err) {
+        console.error('[CreateVault] Fetch error:', err);
         if (err.name === 'AbortError') {
           setError('Vault creation timed out. Please try again or check your connection.');
           setLoading(false);
@@ -153,6 +154,7 @@ function App() {
           data = JSON.parse(raw);
         }
       } catch (jsonErr) {
+        console.error('[CreateVault] JSON parse error:', jsonErr, 'Raw:', raw);
         setError('Error parsing backend response: ' + jsonErr.message + '\nRaw: ' + raw);
         setLoading(false);
         return;
@@ -165,12 +167,16 @@ function App() {
       }
       if (data && data.message) {
         setError('Vault creation failed: ' + data.message);
+        console.error('[CreateVault] Backend error:', data.message);
       } else if (raw) {
         setError('Vault creation failed. Backend says: ' + raw);
+        console.error('[CreateVault] Backend says:', raw);
       } else {
         setError('Vault creation failed. No response from backend.');
+        console.error('[CreateVault] No response from backend.');
       }
     } catch (err) {
+      console.error('[CreateVault] General error:', err);
       setError('Could not connect to the server. Error: ' + err.message + (err.stack ? ('\n' + err.stack) : ''));
     } finally {
       setLoading(false);
