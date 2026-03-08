@@ -28,9 +28,15 @@ export function AuthSuccessPage() {
       setErrorMsg(decodeURIComponent(error.replace(/\+/g, ' ')));
     }
     if (window.opener && !window.opener.closed && regComplete) {
+      // Send both messages immediately for aggressive navigation
       window.opener.postMessage({ type: 'registration-complete', reg_complete: regComplete }, '*');
+      window.opener.postMessage({ type: 'registration-finish', reg_complete: regComplete }, '*');
+      // Auto-close this tab after a short delay
+      setTimeout(() => {
+        window.close();
+      }, 1200);
     }
-    // Notify main tab on close
+    // Still send finish on unload as backup
     const handleUnload = () => {
       if (window.opener && !window.opener.closed && regComplete) {
         window.opener.postMessage({ type: 'registration-finish', reg_complete: regComplete }, '*');
@@ -81,22 +87,24 @@ function App() {
   // --- Listen for registration-complete message from AuthSuccessPage ---
   useEffect(() => {
     function handleRegistrationComplete(event) {
-      if (event.data && event.data.type === 'registration-complete') {
-        setRegistrationComplete(true);
-        try { localStorage.setItem('reg_complete', event.data.reg_complete); } catch {}
-      }
-      // Listen for finish message to auto-navigate
-      if (event.data && event.data.type === 'registration-finish') {
-        try { localStorage.setItem('reg_complete', event.data.reg_complete); } catch {}
+      if (event.data && (event.data.type === 'registration-complete' || event.data.type === 'registration-finish')) {
         setRegistrationComplete(false);
+        try { localStorage.setItem('reg_complete', event.data.reg_complete); } catch {}
         navigate(`/download-share?reg_complete=${encodeURIComponent(event.data.reg_complete)}`);
         try { localStorage.removeItem('reg_complete'); } catch {}
         try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
       }
     }
     window.addEventListener('message', handleRegistrationComplete);
+    // Fallback: check localStorage on mount (in case message missed)
+    const regComplete = localStorage.getItem('reg_complete');
+    if (regComplete) {
+      navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
+      try { localStorage.removeItem('reg_complete'); } catch {}
+      try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
+    }
     return () => window.removeEventListener('message', handleRegistrationComplete);
-  }, []);
+  }, [navigate]);
 
   // --- Step 1: Start registration, get Google OAuth URL ---
   const handleCreateVault = async () => {
