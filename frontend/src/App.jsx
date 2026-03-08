@@ -246,7 +246,11 @@ function App() {
   // --- Route: Vault page ---
   // Always render vault page if vaultPage is true, regardless of credentials
   if (vaultPage) {
-    return <VaultPage onLogout={() => { setVaultPage(false); setPage('login'); }} />;
+    return <VaultPage 
+      username={vaultUser}
+      goldenKey={goldenKey}
+      onLogout={() => { setVaultPage(false); setPage('login'); }} 
+    />;
   }
 
   // --- Main App UI ---
