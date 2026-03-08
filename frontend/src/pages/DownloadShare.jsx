@@ -23,11 +23,7 @@ export default function DownloadShare() {
       }, 0);
       return;
     }
-    // Prevent double-fetch if already completed
-    if (window.sessionStorage.getItem('registration_complete') === regComplete) {
-      setError('Registration already completed. Please log in.');
-      return;
-    }
+    // Do not block download if registration_complete is set; always try backend
     fetch(`${import.meta.env.VITE_API_URL}/api/register/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
