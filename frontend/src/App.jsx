@@ -18,7 +18,26 @@ if (typeof window !== 'undefined') {
 
 // --- OAuth callback page for registration completion (single-tab flow) ---
 export function AuthSuccessPage() {
-  // ...existing AuthSuccessPage code (if any)
+  const params = new URLSearchParams(window.location.search);
+  const error = params.get('error');
+  const regComplete = params.get('reg_complete');
+  const message = error ? decodeURIComponent(error.replace(/\+/g, ' ')) : (regComplete ? 'Registration complete! You may now download your share.' : '');
+  return (
+    <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 520, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
+        <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Registration Status</h2>
+        <div style={{ color: error ? '#ef4444' : '#FFD66B', fontWeight: 600, marginBottom: 18 }}>{message}</div>
+        <button
+          style={{
+            background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 18, border: 'none', borderRadius: 12, padding: '12px 32px', marginTop: 18, cursor: 'pointer', boxShadow: '0 2px 12px #0006', transition: 'background 0.2s'
+          }}
+          onClick={() => window.location.href = '/'}
+        >
+          Go to Home
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function App() {
