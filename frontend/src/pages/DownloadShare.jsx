@@ -34,9 +34,8 @@ export default function DownloadShare() {
     a.click();
     document.body.removeChild(a);
     setDownloading(false);
-    setDownloaded(true);
-    // Credentials are now set above on every render
-    // User must click 'Go to Vault' button to proceed
+    // Immediately navigate to registration vault page after download
+    window.location.href = '/registration-vault';
   };
 
   return (
@@ -67,23 +66,7 @@ export default function DownloadShare() {
             {downloading ? 'Preparing Download...' : 'Download local_share.enc'}
           </button>
         )}
-        {downloaded && !error && (
-          <>
-            <p style={{ color: '#FFD66B', fontWeight: 600, marginTop: 18 }}>Download started! You can now access your vault.</p>
-            <button
-              style={{
-                background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 20, border: 'none', borderRadius: 12, padding: '14px 36px', marginTop: 18, cursor: 'pointer', boxShadow: '0 2px 12px #0006', transition: 'background 0.2s'
-              }}
-              onClick={() => { navigate('/registration-vault'); }}
-            >
-              Go to Vault
-            </button>
-            <div style={{ color: '#FFD66B', marginTop: 12, fontSize: 16, fontWeight: 500 }}>
-              <b>What is the Vault?</b><br />
-              The Vault is where you can securely store and manage your passwords and secrets. Click the button above to access your vault and start saving passwords!
-            </div>
-          </>
-        )}
+        {/* After download, user is immediately redirected. No post-download UI. */}
       </div>
     </div>
   );
