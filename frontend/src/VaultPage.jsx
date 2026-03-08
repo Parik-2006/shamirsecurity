@@ -769,7 +769,7 @@ function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
   return (
     <div className="app-wrapper">
       <ParticlesBackground />
-      <FloatingShapes zIndex={0} />
+      {/* <FloatingShapes zIndex={0} /> removed: not defined */}
       {/* cleaned up */}
       
       <div style={{ 
