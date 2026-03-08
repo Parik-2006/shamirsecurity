@@ -1,3 +1,4 @@
+  <Route path="/registration-vault" element={<RegistrationVaultPage />} />
 import { default as App, AuthSuccessPage } from './App';
   <Route path="/auth-success" element={<AuthSuccessPage />} />
 import React from 'react';
