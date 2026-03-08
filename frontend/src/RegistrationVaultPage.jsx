@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-098.onrender.com';
 
 export default function RegistrationVaultPage() {
+  const navigate = useNavigate();
   const username = localStorage.getItem('vaultUser') || 'User';
   const goldenKey = localStorage.getItem('goldenKey') || '';
   const [vaultData, setVaultData] = useState([]);
@@ -73,7 +75,7 @@ export default function RegistrationVaultPage() {
   // Logout handler
   const handleLogout = () => {
     localStorage.clear();
-    window.location.reload();
+    navigate('/');
   };
 
   return (
