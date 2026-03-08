@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import VaultPage from './VaultPage';
 import './App.css';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,6 +41,7 @@ export function AuthSuccessPage() {
 }
 
 function App() {
+    const location = useLocation();
   // --- HOOKS: All hooks at the top, correct order ---
   const navigate = useNavigate(); // Must be first in component
   const [page, setPage] = useState('login');
@@ -65,13 +66,17 @@ function App() {
 
   // Restore vault credentials from localStorage if missing
   useEffect(() => {
-    if (!vaultUser && localStorage.getItem('vaultUser')) {
-      setVaultUser(localStorage.getItem('vaultUser'));
+    // If on /vault, restore credentials and set vaultPage
+    if (location.pathname === '/vault') {
+      const storedUser = localStorage.getItem('vaultUser');
+      const storedKey = localStorage.getItem('goldenKey');
+      if (storedUser && storedKey) {
+        setVaultUser(storedUser);
+        setGoldenKey(storedKey);
+        setVaultPage(true);
+      }
     }
-    if (!goldenKey && localStorage.getItem('goldenKey')) {
-      setGoldenKey(localStorage.getItem('goldenKey'));
-    }
-  }, [vaultUser, goldenKey]);
+  }, [location]);
 
   // No polling for registration completion in main app; handled by postMessage only
 
