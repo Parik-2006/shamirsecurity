@@ -23,37 +23,44 @@ export default function DownloadShare() {
       }, 0);
       return;
     }
-    // Do not block download if registration_complete is set; always try backend
-    fetch(`${import.meta.env.VITE_API_URL}/api/register/complete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reg_id: regComplete })
-    })
-      .then(async res => {
-        const contentType = res.headers.get('Content-Type');
-        let raw = '';
-        let data = null;
-        try {
-          raw = await res.text();
-          if (raw && contentType && contentType.includes('application/json')) {
-            data = JSON.parse(raw);
+    let attempts = 0;
+    const fetchShare = () => {
+      fetch(`${import.meta.env.VITE_API_URL}/api/register/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reg_id: regComplete })
+      })
+        .then(async res => {
+          const contentType = res.headers.get('Content-Type');
+          let raw = '';
+          let data = null;
+          try {
+            raw = await res.text();
+            if (raw && contentType && contentType.includes('application/json')) {
+              data = JSON.parse(raw);
+            }
+          } catch {
+            data = null;
           }
-        } catch {
-          data = null;
-        }
-        return data;
-      })
-      .then(data => {
-        if (data && data.status === 'success' && data.local_share) {
-          setLocalShareData(data.local_share);
-          window.sessionStorage.setItem('registration_complete', regComplete);
-        } else {
-          setError((data && data.message) || 'Failed to retrieve vault share.');
-        }
-      })
-      .catch(() => {
-        setError('Network error while fetching vault share.');
-      });
+          return data;
+        })
+        .then(data => {
+          if (data && data.status === 'success' && data.local_share) {
+            setLocalShareData(data.local_share);
+            window.sessionStorage.setItem('registration_complete', regComplete);
+          } else if (data && data.message && data.message.includes('not completed yet') && attempts < 5) {
+            // Backend not ready, retry after short delay
+            attempts++;
+            setTimeout(fetchShare, 700);
+          } else {
+            setError((data && data.message) || 'Failed to retrieve vault share.');
+          }
+        })
+        .catch(() => {
+          setError('Network error while fetching vault share.');
+        });
+    };
+    fetchShare();
   }, [location]);
 
   const handleDownload = () => {
@@ -76,6 +83,7 @@ export default function DownloadShare() {
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 520, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
         <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Vault Share Download</h2>
+        <div style={{ fontSize: 12, color: '#FFD66B', marginBottom: 8 }}>reg_id: {new URLSearchParams(location.search).get('reg_complete') || 'N/A'}</div>
         <p style={{ fontSize: 18, marginBottom: 18, color: '#FFD66B' }}>
           <b>Why download this file?</b><br />
           <span style={{ color: '#fff', fontWeight: 400 }}>

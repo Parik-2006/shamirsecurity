@@ -18,27 +18,7 @@ if (typeof window !== 'undefined') {
 
 // --- OAuth callback page for registration completion (single-tab flow) ---
 export function AuthSuccessPage() {
-  const navigate = useNavigate();
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const regComplete = params.get('reg_complete');
-    const error = params.get('error');
-    if (error) {
-      alert(decodeURIComponent(error.replace(/\+/g, ' ')));
-      navigate('/');
-      return;
-    }
-    if (!regComplete) {
-      alert('Missing registration completion token.');
-      navigate('/');
-      return;
-    }
-    // Add a short delay to ensure backend is ready
-    setTimeout(() => {
-      navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
-    }, 800);
-  }, [navigate]);
-  return null;
+  // ...existing AuthSuccessPage code (if any)
 }
 
 function App() {
@@ -71,20 +51,11 @@ function App() {
     function handleRegistrationComplete(event) {
       if (event.data && (event.data.type === 'registration-complete' || event.data.type === 'registration-finish')) {
         setRegistrationComplete(false);
-        try { localStorage.setItem('reg_complete', event.data.reg_complete); } catch {}
         navigate(`/download-share?reg_complete=${encodeURIComponent(event.data.reg_complete)}`);
-        try { localStorage.removeItem('reg_complete'); } catch {}
         try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
       }
     }
     window.addEventListener('message', handleRegistrationComplete);
-    // Fallback: check localStorage on mount (in case message missed)
-    const regComplete = localStorage.getItem('reg_complete');
-    if (regComplete) {
-      navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
-      try { localStorage.removeItem('reg_complete'); } catch {}
-      try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
-    }
     return () => window.removeEventListener('message', handleRegistrationComplete);
   }, [navigate]);
 
