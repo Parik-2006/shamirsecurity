@@ -399,7 +399,8 @@ def load_pending_registrations():
 def save_pending_registrations():
     try:
         with open(PENDING_REG_PATH, 'w') as f:
-            json.dump(pending_registrations, f)
+            json.dump(pending_registrations, f, indent=2)
+        print(f"[PERSIST] Saved pending_registrations: {json.dumps(pending_registrations, indent=2)}")
     except Exception as e:
         print(f"[PERSIST] Failed to save pending_registrations: {e}")
 
@@ -704,6 +705,7 @@ def google_callback():
 
         # Mark registration as completed and persist to disk
         reg_data['completed'] = True
+        print(f"[GOOGLE CALLBACK] Marking registration as completed for reg_id: {state}")
         save_pending_registrations()
 
         # Redirect to /download-share with local_share and golden_key as URL params (base64url safe)
