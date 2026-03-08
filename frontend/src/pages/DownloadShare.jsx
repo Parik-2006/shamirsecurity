@@ -31,6 +31,7 @@ export default function DownloadShare() {
     if (username && goldenKey) {
       localStorage.setItem('vaultUser', username);
       localStorage.setItem('goldenKey', goldenKey);
+      localStorage.setItem('justRegistered', 'true');
     }
     // Immediately navigate to vault after download
     navigate('/vault');

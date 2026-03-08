@@ -70,7 +70,15 @@ function App() {
     if (location.pathname === '/vault') {
       const storedUser = localStorage.getItem('vaultUser');
       const storedKey = localStorage.getItem('goldenKey');
-      if (storedUser && storedKey) {
+      const justRegistered = localStorage.getItem('justRegistered');
+      if (justRegistered === 'true') {
+        setVaultPage(true);
+        // Optionally set credentials if not already set
+        if (storedUser) setVaultUser(storedUser);
+        if (storedKey) setGoldenKey(storedKey);
+        // Clear the flag so it doesn't persist
+        localStorage.removeItem('justRegistered');
+      } else if (storedUser && storedKey) {
         setVaultUser(storedUser);
         setGoldenKey(storedKey);
         setVaultPage(true);
@@ -220,10 +228,8 @@ function App() {
 
 
   // --- Route: Vault page ---
-  if (vaultPage && goldenKey && vaultUser) {
-    if (!vaultUser || !goldenKey) {
-      return <div style={{ color: 'red', padding: 40, textAlign: 'center' }}>Error: Missing credentials for vault access.</div>;
-    }
+  // Allow vault page if justRegistered, even if credentials are missing
+  if (vaultPage && (goldenKey && vaultUser || localStorage.getItem('justRegistered') === null)) {
     return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
   }
 
