@@ -658,7 +658,7 @@ def google_callback():
         code = request.args.get('code')
         state = request.args.get('state')  # This is our reg_id
         error = request.args.get('error')
-        
+
         if error:
             print(f"[GOOGLE CALLBACK] Error from Google: {error}")
             return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Google+authentication+was+denied")
@@ -679,49 +679,54 @@ def google_callback():
             print(f"[GOOGLE CALLBACK] Missing local_share or golden_key for reg_id: {state}")
             return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Missing+share+data.+Please+retry+registration.")
 
-        # Exchange authorization code for user's Google credentials
-        flow = get_google_flow()
-        code_verifier = reg_data.get('code_verifier')
-        if code_verifier:
-            flow.fetch_token(code=code, code_verifier=code_verifier)
-        else:
-            flow.fetch_token(code=code)
-        credentials = flow.credentials
-        # Check for MFA (2-step verification) in ID token
-        id_token = credentials.id_token
-        import jwt
-        mfa_enabled = False
-        if id_token:
-            try:
-                decoded = jwt.decode(id_token, options={"verify_signature": False})
-                amr = decoded.get('amr', [])
-                if 'mfa' in amr or 'otp' in amr or 'sms' in amr:
-                    mfa_enabled = True
-            except Exception as e:
-                print(f"[GOOGLE CALLBACK] Failed to decode ID token for MFA check: {e}")
+        try:
+            # Exchange authorization code for user's Google credentials
+            flow = get_google_flow()
+            code_verifier = reg_data.get('code_verifier')
+            if code_verifier:
+                flow.fetch_token(code=code, code_verifier=code_verifier)
+            else:
+                flow.fetch_token(code=code)
+            credentials = flow.credentials
+            # Check for MFA (2-step verification) in ID token
+            id_token = credentials.id_token
+            import jwt
+            mfa_enabled = False
+            if id_token:
+                try:
+                    decoded = jwt.decode(id_token, options={"verify_signature": False})
+                    amr = decoded.get('amr', [])
+                    if 'mfa' in amr or 'otp' in amr or 'sms' in amr:
+                        mfa_enabled = True
+                except Exception as e:
+                    print(f"[GOOGLE CALLBACK] Failed to decode ID token for MFA check: {e}")
 
-        # Upload share1 to THIS USER'S Google Drive
-        print(f"[GOOGLE CALLBACK] Uploading share1 to user's Google Drive...")
-        service = build('drive', 'v3', credentials=credentials)
-        file_metadata = {'name': f'{username}_share1.txt'}
-        media = MediaIoBaseUpload(io.BytesIO(share1.encode()), mimetype='text/plain')
-        service.files().create(body=file_metadata, media_body=media).execute()
-        print(f"[GOOGLE CALLBACK] Share1 uploaded to {username}'s Drive!")
+            # Upload share1 to THIS USER'S Google Drive
+            print(f"[GOOGLE CALLBACK] Uploading share1 to user's Google Drive...")
+            service = build('drive', 'v3', credentials=credentials)
+            file_metadata = {'name': f'{username}_share1.txt'}
+            media = MediaIoBaseUpload(io.BytesIO(share1.encode()), mimetype='text/plain')
+            service.files().create(body=file_metadata, media_body=media).execute()
+            print(f"[GOOGLE CALLBACK] Share1 uploaded to {username}'s Drive!")
 
-        # Mark registration as completed and persist to disk
-        reg_data['completed'] = True
-        print(f"[GOOGLE CALLBACK] Marking registration as completed for reg_id: {state}")
-        save_pending_registrations()
+            # Mark registration as completed and persist to disk
+            reg_data['completed'] = True
+            print(f"[GOOGLE CALLBACK] Marking registration as completed for reg_id: {state}")
+            save_pending_registrations()
 
-        # Redirect to /download-share with local_share and golden_key as URL params (base64url safe)
-        import urllib.parse
-        local_share_url = urllib.parse.quote(local_share)
-        golden_key_url = urllib.parse.quote(golden_key)
-        print(f"[GOOGLE CALLBACK] Redirecting to frontend /download-share with share in URL...")
-        return redirect(f"{FRONTEND_URL.rstrip('/')}/download-share?local_share={local_share_url}&golden_key={golden_key_url}&username={urllib.parse.quote(username)}")
-        
+            # Redirect to /download-share with local_share and golden_key as URL params (base64url safe)
+            import urllib.parse
+            local_share_url = urllib.parse.quote(local_share)
+            golden_key_url = urllib.parse.quote(golden_key)
+            print(f"[GOOGLE CALLBACK] Redirecting to frontend /download-share with share in URL...")
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/download-share?local_share={local_share_url}&golden_key={golden_key_url}&username={urllib.parse.quote(username)}")
+        except Exception as e:
+            print(f"[GOOGLE CALLBACK] Error during Google credential exchange or Drive upload: {e}")
+            error_msg = str(e)[:200].replace(' ', '+')
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error={error_msg}")
+
     except Exception as e:
-        print(f"[GOOGLE CALLBACK] Error: {e}")
+        print(f"[GOOGLE CALLBACK] Fatal error: {e}")
         error_msg = str(e)[:200].replace(' ', '+')
         return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error={error_msg}")
 
