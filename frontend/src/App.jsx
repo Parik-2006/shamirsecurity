@@ -24,7 +24,6 @@ export function AuthSuccessPage() {
     const regComplete = params.get('reg_complete');
     const error = params.get('error');
     if (error) {
-      // Show error if present
       alert(decodeURIComponent(error.replace(/\+/g, ' ')));
       navigate('/');
       return;
@@ -34,8 +33,10 @@ export function AuthSuccessPage() {
       navigate('/');
       return;
     }
-    // Redirect to download-share page with reg_complete param
-    navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
+    // Add a short delay to ensure backend is ready
+    setTimeout(() => {
+      navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
+    }, 800);
   }, [navigate]);
   return null;
 }
