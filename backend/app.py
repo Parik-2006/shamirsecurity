@@ -723,23 +723,18 @@ def register_complete():
         data = request.json
         reg_id = data.get('reg_id')
         now = time.time()
-        # Allow delivery for up to 10 minutes after completion
+        # Only expire if not completed within 10 minutes
         if not reg_id or reg_id not in pending_registrations:
             return jsonify({"status": "error", "message": "Invalid or expired registration. Please try again."}), 400
         reg_data = pending_registrations[reg_id]
         if not reg_data.get('completed'):
+            # Expire if not completed within 10 minutes
+            if now - reg_data.get('created_at', 0) > 600:
+                del pending_registrations[reg_id]
+                save_pending_registrations()
+                return jsonify({"status": "error", "message": "Registration expired. Please try again."}), 400
             return jsonify({"status": "error", "message": "Google authentication not completed yet."}), 400
-        # If already delivered, allow again for 10 minutes after completion
-        delivered_at = reg_data.get('delivered_at')
-        completed_at = reg_data.get('completed_at', reg_data.get('created_at', now))
-        if delivered_at and now - delivered_at > 600:
-            del pending_registrations[reg_id]
-            save_pending_registrations()
-            return jsonify({"status": "error", "message": "Registration expired. Please try again."}), 400
-        # Mark as delivered and set delivered_at
-        reg_data['delivered_at'] = reg_data.get('delivered_at', now)
-        reg_data['completed_at'] = reg_data.get('completed_at', now)
-        save_pending_registrations()
+        # Allow unlimited downloads after completion, never expire
         username = reg_data['username']
         result = {
             "status": "success",
