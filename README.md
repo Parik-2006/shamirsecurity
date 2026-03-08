@@ -77,7 +77,8 @@ This project is optimized for cloud-native environments and web-based interactio
 
 * The Node.js backend handles the polynomial math and coordinate generation.
 * The Express server manages the interactive simulation of splitting and joining secrets.
-* **Live Link:** [Insert your Render/Deployment link here]
+* **Live Link:** https://shamirsecurity-1-aclh.onrender.com
+
 
 ---
 
