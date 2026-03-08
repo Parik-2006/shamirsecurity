@@ -15,8 +15,17 @@ import traceback
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
-# Enable CORS for all routes (allow all origins by default)
-CORS(app)
+
+# Enable CORS for all /api/* endpoints and localhost for dev
+CORS(app, resources={r"/api/*": {"origins": [
+    "*",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://shamirsecurity.onrender.com",
+    "https://shamirsecurity-1.onrender.com",
+    "https://shamirsecurity-1234.onrender.com",
+    "https://shamirsecurity-1-aclh.onrender.com"
+]}}, supports_credentials=True)
 
 
 # --- CHECK CREDENTIALS ENDPOINT ---
