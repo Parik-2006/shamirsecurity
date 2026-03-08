@@ -47,6 +47,8 @@ function App() {
     // Always get credentials from localStorage at the top
     const vaultUser = localStorage.getItem('vaultUser');
     const goldenKey = localStorage.getItem('goldenKey');
+    console.log('[App.jsx] vaultUser from localStorage:', vaultUser);
+    console.log('[App.jsx] goldenKey from localStorage:', goldenKey);
   const navigate = useNavigate(); // Must be first in component
   const [page, setPage] = useState('login');
   const [unlockStep, setUnlockStep] = useState('login'); // 'login' or 'uploadShare'
@@ -246,6 +248,7 @@ function App() {
   // --- Route: Vault page ---
   // Always render vault page if vaultPage is true, regardless of credentials
   if (vaultPage) {
+    console.log('[App.jsx] Rendering VaultPage with:', { username: vaultUser, goldenKey });
     return <VaultPage 
       username={vaultUser}
       goldenKey={goldenKey}

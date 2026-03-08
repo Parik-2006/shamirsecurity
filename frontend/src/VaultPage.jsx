@@ -501,7 +501,10 @@ const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
 };
 
 function VaultPage({ username, goldenKey, onLogout, mfaWarning }) {
+  console.log('[VaultPage.jsx] username prop:', username);
+  console.log('[VaultPage.jsx] goldenKey prop:', goldenKey);
   if (!username || !goldenKey) {
+    console.error('[VaultPage.jsx] Missing credentials:', { username, goldenKey });
     return (
       <div style={{ color: 'red', padding: 40, textAlign: 'center' }}>
         Error: Missing required credentials. Please log in again.
