@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify, redirect, send_from_directory
 from flask_cors import CORS
 # ...existing code...
 import logging
-
+import traceback
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
@@ -62,7 +62,6 @@ def test_callback():
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 
-import traceback
 # --- GLOBAL ERROR HANDLERS FOR JSON RESPONSES ---
 @app.errorhandler(404)
 def not_found_error(error):
@@ -653,6 +652,9 @@ def google_callback():
     try:
         print("[GOOGLE CALLBACK] Endpoint hit!")
         print(f"[GOOGLE CALLBACK] Query params: {dict(request.args)}")
+        # Always reload pending_registrations from disk to handle stateless deployments
+        global pending_registrations
+        pending_registrations = load_pending_registrations()
         code = request.args.get('code')
         state = request.args.get('state')  # This is our reg_id
         error = request.args.get('error')
