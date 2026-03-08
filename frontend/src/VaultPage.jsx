@@ -1,12 +1,14 @@
 // frontend/src/VaultPage.jsx
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
   'https://shamirsecurity-098.onrender.com';
 
 export default function VaultPage({ username, goldenKey, onLogout }) {
+  const navigate = useNavigate();
   if (!username || !goldenKey) {
     return (
       <div style={{ color: 'red', padding: 40, textAlign: 'center' }}>
@@ -19,12 +21,7 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const [newService, setNewService] = useState('');
-  const [newServiceUser, setNewServiceUser] = useState('');
-  const [newPass, setNewPass] = useState('');
-
-  const [visiblePasswords, setVisiblePasswords] = useState({});
-  const [page, setPage] = useState('view');
+  // Remove add form and editing
 
   useEffect(() => {
     setLoading(true);
@@ -51,55 +48,7 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
       .finally(() => setLoading(false));
   }, [username, goldenKey]);
 
-  const handleAddPassword = async (e) => {
-    e.preventDefault();
-
-    if (!newService || !newPass) {
-      setError('Please fill Service name and Password');
-      return;
-    }
-
-    setError('');
-    setLoading(true);
-
-    try {
-      const res = await fetch(`${API_URL}/api/add_password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username,
-          golden_key: goldenKey,
-          service_name: newService,
-          service_username: newServiceUser,
-          password_to_save: newPass,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.status === 'success') {
-        setNewService('');
-        setNewServiceUser('');
-        setNewPass('');
-        setVaultData(data.passwords || []);
-      } else {
-        setError(
-          'Save Error: ' + (data.message || 'Unknown error')
-        );
-      }
-    } catch (e) {
-      setError('Save failed.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleToggleVisibility = (idx) => {
-    setVisiblePasswords({
-      ...visiblePasswords,
-      [idx]: !visiblePasswords[idx],
-    });
-  };
+  // Remove add password and visibility logic
 
   const handleLogout = () => {
     if (onLogout) onLogout();
@@ -128,13 +77,12 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
         <div>
           <h2 style={{ margin: 0 }}>{username}'s Vault</h2>
           <p style={{ margin: 0, color: '#888' }}>
-            {vaultData.length} secret
-            {vaultData.length !== 1 ? 's' : ''} stored
+            {vaultData.length} secret{vaultData.length !== 1 ? 's' : ''} stored
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button
-            onClick={() => setPage('add')}
+            onClick={() => navigate('/registration-vault')}
             style={{
               padding: '10px 18px',
               background: '#FFD66B',
@@ -145,7 +93,7 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
               fontWeight: 700,
             }}
           >
-            Add
+            Add New Password
           </button>
           <button
             onClick={handleLogout}
@@ -171,33 +119,7 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
         </div>
       )}
 
-      {/* ADD PASSWORD FORM */}
-      {page === 'add' && (
-        <form
-          onSubmit={handleAddPassword}
-          style={{ marginBottom: 30 }}
-        >
-          <input
-            placeholder="Service"
-            value={newService}
-            onChange={(e) => setNewService(e.target.value)}
-            style={{ marginRight: 8 }}
-          />
-          <input
-            placeholder="Username (optional)"
-            value={newServiceUser}
-            onChange={(e) => setNewServiceUser(e.target.value)}
-            style={{ marginRight: 8 }}
-          />
-          <input
-            placeholder="Password"
-            value={newPass}
-            onChange={(e) => setNewPass(e.target.value)}
-            style={{ marginRight: 8 }}
-          />
-          <button type="submit">Save</button>
-        </form>
-      )}
+
 
       {/* VAULT TABLE AREA: loading, empty, or table */}
       <div style={{ minHeight: 200 }}>
@@ -226,7 +148,6 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
                 <th style={{ color: '#FFD66B' }}>Service</th>
                 <th style={{ color: '#FFD66B' }}>Username</th>
                 <th style={{ color: '#FFD66B' }}>Password</th>
-                <th style={{ color: '#FFD66B' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -234,14 +155,7 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
                 <tr key={item.id || idx}>
                   <td>{item.service}</td>
                   <td>{item.username}</td>
-                  <td>
-                    {visiblePasswords[idx] ? item.password : '••••••••'}
-                  </td>
-                  <td>
-                    <button onClick={() => handleToggleVisibility(idx)}>
-                      {visiblePasswords[idx] ? 'Hide' : 'Show'}
-                    </button>
-                  </td>
+                  <td>{item.password}</td>
                 </tr>
               ))}
             </tbody>
