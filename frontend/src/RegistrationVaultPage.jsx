@@ -1,7 +1,4 @@
 // Helper: getServiceColor
-  );
-};
-// Helper: getServiceColor
 const getServiceColor = (str) => {
   const colors = [
     ['#00fff7', '#22d3ee', '#0a192f'],
