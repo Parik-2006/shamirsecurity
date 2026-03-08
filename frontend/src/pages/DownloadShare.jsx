@@ -34,8 +34,8 @@ export default function DownloadShare() {
     a.click();
     document.body.removeChild(a);
     setDownloading(false);
-    // Immediately navigate to registration vault page after download
-    window.location.href = '/registration-vault';
+    // Immediately navigate to registration vault page after download (SPA navigation)
+    navigate('/registration-vault', { replace: true });
   };
 
   return (
