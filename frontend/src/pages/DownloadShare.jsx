@@ -74,7 +74,7 @@ export default function DownloadShare() {
               style={{
                 background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 20, border: 'none', borderRadius: 12, padding: '14px 36px', marginTop: 18, cursor: 'pointer', boxShadow: '0 2px 12px #0006', transition: 'background 0.2s'
               }}
-              onClick={() => { window.location.href = '/registration-vault'; }}
+              onClick={() => { navigate('/registration-vault'); }}
             >
               Go to Vault
             </button>
