@@ -49,6 +49,7 @@ function App() {
     let vaultUser = localStorage.getItem('vaultUser');
     let goldenKey = localStorage.getItem('goldenKey');
     let justRegistered = localStorage.getItem('justRegistered') === 'true';
+    const [credentialsReady, setCredentialsReady] = useState(false);
     console.log('[App.jsx] (top) vaultUser from localStorage:', vaultUser);
     console.log('[App.jsx] (top) goldenKey from localStorage:', goldenKey);
     console.log('[App.jsx] (top) justRegistered:', justRegistered);
@@ -76,21 +77,15 @@ function App() {
 
   // Restore vault credentials from localStorage if missing
   useEffect(() => {
-    // If on /vault, just set vaultPage true
-    if (location.pathname === '/vault') {
-      // If credentials exist, open vault page
+    // If on /vault or /download-share, check for credentials and set credentialsReady
+    if (location.pathname === '/vault' || location.pathname === '/download-share') {
       const vaultUser = localStorage.getItem('vaultUser');
       const goldenKey = localStorage.getItem('goldenKey');
       if (vaultUser && goldenKey) {
+        setCredentialsReady(true);
         setVaultPage(true);
-      }
-    }
-    // If returning from registration (DownloadShare), auto-open vault if credentials exist
-    if (location.pathname === '/download-share') {
-      const vaultUser = localStorage.getItem('vaultUser');
-      const goldenKey = localStorage.getItem('goldenKey');
-      if (vaultUser && goldenKey) {
-        setVaultPage(true);
+      } else {
+        setCredentialsReady(false);
       }
     }
   }, [location]);
@@ -261,7 +256,7 @@ function App() {
 
   // --- Route: Vault page ---
   // Always render vault page if vaultPage is true, regardless of credentials
-  if (vaultPage) {
+  if (vaultPage && credentialsReady) {
     // Separate logic for registration/download and unlock flows
     vaultUser = localStorage.getItem('vaultUser');
     goldenKey = localStorage.getItem('goldenKey');
