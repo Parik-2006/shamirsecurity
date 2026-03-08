@@ -702,8 +702,8 @@ def google_callback():
         service.files().create(body=file_metadata, media_body=media).execute()
         print(f"[GOOGLE CALLBACK] Share1 uploaded to {username}'s Drive!")
 
-        # Remove local_share from pending_registrations for privacy
-        del pending_registrations[state]
+        # Mark registration as completed and persist to disk
+        reg_data['completed'] = True
         save_pending_registrations()
 
         # Redirect to /download-share with local_share and golden_key as URL params (base64url safe)
