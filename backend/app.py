@@ -660,13 +660,15 @@ def google_callback():
         if not state or state not in pending_registrations:
             print(f"[GOOGLE CALLBACK] Invalid/expired registration state")
             return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Registration+expired.+Please+try+again.")
-        
+
         reg_data = pending_registrations[state]
         username = reg_data['username']
         share1 = reg_data['share1']
-        
+        local_share = reg_data['local_share']
+        golden_key = reg_data['golden_key']
+
         print(f"[GOOGLE CALLBACK] Processing for user: {username}")
-        
+
         # Exchange authorization code for user's Google credentials
         flow = get_google_flow()
         code_verifier = reg_data.get('code_verifier')
@@ -687,11 +689,7 @@ def google_callback():
                     mfa_enabled = True
             except Exception as e:
                 print(f"[GOOGLE CALLBACK] Failed to decode ID token for MFA check: {e}")
-        # Mark registration as complete
-        pending_registrations[state]['completed'] = True
-        pending_registrations[state]['mfa_enabled'] = mfa_enabled
-        save_pending_registrations()
-        
+
         # Upload share1 to THIS USER'S Google Drive
         print(f"[GOOGLE CALLBACK] Uploading share1 to user's Google Drive...")
         service = build('drive', 'v3', credentials=credentials)
@@ -699,14 +697,17 @@ def google_callback():
         media = MediaIoBaseUpload(io.BytesIO(share1.encode()), mimetype='text/plain')
         service.files().create(body=file_metadata, media_body=media).execute()
         print(f"[GOOGLE CALLBACK] Share1 uploaded to {username}'s Drive!")
-        
-        # Mark registration as complete
-        pending_registrations[state]['completed'] = True
+
+        # Remove local_share from pending_registrations for privacy
+        del pending_registrations[state]
         save_pending_registrations()
-        
-        # Redirect to /auth-success for a dedicated close-message page
-        print(f"[GOOGLE CALLBACK] Redirecting to frontend /auth-success...")
-        return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?reg_complete={state}")
+
+        # Redirect to /download-share with local_share and golden_key as URL params (base64url safe)
+        import urllib.parse
+        local_share_url = urllib.parse.quote(local_share)
+        golden_key_url = urllib.parse.quote(golden_key)
+        print(f"[GOOGLE CALLBACK] Redirecting to frontend /download-share with share in URL...")
+        return redirect(f"{FRONTEND_URL.rstrip('/')}/download-share?local_share={local_share_url}&golden_key={golden_key_url}&username={urllib.parse.quote(username)}")
         
     except Exception as e:
         print(f"[GOOGLE CALLBACK] Error: {e}")

@@ -1,67 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function DownloadShare() {
-  // Remove showAuthComplete modal; download triggers immediate navigation
-  // Defensive: check for window and location
-  if (typeof window === 'undefined' || !window.location) {
-    return <div style={{ color: 'red', padding: 40 }}>Error: Environment not supported.</div>;
-  }
-  const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
-  const [localShareData, setLocalShareData] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const regComplete = params.get('reg_complete');
-    if (!regComplete) {
-      setTimeout(() => {
-        setError('Missing registration completion token.');
-      }, 0);
-      return;
-    }
-    let attempts = 0;
-    const fetchShare = () => {
-      fetch(`${import.meta.env.VITE_API_URL}/api/register/complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reg_id: regComplete })
-      })
-        .then(async res => {
-          const contentType = res.headers.get('Content-Type');
-          let raw = '';
-          let data = null;
-          try {
-            raw = await res.text();
-            if (raw && contentType && contentType.includes('application/json')) {
-              data = JSON.parse(raw);
-            }
-          } catch {
-            data = null;
-          }
-          return data;
-        })
-        .then(data => {
-          if (data && data.status === 'success' && data.local_share) {
-            setLocalShareData(data.local_share);
-            window.sessionStorage.setItem('registration_complete', regComplete);
-          } else if (data && data.message && data.message.includes('not completed yet') && attempts < 5) {
-            // Backend not ready, retry after short delay
-            attempts++;
-            setTimeout(fetchShare, 700);
-          } else {
-            setError((data && data.message) || 'Failed to retrieve vault share.');
-          }
-        })
-        .catch(() => {
-          setError('Network error while fetching vault share.');
-        });
-    };
-    fetchShare();
-  }, [location]);
+  const params = new URLSearchParams(location.search);
+  const localShareData = params.get('local_share');
+  const goldenKey = params.get('golden_key');
+  const username = params.get('username');
+  let error = '';
+  if (!localShareData || !goldenKey || !username) {
+    error = 'Missing registration data. Please retry registration.';
+  }
 
   const handleDownload = () => {
     if (!localShareData) return;
@@ -83,7 +35,7 @@ export default function DownloadShare() {
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 520, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
         <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Vault Share Download</h2>
-        <div style={{ fontSize: 12, color: '#FFD66B', marginBottom: 8 }}>reg_id: {new URLSearchParams(location.search).get('reg_complete') || 'N/A'}</div>
+        <div style={{ fontSize: 12, color: '#FFD66B', marginBottom: 8 }}>User: {username || 'N/A'}</div>
         <p style={{ fontSize: 18, marginBottom: 18, color: '#FFD66B' }}>
           <b>Why download this file?</b><br />
           <span style={{ color: '#fff', fontWeight: 400 }}>
@@ -93,22 +45,24 @@ export default function DownloadShare() {
             You will need this file if you ever want to restore your account or access your encrypted data from a new device.
           </span>
         </p>
-        {error && <p style={{ color: '#ef4444', fontWeight: 600 }}>{error}</p>}
+        {error && (
+          <div style={{ color: '#ef4444', fontWeight: 600, margin: '18px 0' }}>{error}</div>
+        )}
         {!error && !downloaded && localShareData && (
-            <button
-              onClick={handleDownload}
-              style={{
-                background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 20, border: 'none', borderRadius: 12, padding: '14px 36px', marginTop: 18, cursor: 'pointer', boxShadow: '0 2px 12px #0006', transition: 'background 0.2s'
-              }}
-              disabled={downloading}
-            >
-              {downloading ? 'Preparing Download...' : 'Download local_share.enc'}
-            </button>
-          )}
-          {downloaded && !error && (
-            <p style={{ color: '#FFD66B', fontWeight: 600, marginTop: 18 }}>Download started! Redirecting to your vault...</p>
-          )}
-        </div>
+          <button
+            onClick={handleDownload}
+            style={{
+              background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 20, border: 'none', borderRadius: 12, padding: '14px 36px', marginTop: 18, cursor: 'pointer', boxShadow: '0 2px 12px #0006', transition: 'background 0.2s'
+            }}
+            disabled={downloading}
+          >
+            {downloading ? 'Preparing Download...' : 'Download local_share.enc'}
+          </button>
+        )}
+        {downloaded && !error && (
+          <p style={{ color: '#FFD66B', fontWeight: 600, marginTop: 18 }}>Download started! Redirecting to your vault...</p>
+        )}
+      </div>
     </div>
   );
 }
