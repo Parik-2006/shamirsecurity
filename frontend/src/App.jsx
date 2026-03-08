@@ -78,11 +78,22 @@ function App() {
   useEffect(() => {
     // If on /vault, just set vaultPage true
     if (location.pathname === '/vault') {
-      setVaultPage(true);
-        const vaultUser = localStorage.getItem('vaultUser');
-        const goldenKey = localStorage.getItem('goldenKey');
+      // If credentials exist, open vault page
+      const vaultUser = localStorage.getItem('vaultUser');
+      const goldenKey = localStorage.getItem('goldenKey');
+      if (vaultUser && goldenKey) {
+        setVaultPage(true);
       }
-    }, [location]);
+    }
+    // If returning from registration (DownloadShare), auto-open vault if credentials exist
+    if (location.pathname === '/download-share') {
+      const vaultUser = localStorage.getItem('vaultUser');
+      const goldenKey = localStorage.getItem('goldenKey');
+      if (vaultUser && goldenKey) {
+        setVaultPage(true);
+      }
+    }
+  }, [location]);
   // No polling for registration completion in main app; handled by postMessage only
 
   // --- Listen for registration-complete message from AuthSuccessPage ---
