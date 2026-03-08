@@ -23,7 +23,10 @@ const particlesConfig = {
   },
   detectRetina: true
 };
-  
+
+const ParticlesBackground = () => {
+  const [engineReady, setEngineReady] = useState(false);
+
   useEffect(() => {
     initParticlesEngine(async (engine) => {
       await loadSlim(engine);
@@ -31,7 +34,9 @@ const particlesConfig = {
       setEngineReady(true);
     });
   }, []);
+
   if (!engineReady) return null;
+
   return (
     <Particles
       id="tsparticles-vault"
@@ -40,7 +45,6 @@ const particlesConfig = {
     />
   );
 };
-
 // --- Floating shapes placeholder (if used in VaultPage) ---
 const FloatingShapes = ({ zIndex }) => null;
 
