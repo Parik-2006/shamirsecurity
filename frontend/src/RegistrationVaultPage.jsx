@@ -85,16 +85,179 @@ const Icons = {
 
 // --- Main RegistrationVaultPage ---
 export default function RegistrationVaultPage() {
-  // DEBUG: Log component mount
-  console.log('[RegistrationVaultPage] Rendered!');
-  // Use localStorage for username/goldenKey, but do not block rendering if missing
-  const username = localStorage.getItem('username') || 'User';
+  // Always render vault UI, even if credentials are missing
+  const username = localStorage.getItem('vaultUser') || 'User';
   const goldenKey = localStorage.getItem('goldenKey') || '';
-  console.log('[RegistrationVaultPage] username:', username, 'goldenKey:', goldenKey);
+  const [vaultData, setVaultData] = useState([]);
+  const [visiblePasswords, setVisiblePasswords] = useState({});
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState('view');
+  const [refreshing, setRefreshing] = useState(false);
+  const [newService, setNewService] = useState('');
+  const [newServiceUser, setNewServiceUser] = useState('');
+  const [newPass, setNewPass] = useState('');
 
-  // ...copy all VaultPage logic, but remove credential checks and error for missing creds...
-  // ...fetchVault, add password, UI, etc. (use goldenKey if present, else skip fetch)...
+  const fetchVault = useCallback(async (isRefresh = false) => {
+    if (!goldenKey) { setLoading(false); return; }
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    let timeoutId;
+    try {
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), 2000);
+      const res = await fetch(`${API_URL}/api/get_passwords`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, golden_key: goldenKey }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      const data = await res.json();
+      if (data.status === 'success') {
+        setVaultData(data.passwords);
+      } else {
+        setError('Failed to load vault: ' + (data.message || 'Unknown error'));
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        setError('Vault fetch timed out. Please try again or check your connection.');
+      } else {
+        setError('Network error loading vault.');
+      }
+    } finally {
+      clearTimeout(timeoutId);
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [username, goldenKey]);
 
-  // For brevity, this patch sets up the structure. Full duplication will include all UI/UX, add/view secrets, etc.,
-  // but will not block rendering if credentials are missing. All credential checks and error returns are removed.
+  useEffect(() => {
+    fetchVault();
+  }, [fetchVault]);
+
+  const handleAddPassword = async () => {
+    if (!newService || !newPass) {
+      setError('Please fill Service name and Password');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/add_password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username,
+          golden_key: goldenKey,
+          service_name: newService,
+          service_username: newServiceUser,
+          password_to_save: newPass
+        }),
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setNewService('');
+        setNewServiceUser('');
+        setNewPass('');
+        await fetchVault();
+        setPage('view');
+      } else {
+        setError('Save Error: ' + (data.message || 'Unknown error'));
+      }
+    } catch (e) {
+      setError('Save failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleVisibility = (idx) => {
+    setVisiblePasswords((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  // Add Entry Form View
+  if (page === 'add') {
+    return (
+      <div className="app-wrapper">
+        <ParticlesBackground />
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10, width: '90%', maxWidth: '420px' }}>
+          <div className="glass-card card-glow" style={{ padding: '30px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <div className="form-icon gradient-icon">{Icons.lock}</div>
+              <h2 className="gradient-text-animated" style={{ margin: '12px 0 0 0', fontSize: '1.5rem' }}>Add New Secret</h2>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '6px' }}>Encrypt and store securely in your vault</p>
+            </div>
+            {error && (<div className="error-message" style={{ marginBottom: '15px' }}>{error}</div>)}
+            <div>
+              <div className="input-group">
+                <div className="input-icon">
+                  {/* Service icon */}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                </div>
+                <input id="vault-service" name="service" placeholder="Service (e.g. GitHub, Netflix)" autoComplete="organization" value={newService} onChange={e => setNewService(e.target.value)} />
+              </div>
+              <div className="input-group">
+                <div className="input-icon">
+                  {/* User icon */}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <input id="vault-service-username" name="serviceUsername" placeholder="Service Username (optional)" autoComplete="username" value={newServiceUser} onChange={e => setNewServiceUser(e.target.value)} />
+              </div>
+              <div className="input-group">
+                <div className="input-icon">
+                  {/* Password icon */}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <input type="password" id="vault-password" name="password" placeholder="Password to encrypt" autoComplete="new-password" value={newPass} onChange={e => setNewPass(e.target.value)} />
+              </div>
+              <div style={{ marginTop: '20px' }}>
+                <button onClick={handleAddPassword} disabled={loading} style={{ background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 18, border: 'none', borderRadius: 12, padding: '12px 32px', marginTop: 8, cursor: 'pointer', boxShadow: '0 2px 12px #0006', transition: 'background 0.2s' }}>Save Secret</button>
+                <button onClick={() => setPage('view')} style={{ marginLeft: 16, background: 'transparent', color: '#FFD66B', border: '2px solid #FFD66B', borderRadius: 12, padding: '10px 24px', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main Vault View
+  return (
+    <div className="app-wrapper">
+      <ParticlesBackground />
+      <div className="vault-header">
+        <div className="vault-title gradient-text-animated">Welcome, {username}!</div>
+        <button className="add-secret-btn" onClick={() => setPage('add')} style={{ background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 18, border: 'none', borderRadius: 12, padding: '12px 32px', marginTop: 8, cursor: 'pointer', boxShadow: '0 2px 12px #0006', transition: 'background 0.2s' }}>{Icons.plus} Add Secret</button>
+      </div>
+      <div className="vault-table-wrapper">
+        {loading ? (
+          <LoadingSpinner text="Loading your vault..." />
+        ) : error ? (
+          <div className="error-message" style={{ margin: '40px auto', color: '#ef4444', fontWeight: 600, textAlign: 'center' }}>{error}</div>
+        ) : (
+          <table className="vault-table">
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>Username</th>
+                <th>Password</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vaultData.length === 0 ? (
+                <tr><td colSpan={4} style={{ color: '#64748b', textAlign: 'center', padding: '40px 0' }}>No secrets saved yet. Click "Add Secret" to store your first password!</td></tr>
+              ) : (
+                vaultData.map((item, idx) => (
+                  <PasswordRow key={item.id || idx} item={item} index={idx} isVisible={!!visiblePasswords[idx]} onToggleVisibility={handleToggleVisibility} />
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
 }
