@@ -1,3 +1,8 @@
+# --- TEST CALLBACK ENDPOINT ---
+@app.route('/api/test-callback')
+def test_callback():
+    print("[TEST CALLBACK] Hit!")
+    return "Callback reached!", 200
 #!/usr/bin/env python
 # --- Imports and App Initialization ---
 import secrets
@@ -650,6 +655,8 @@ def google_callback():
     - Redirect back to frontend
     """
     try:
+        print("[GOOGLE CALLBACK] Endpoint hit!")
+        print(f"[GOOGLE CALLBACK] Query params: {dict(request.args)}")
         code = request.args.get('code')
         state = request.args.get('state')  # This is our reg_id
         error = request.args.get('error')
