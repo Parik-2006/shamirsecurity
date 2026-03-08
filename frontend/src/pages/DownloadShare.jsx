@@ -27,6 +27,11 @@ export default function DownloadShare() {
     document.body.removeChild(a);
     setDownloading(false);
     setDownloaded(true);
+    // Store credentials for vault page
+    if (username && goldenKey) {
+      localStorage.setItem('vaultUser', username);
+      localStorage.setItem('goldenKey', goldenKey);
+    }
     // Immediately navigate to vault after download
     navigate('/vault');
   };

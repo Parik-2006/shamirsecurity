@@ -41,6 +41,15 @@ export function AuthSuccessPage() {
 }
 
 function App() {
+    // Restore vault credentials from localStorage if missing
+    useEffect(() => {
+      if (!vaultUser && localStorage.getItem('vaultUser')) {
+        setVaultUser(localStorage.getItem('vaultUser'));
+      }
+      if (!goldenKey && localStorage.getItem('goldenKey')) {
+        setGoldenKey(localStorage.getItem('goldenKey'));
+      }
+    }, [vaultUser, goldenKey]);
   // --- HOOKS: All hooks at the top, correct order ---
   const navigate = useNavigate(); // Must be first in component
   const [page, setPage] = useState('login');
