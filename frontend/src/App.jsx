@@ -44,6 +44,9 @@ export function AuthSuccessPage() {
 function App() {
     const location = useLocation();
   // --- HOOKS: All hooks at the top, correct order ---
+    // Always get credentials from localStorage at the top
+    const vaultUser = localStorage.getItem('vaultUser');
+    const goldenKey = localStorage.getItem('goldenKey');
   const navigate = useNavigate(); // Must be first in component
   const [page, setPage] = useState('login');
   const [unlockStep, setUnlockStep] = useState('login'); // 'login' or 'uploadShare'
