@@ -18,13 +18,15 @@ export default function DownloadShare() {
     const params = new URLSearchParams(location.search);
     const regComplete = params.get('reg_complete');
     if (!regComplete) {
-      // cleaned up
       setTimeout(() => {
         setError('Missing registration completion token.');
       }, 0);
       return;
-    } else {
-      // cleaned up
+    }
+    // Prevent double-fetch if already completed
+    if (window.sessionStorage.getItem('registration_complete') === regComplete) {
+      setError('Registration already completed. Please log in.');
+      return;
     }
     fetch(`${import.meta.env.VITE_API_URL}/api/register/complete`, {
       method: 'POST',
@@ -42,22 +44,19 @@ export default function DownloadShare() {
           }
         } catch {
           data = null;
-          // cleaned up
         }
         return data;
       })
       .then(data => {
         if (data && data.status === 'success' && data.local_share) {
           setLocalShareData(data.local_share);
-          // cleaned up
+          window.sessionStorage.setItem('registration_complete', regComplete);
         } else {
           setError((data && data.message) || 'Failed to retrieve vault share.');
-          // cleaned up
         }
       })
       .catch(() => {
         setError('Network error while fetching vault share.');
-        // cleaned up
       });
   }, [location]);
 
