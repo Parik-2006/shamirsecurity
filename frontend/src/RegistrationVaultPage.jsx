@@ -1,3 +1,33 @@
+// Animated loading spinner
+const LoadingSpinner = ({ text = "Loading..." }) => (
+  <FM.motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    style={{ textAlign: 'center', padding: '60px' }}
+  >
+    <div className="spinner-container">
+      <FM.motion.div
+        className="spinner-ring"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+      />
+      <FM.motion.div
+        className="spinner-ring spinner-ring-2"
+        animate={{ rotate: -360 }}
+        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+      />
+    </div>
+    <FM.motion.p
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="gradient-text"
+      style={{ marginTop: '25px' }}
+    >
+      {text}
+    </FM.motion.p>
+  </FM.motion.div>
+);
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion as FM } from 'framer-motion';
 import Particles from '@tsparticles/react';
