@@ -1,3 +1,130 @@
+// Helper: getServiceColor
+const getServiceColor = (str) => {
+  const colors = [
+    ['#00fff7', '#22d3ee', '#0a192f'],
+    ['#00ff85', '#34d399', '#181c20'],
+    ['#ffe600', '#facc15', '#181c20'],
+    ['#0a192f', '#181c20', '#eaf6fb'],
+  ];
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
+
+// Helper: getServiceDomain
+const getServiceDomain = (serviceName) => {
+  const normalizedName = serviceName.toLowerCase().trim();
+  const domainMap = {
+    'netflix': 'netflix.com', 'prime': 'amazon.com', 'amazon prime': 'amazon.com', 'amazon': 'amazon.com',
+    'github': 'github.com', 'google': 'google.com', 'gmail': 'gmail.com', 'facebook': 'facebook.com',
+    'instagram': 'instagram.com', 'twitter': 'twitter.com', 'x': 'x.com', 'linkedin': 'linkedin.com',
+    'spotify': 'spotify.com', 'discord': 'discord.com', 'slack': 'slack.com', 'dropbox': 'dropbox.com',
+    'microsoft': 'microsoft.com', 'outlook': 'outlook.com', 'apple': 'apple.com', 'icloud': 'icloud.com',
+    'paypal': 'paypal.com', 'stripe': 'stripe.com', 'twitch': 'twitch.tv', 'reddit': 'reddit.com',
+    'pinterest': 'pinterest.com', 'snapchat': 'snapchat.com', 'tiktok': 'tiktok.com', 'youtube': 'youtube.com',
+    'whatsapp': 'whatsapp.com', 'telegram': 'telegram.org', 'zoom': 'zoom.us', 'notion': 'notion.so',
+    'figma': 'figma.com', 'adobe': 'adobe.com', 'canva': 'canva.com', 'trello': 'trello.com',
+    'jira': 'atlassian.com', 'bitbucket': 'bitbucket.org', 'gitlab': 'gitlab.com', 'heroku': 'heroku.com',
+    'vercel': 'vercel.com', 'netlify': 'netlify.com', 'aws': 'aws.amazon.com', 'azure': 'azure.microsoft.com',
+    'digitalocean': 'digitalocean.com', 'cloudflare': 'cloudflare.com', 'steam': 'steampowered.com',
+    'epic': 'epicgames.com', 'epic games': 'epicgames.com', 'playstation': 'playstation.com',
+    'psn': 'playstation.com', 'xbox': 'xbox.com', 'nintendo': 'nintendo.com', 'hotstar': 'hotstar.com',
+    'disney': 'disney.com', 'disney+': 'disneyplus.com', 'disneyplus': 'disneyplus.com', 'hbo': 'hbomax.com',
+    'hulu': 'hulu.com', 'crunchyroll': 'crunchyroll.com', 'ebay': 'ebay.com', 'walmart': 'walmart.com',
+    'target': 'target.com', 'flipkart': 'flipkart.com', 'myntra': 'myntra.com', 'zomato': 'zomato.com',
+    'swiggy': 'swiggy.com', 'uber': 'uber.com', 'ola': 'olacabs.com', 'airbnb': 'airbnb.com',
+    'booking': 'booking.com', 'expedia': 'expedia.com', 'coursera': 'coursera.org', 'udemy': 'udemy.com',
+    'skillshare': 'skillshare.com', 'duolingo': 'duolingo.com', 'khan academy': 'khanacademy.org',
+    'medium': 'medium.com', 'substack': 'substack.com', 'wordpress': 'wordpress.com', 'tumblr': 'tumblr.com',
+    'quora': 'quora.com', 'stackoverflow': 'stackoverflow.com', 'stack overflow': 'stackoverflow.com',
+    'hackerrank': 'hackerrank.com', 'leetcode': 'leetcode.com', 'codechef': 'codechef.com', 'codeforces': 'codeforces.com',
+    'behance': 'behance.net', 'dribbble': 'dribbble.com', 'producthunt': 'producthunt.com', 'product hunt': 'producthunt.com',
+  };
+  if (domainMap[normalizedName]) return domainMap[normalizedName];
+  for (const [key, domain] of Object.entries(domainMap)) {
+    if (normalizedName.includes(key) || key.includes(normalizedName)) return domain;
+  }
+  const cleanName = normalizedName.replace(/[^a-z0-9]/g, '');
+  return `${cleanName}.com`;
+};
+
+// ServiceLogo component
+const ServiceLogo = ({ serviceName }) => {
+  const [logoUrl, setLogoUrl] = useState(null);
+  const [logoLoaded, setLogoLoaded] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  useEffect(() => {
+    const domain = getServiceDomain(serviceName);
+    const googleFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+    const clearbitLogo = `https://logo.clearbit.com/${domain}`;
+    const img = new window.Image();
+    img.onload = () => { setLogoUrl(clearbitLogo); setLogoLoaded(true); };
+    img.onerror = () => {
+      const fallbackImg = new window.Image();
+      fallbackImg.onload = () => { setLogoUrl(googleFavicon); setLogoLoaded(true); };
+      fallbackImg.onerror = () => { setLogoError(true); };
+      fallbackImg.src = googleFavicon;
+    };
+    img.src = clearbitLogo;
+    return () => { img.onload = null; img.onerror = null; };
+  }, [serviceName]);
+  if (logoError || !logoLoaded) {
+    return <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'white' }}>{serviceName.charAt(0).toUpperCase()}</span>;
+  }
+  return <img src={logoUrl} alt={serviceName} style={{ width: '24px', height: '24px', objectFit: 'contain', borderRadius: '4px' }} onError={() => setLogoError(true)} />;
+};
+
+// PasswordRow component
+const PasswordRow = ({ item, index, isVisible, onToggleVisibility }) => {
+  const [copied, setCopied] = useState(false);
+  const colors = getServiceColor(item.service);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(item.password);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <FM.motion.tr
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      transition={{ delay: index * 0.05, type: "spring", stiffness: 300, damping: 30 }}
+      whileHover={{ backgroundColor: `${colors[0]}08` }}
+      style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+    >
+      <td style={{ padding: '16px 20px', width: '25%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '42px', height: '42px', minWidth: '42px', borderRadius: '10px', background: `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 600, color: 'white', boxShadow: `0 4px 12px ${colors[0]}30`, overflow: 'hidden', flexShrink: 0 }}>
+            <ServiceLogo serviceName={item.service} colors={colors} />
+          </div>
+          <span style={{ fontWeight: 700, color: colors[0], textTransform: 'uppercase', fontSize: '0.95rem', letterSpacing: '0.5px' }}>{item.service}</span>
+        </div>
+      </td>
+      <td style={{ padding: '16px 20px', color: '#cbd5e1', fontSize: '0.95rem', width: '25%' }}>
+        {item.username || <span style={{ color: '#64748b', fontStyle: 'italic' }}>-</span>}
+      </td>
+      <td style={{ padding: '16px 20px', width: '25%' }}>
+        <span style={{ fontFamily: 'monospace', letterSpacing: isVisible ? '1px' : '3px', fontSize: '1rem', color: isVisible ? '#10b981' : '#e2e8f0', fontWeight: isVisible ? 500 : 400 }}>
+          {isVisible ? item.password : '••••••••••••'}
+        </span>
+      </td>
+      <td style={{ padding: '16px 20px', width: '25%' }}>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', alignItems: 'center' }}>
+          <FM.motion.button onClick={() => onToggleVisibility(index)} whileHover={{ scale: 1.08, boxShadow: '0 4px 18px #FFD70055' }} whileTap={{ scale: 0.96 }} title={isVisible ? 'Hide Password' : 'Show Password'} style={{ padding: '10px 16px', borderRadius: '12px', background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)', border: '2.5px solid #FFD700', color: '#FFD700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.95rem', fontWeight: 700, minWidth: '90px', boxShadow: '0 4px 18px #FFD70055', textShadow: '0 2px 8px #FFD70044', perspective: 400, transformStyle: 'preserve-3d' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(6deg)'} onMouseOut={e => e.currentTarget.style.transform = 'none'}>
+            {isVisible ? Icons.eyeOff : Icons.eye}
+            <span>{isVisible ? 'Hide' : 'Show'}</span>
+          </FM.motion.button>
+          <FM.motion.button onClick={handleCopy} whileHover={{ scale: 1.08, boxShadow: '0 4px 18px #FFD70055' }} whileTap={{ scale: 0.96 }} title="Copy Password" style={{ padding: '10px 16px', borderRadius: '12px', background: 'linear-gradient(90deg, #151A21 60%, #FFD700 100%)', border: '2.5px solid #FFD700', color: '#FFD700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.95rem', fontWeight: 700, minWidth: '90px', boxShadow: '0 4px 18px #FFD70055', textShadow: '0 2px 8px #FFD70044', perspective: 400, transformStyle: 'preserve-3d' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04) rotateY(-6deg)'} onMouseOut={e => e.currentTarget.style.transform = 'none'}>
+            {copied ? (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>) : Icons.copy}
+            <span>{copied ? 'Copied!' : 'Copy'}</span>
+          </FM.motion.button>
+        </div>
+      </td>
+    </FM.motion.tr>
+  );
+};
 // Animated loading spinner
 const LoadingSpinner = ({ text = "Loading..." }) => (
   <FM.motion.div
