@@ -118,7 +118,7 @@ function App() {
         setError('API URL is not configured.'); setLoading(false); return;
       }
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // Faster timeout for fetch
       let res;
       try {
         res = await fetch(`${API_URL}/api/register/init`, {
