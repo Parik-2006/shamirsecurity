@@ -39,6 +39,8 @@ export default function QuantumAppRouter({ username, goldenKey, onLogout }) {
 
         <Route path="/verification" element={<Verification />} />
 
+        <Route path="/auth-success" element={<AuthSuccessPage />} />
+
         <Route
           path="/vault"
           element={
