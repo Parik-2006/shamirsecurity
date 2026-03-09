@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     chunkSizeWarningLimit: 1500, // Increase limit to suppress warning for large bundles
+    sourcemap: true, // Enable source maps for production builds
   },
   server: {
     port: 3000,
