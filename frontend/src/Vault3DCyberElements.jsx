@@ -63,3 +63,4 @@ export default function Vault3DCyberElements({ zIndex = 1 }) {
       />
     </div>
   );
+}

@@ -129,3 +129,4 @@ export default function Cyber3DShapes({ zIndex = 1 }) {
       </motion.div>
     </div>
   );
+}

@@ -39,3 +39,4 @@ export default function FloatingOrbs({ zIndex = 0 }) {
       ))}
     </div>
   );
+}
