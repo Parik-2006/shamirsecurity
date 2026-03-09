@@ -73,3 +73,4 @@ export default function CyberLogin3D() {
       </div>
     </div>
   );
+}
