@@ -1,94 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { API_URL } from '../config';
 
-export default function DownloadShare({ shareData }) {
-  // shareData: { filename, content }
-  const handleDownload = () => {
-    if (!shareData) return;
-    const blob = new Blob([shareData.content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = shareData.filename || 'share.txt';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 100);
-  };
-
-  return (
-    <div
-      style={{
-        padding: 40,
-        color: '#00fff7',
-        background: '#0a192f',
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <h1>Download Share</h1>
-      <p>
-        Click below to download your share file. Keep it safe!
-      </p>
-      <button
-        onClick={handleDownload}
-        style={{
-          marginTop: 32,
-          padding: '12px 32px',
-          background: '#FFD700',
-          color: '#0a192f',
-          border: 'none',
-          borderRadius: 10,
-          fontWeight: 700,
-          fontSize: 18,
-          cursor: 'pointer',
-          boxShadow: '0 2px 8px #FFD70044',
-        }}
-        disabled={!shareData}
-      >
-        Download Share
-      </button>
-      {!shareData && (
-        <div style={{ color: 'red', marginTop: 20 }}>
-          No share data available.
-        </div>
-      )}
-    </div>
-  );
-}
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function DownloadShare() {
-  // Defensive: check for window and location
-  if (typeof window === 'undefined' || !window.location) {
-    return <div style={{ color: 'red', padding: 40 }}>Error: Environment not supported.</div>;
-  }
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   const [localShareData, setLocalShareData] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  // Defensive: check for window and location
+  // All hooks must be called before any return
+
 
   useEffect(() => {
+    if (typeof window === 'undefined' || !window.location) return;
     const params = new URLSearchParams(location.search);
     const regComplete = params.get('reg_complete');
     if (!regComplete) {
-      // cleaned up
       setTimeout(() => {
         setError('Missing registration completion token.');
       }, 0);
       return;
-    } else {
-      // cleaned up
     }
-    fetch(`${import.meta.env.VITE_API_URL}/api/register/complete`, {
+    fetch(`${API_URL}/api/register/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reg_id: regComplete })
@@ -104,24 +40,24 @@ export default function DownloadShare() {
           }
         } catch {
           data = null;
-          // cleaned up
         }
         return data;
       })
       .then(data => {
         if (data && data.status === 'success' && data.local_share) {
           setLocalShareData(data.local_share);
-          // cleaned up
         } else {
           setError((data && data.message) || 'Failed to retrieve vault share.');
-          // cleaned up
         }
       })
       .catch(() => {
         setError('Network error while fetching vault share.');
-        // cleaned up
       });
   }, [location]);
+
+  if (typeof window === 'undefined' || !window.location) {
+    return <div style={{ color: 'red', padding: 40 }}>Error: Environment not supported.</div>;
+  }
 
   const handleDownload = () => {
     if (!localShareData) return;

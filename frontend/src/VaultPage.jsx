@@ -2,10 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  'https://shamirsecurity-098.onrender.com';
+import { API_URL } from './config';
 
 export default function VaultPage({ username, goldenKey, onLogout }) {
   const navigate = useNavigate();

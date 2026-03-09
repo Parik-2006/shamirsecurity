@@ -10,12 +10,7 @@ import FloatingShapes from './FloatingShapes';
 import FloatingOrbs from './FloatingOrbs';
 import Nav3D from './components/Nav3D';
 import AboutPage from './pages/about.jsx';
-
-// Safely resolve API URL from environment
-const API_URL = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
-  ? import.meta.env.VITE_API_URL
-  : '';
-
+import { API_URL } from './config';
 
 // --- OAuth callback page for registration completion ---
 function AuthSuccessPage() {

@@ -1,6 +1,7 @@
 // UnlockWithShare.jsx
 // Restored: Handles uploading the user's share after login
 import React, { useRef, useState } from 'react';
+import { API_URL } from './config';
 
 export default function UnlockWithShare({ username, password, onUnlock, onBack }) {
   const [localShare, setLocalShare] = useState(null);
@@ -21,7 +22,7 @@ export default function UnlockWithShare({ username, password, onUnlock, onBack }
     setError('');
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://shamirsecurity-098.onrender.com'}/api/login`, {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, local_share: localShare })
