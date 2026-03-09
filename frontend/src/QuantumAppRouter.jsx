@@ -2,6 +2,8 @@
 import { default as App, AuthSuccessPage } from './App';
   <Route path="/auth-success" element={<AuthSuccessPage />} />
 import React from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 import VaultPage from './VaultPage';
@@ -10,6 +12,20 @@ import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import DownloadShare from './pages/DownloadShare';
 // Duplicate import removed
+
+function AnimatedGridBG() {
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0, pointerEvents: 'none' }}>
+      <Canvas camera={{ position: [0, 0, 8], fov: 60 }} style={{ background: 'transparent' }}>
+        <ambientLight intensity={0.5} />
+        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -2]}>
+          <gridHelper args={[40, 40, '#00ffe7', '#00ffe7']} />
+        </mesh>
+        <OrbitControls enableZoom={false} enablePan={false} enableRotate={false} />
+      </Canvas>
+    </div>
+  );
+}
 
 function Layout({ children }) {
   const location = useLocation();
@@ -21,8 +37,7 @@ function Layout({ children }) {
 
   return (
     <>
-      {/* cleaned up */}
-
+      <AnimatedGridBG />
       <div style={containerStyle}>
         {children}
       </div>

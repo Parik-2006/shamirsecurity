@@ -79,28 +79,28 @@ export default function RegistrationVaultPage() {
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: '40px auto', padding: 24, background: '#181a20', borderRadius: 16, color: '#fff' }}>
+    <div className="cyber-card" style={{ maxWidth: 600, margin: '40px auto', padding: 24, color: '#fff' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Welcome, {username}!</h2>
-        <button onClick={handleLogout} style={{ background: '#FFD66B', color: '#181a20', fontWeight: 700, border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer' }}>Logout</button>
+        <h2 className="cyber-glow">Welcome, {username}!</h2>
+        <button className="cyber-btn" onClick={handleLogout} style={{ padding: '8px 18px' }}>Logout</button>
       </div>
-      <h3>Your Vault</h3>
+      <h3 className="cyber-glow">Your Vault</h3>
       {error && <div style={{ color: 'red', marginBottom: 12 }}>{error}</div>}
-      <form onSubmit={handleAddPassword} style={{ marginBottom: 24 }}>
-        <input placeholder="Service" value={newService} onChange={e => setNewService(e.target.value)} style={{ marginRight: 8 }} />
-        <input placeholder="Username (optional)" value={newServiceUser} onChange={e => setNewServiceUser(e.target.value)} style={{ marginRight: 8 }} />
-        <input placeholder="Password" value={newPass} onChange={e => setNewPass(e.target.value)} style={{ marginRight: 8 }} />
-        <button type="submit" style={{ padding: '6px 18px' }}>Add</button>
+      <form onSubmit={handleAddPassword} style={{ marginBottom: 24, display: 'flex', gap: 8 }}>
+        <input placeholder="Service" value={newService} onChange={e => setNewService(e.target.value)} style={{ borderRadius: 8, padding: '8px 10px', border: '1.5px solid #00ffe7', background: '#10141a', color: '#00ffe7', fontWeight: 600 }} />
+        <input placeholder="Username (optional)" value={newServiceUser} onChange={e => setNewServiceUser(e.target.value)} style={{ borderRadius: 8, padding: '8px 10px', border: '1.5px solid #00ffe7', background: '#10141a', color: '#00ffe7', fontWeight: 600 }} />
+        <input placeholder="Password" value={newPass} onChange={e => setNewPass(e.target.value)} style={{ borderRadius: 8, padding: '8px 10px', border: '1.5px solid #00ffe7', background: '#10141a', color: '#00ffe7', fontWeight: 600 }} />
+        <button className="cyber-btn" type="submit" style={{ padding: '6px 18px', fontSize: 16 }}>Add</button>
       </form>
       {loading ? (
-        <div>Loading...</div>
+        <div className="cyber-loader" />
       ) : (
-        <table style={{ width: '100%', background: '#23272f', borderRadius: 8 }}>
+        <table style={{ width: '100%', background: '#23272f', borderRadius: 8, boxShadow: '0 0 16px #00ffe733' }}>
           <thead>
             <tr>
-              <th style={{ color: '#FFD66B' }}>Service</th>
-              <th style={{ color: '#FFD66B' }}>Username</th>
-              <th style={{ color: '#FFD66B' }}>Password</th>
+              <th style={{ color: '#00ffe7', fontWeight: 700 }}>Service</th>
+              <th style={{ color: '#00ffe7', fontWeight: 700 }}>Username</th>
+              <th style={{ color: '#00ffe7', fontWeight: 700 }}>Password</th>
             </tr>
           </thead>
           <tbody>
@@ -109,9 +109,9 @@ export default function RegistrationVaultPage() {
             ) : (
               vaultData.map((item, idx) => (
                 <tr key={item.id || idx}>
-                  <td>{item.service}</td>
-                  <td>{item.username}</td>
-                  <td>{item.password}</td>
+                  <td style={{ color: '#00ffe7', fontWeight: 600 }}>{item.service}</td>
+                  <td style={{ color: '#00ffe7', fontWeight: 600 }}>{item.username}</td>
+                  <td style={{ color: '#00ffe7', fontWeight: 600 }}>{item.password}</td>
                 </tr>
               ))
             )}

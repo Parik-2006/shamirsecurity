@@ -4,6 +4,7 @@ import VaultPage from './VaultPage';
 import RegistrationVaultPage from './RegistrationVaultPage';
 import UnlockWithShare from './UnlockWithShare';
 import './App.css';
+import CyberBG from './components/CyberBG';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Set your backend API URL here:
@@ -286,13 +287,14 @@ function App() {
 
   // --- Main App UI ---
   return (
-    <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', width: '100vw', background: 'radial-gradient(ellipse at 60% 40%, #0B0D10 80%, #0a1a22 100%)', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <CyberBG />
       {/* AnimatePresence and motion.div removed for static UI */}
       {page === 'login' && unlockStep === 'login' && (
         <div
           style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
         >
-          <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
+          <div className="cyber-card" style={{ maxWidth: 420, width: '95vw', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 8, gap: 14 }}>
               <span style={{ display: 'flex', alignItems: 'center', height: 40, marginRight: 6 }}>
                 <svg width="38" height="38" viewBox="0 0 54 64" fill="none" style={{ display: 'block', verticalAlign: 'middle' }}>
@@ -301,7 +303,7 @@ function App() {
                   <path d="M14 28v-8a13 13 0 0 1 26 0v8" stroke="#FFD700" strokeWidth="3" fill="none" />
                 </svg>
               </span>
-              <h1 style={{ color: '#FFD66B', fontWeight: 800, fontSize: 40, textAlign: 'center', margin: 0, letterSpacing: 1.2, textShadow: '0 2px 6px #FFD66B55', lineHeight: 1, verticalAlign: 'middle' }}>Shamir Vault</h1>
+              <h1 className="cyber-glow" style={{ fontWeight: 800, fontSize: 40, textAlign: 'center', margin: 0, letterSpacing: 1.2, lineHeight: 1, verticalAlign: 'middle' }}>Shamir Vault</h1>
             </div>
             <p style={{ color: '#FFD66B', fontSize: '1.1rem', textAlign: 'center', marginBottom: 28, letterSpacing: 0.7, textShadow: '0 1px 4px #FFD66B44' }}>
               Secure Multi-Key Secret Management
@@ -348,46 +350,16 @@ function App() {
                 }}
               />
               <button
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  fontSize: 20,
-                  fontWeight: 800,
-                  background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                  color: '#FFD66B',
-                  border: '2px solid #23272f',
-                  borderRadius: 14,
-                  cursor: 'pointer',
-                  marginBottom: 18,
-                  boxShadow: '0 2px 8px #23272f55',
-                  letterSpacing: 1.1,
-                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                  textShadow: '0 2px 8px #FFD66B33',
-                  opacity: loading ? 0.7 : 1,
-                }}
+                className="cyber-btn"
+                style={{ width: '100%', marginBottom: 18, opacity: loading ? 0.7 : 1 }}
                 onClick={handleCreateVault}
                 disabled={loading}
               >
                 Create New Vault
               </button>
               <button
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  fontSize: 20,
-                  fontWeight: 800,
-                  background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)',
-                  color: '#FFD66B',
-                  border: '2px solid #23272f',
-                  borderRadius: 14,
-                  cursor: 'pointer',
-                  marginBottom: 8,
-                  boxShadow: '0 2px 8px #23272f55',
-                  letterSpacing: 1.1,
-                  transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
-                  textShadow: '0 2px 8px #FFD66B33',
-                  opacity: loading ? 0.7 : 1,
-                }}
+                className="cyber-btn"
+                style={{ width: '100%', marginBottom: 8, opacity: loading ? 0.7 : 1 }}
                 onClick={handleUnlockLogin}
                 disabled={loading}
               >

@@ -56,12 +56,11 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
 
   return (
     <div
+      className="cyber-card"
       style={{
         maxWidth: 800,
         margin: '40px auto',
         padding: 24,
-        background: '#181a20',
-        borderRadius: 16,
         color: '#fff',
       }}
     >
@@ -75,37 +74,23 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
         }}
       >
         <div>
-          <h2 style={{ margin: 0 }}>{username}'s Vault</h2>
-          <p style={{ margin: 0, color: '#888' }}>
+          <h2 className="cyber-glow" style={{ margin: 0 }}>{username}'s Vault</h2>
+          <p style={{ margin: 0, color: '#00ffe7', fontWeight: 600 }}>
             {vaultData.length} secret{vaultData.length !== 1 ? 's' : ''} stored
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button
+            className="cyber-btn"
             onClick={() => navigate('/registration-vault')}
-            style={{
-              padding: '10px 18px',
-              background: '#FFD66B',
-              color: '#181a20',
-              borderRadius: 10,
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: 700,
-            }}
+            style={{ padding: '10px 18px', fontSize: 16 }}
           >
             Add New Password
           </button>
           <button
+            className="cyber-btn"
             onClick={handleLogout}
-            style={{
-              padding: '10px 18px',
-              background: '#FFD66B',
-              color: '#181a20',
-              borderRadius: 10,
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: 700,
-            }}
+            style={{ padding: '10px 18px', fontSize: 16 }}
           >
             Logout
           </button>
@@ -124,7 +109,7 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
       {/* VAULT TABLE AREA: loading, empty, or table */}
       <div style={{ minHeight: 200 }}>
         {loading ? (
-          <div>Loading...</div>
+          <div className="cyber-loader" />
         ) : vaultData.length === 0 ? (
           <div
             style={{
@@ -141,21 +126,22 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
               width: '100%',
               borderCollapse: 'collapse',
               background: '#23272f',
+              boxShadow: '0 0 16px #00ffe733',
             }}
           >
             <thead>
               <tr>
-                <th style={{ color: '#FFD66B' }}>Service</th>
-                <th style={{ color: '#FFD66B' }}>Username</th>
-                <th style={{ color: '#FFD66B' }}>Password</th>
+                <th style={{ color: '#00ffe7', fontWeight: 700 }}>Service</th>
+                <th style={{ color: '#00ffe7', fontWeight: 700 }}>Username</th>
+                <th style={{ color: '#00ffe7', fontWeight: 700 }}>Password</th>
               </tr>
             </thead>
             <tbody>
               {vaultData.map((item, idx) => (
                 <tr key={item.id || idx}>
-                  <td>{item.service}</td>
-                  <td>{item.username}</td>
-                  <td>{item.password}</td>
+                  <td style={{ color: '#00ffe7', fontWeight: 600 }}>{item.service}</td>
+                  <td style={{ color: '#00ffe7', fontWeight: 600 }}>{item.username}</td>
+                  <td style={{ color: '#00ffe7', fontWeight: 600 }}>{item.password}</td>
                 </tr>
               ))}
             </tbody>

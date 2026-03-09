@@ -63,10 +63,9 @@ export default function DownloadShare() {
         )}
         {!error && !downloaded && localShareData && (
           <button
+            className="cyber-btn"
             onClick={handleDownload}
-            style={{
-              background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 20, border: 'none', borderRadius: 12, padding: '14px 36px', marginTop: 18, cursor: 'pointer', boxShadow: '0 2px 12px #0006', transition: 'background 0.2s'
-            }}
+            style={{ marginTop: 18, fontSize: 20, padding: '14px 36px' }}
             disabled={downloading}
           >
             {downloading ? 'Preparing Download...' : 'Download local_share.enc'}
