@@ -11,6 +11,8 @@ import FloatingOrbs from './FloatingOrbs';
 import Nav3D from './components/Nav3D';
 import AboutPage from './pages/about.jsx';
 import { API_URL } from './config';
+import './App.css';
+import './index.css';
 
 // --- OAuth callback page for registration completion ---
 function AuthSuccessPage() {
@@ -203,22 +205,13 @@ export default function App() {
 
   // Main app UI
   return (
-    <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-wrapper" style={{ minHeight: '100vh', width: '100vw', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: 'var(--bg-dark)' }}>
       <FloatingShapes zIndex={0} />
-      {(page === 'login' || page === 'verification') && (
-        <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
-          <TopRightNav onNavigate={target => {
-            if (target === 'about') {
-              setShowAbout(true);
-              sessionStorage.setItem('about_seen', '1');
-            } else {
-              setPage(target);
-            }
-          }} />
-        </div>
-      )}
+      <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
+        <Nav3D onNavigate={handleNavigate} />
+      </div>
       <AnimatePresence mode="wait">
-        {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
+        {showAbout && <AboutPage show={showAbout} onClose={() => setShowAbout(false)} />}
         {page === 'login' && !showLocalShareStep && (
           <motion.div
             key="login"
@@ -290,8 +283,8 @@ export default function App() {
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
           >
             <CyberLogin3D zIndex={2} />
-            <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
-              <h2 style={{ color: '#FFD66B', fontWeight: 800, fontSize: 28, textAlign: 'center', marginBottom: 18 }}>Upload Your local_share.enc</h2>
+            <div className="glass-card card-glow" style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
+              <h2 className="gradient-text" style={{ fontWeight: 800, fontSize: 28, textAlign: 'center', marginBottom: 18 }}>Upload Your local_share.enc</h2>
               <input
                 type="file"
                 accept=".enc,.txt"
@@ -306,41 +299,27 @@ export default function App() {
                 style={{ marginBottom: 18 }}
               />
               <button
-                className="floating"
-                style={{ width: '100%', padding: '16px', fontSize: 20, fontWeight: 800, background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)', color: '#FFD66B', border: '2px solid #23272f', borderRadius: 14, cursor: 'pointer', marginBottom: 8, boxShadow: '0 2px 8px #23272f55', letterSpacing: 1.1, transition: 'all 0.18s cubic-bezier(.4,2,.6,1)', textShadow: '0 2px 8px #FFD66B33', opacity: loading ? 0.7 : 1 }}
+                className="btn-gradient-cyan floating"
+                style={{ width: '100%', padding: '16px', fontSize: 20, fontWeight: 800, border: '2px solid #23272f', borderRadius: 14, cursor: 'pointer', marginBottom: 8, letterSpacing: 1.1, transition: 'all 0.18s cubic-bezier(.4,2,.6,1)', textShadow: '0 2px 8px #00fff733', opacity: loading ? 0.7 : 1 }}
                 onClick={handleLocalShareUpload}
                 disabled={loading}
               >
                 Unlock Vault
               </button>
               <button
-                style={{ marginTop: 10, color: '#FFD66B', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 16 }}
+                className="btn-ghost"
+                style={{ marginTop: 10, fontWeight: 600, fontSize: 16 }}
                 onClick={() => { setShowLocalShareStep(false); setLocalShare(null); setError(''); setSuccess(''); }}
               >
                 &larr; Back to Login
               </button>
-              {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
-              {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
+              {error && <div className="error-message" style={{ margin: '10px 0', fontWeight: 600 }}>{error}</div>}
+              {success && <div style={{ color: '#00ff85', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
             </div>
           </motion.div>
         )}
-        {page === 'verification' && (
-          <Verification
-            username={username}
-            setUsername={setUsername}
-            password={password}
-            setPassword={setPassword}
-            setVaultPage={setVaultPage}
-            setGoldenKey={setGoldenKey}
-            setVaultUser={setVaultUser}
-            setLocalShare={setLocalShare}
-            setShowDownloadModal={setShowDownloadModal}
-            setError={setError}
-            setSuccess={setSuccess}
-            setPage={setPage}
-          />
-        )}
       </AnimatePresence>
+      {/* ...existing code for DownloadShareModal, TestWindowOpen, etc. ... */}
       <DownloadShareModal show={showDownloadModal} onDownload={handleDownloadShare} onClose={() => setShowDownloadModal(false)} />
       <TestWindowOpen />
     </div>
