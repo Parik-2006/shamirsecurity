@@ -7,6 +7,7 @@ import CyberLogin3D from './CyberLogin3D';
 import UnlockWithShare from './UnlockWithShare';
 import VaultPage from './VaultPage';
 import FloatingShapes from './FloatingShapes';
+import FloatingOrbs from './FloatingOrbs';
 
 // Safely resolve API URL from environment
 const API_URL = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
@@ -259,6 +260,7 @@ export default function App() {
             transition={{ duration: 0.6, ease: 'anticipate' }}
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
           >
+            <FloatingOrbs zIndex={2} />
             <CyberLogin3D onLoginSuccess={handleLoginSuccess} />
           </motion.div>
         )}
