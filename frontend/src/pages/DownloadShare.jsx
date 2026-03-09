@@ -1,6 +1,69 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+export default function DownloadShare({ shareData }) {
+  // shareData: { filename, content }
+  const handleDownload = () => {
+    if (!shareData) return;
+    const blob = new Blob([shareData.content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = shareData.filename || 'share.txt';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
+  return (
+    <div
+      style={{
+        padding: 40,
+        color: '#00fff7',
+        background: '#0a192f',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <h1>Download Share</h1>
+      <p>
+        Click below to download your share file. Keep it safe!
+      </p>
+      <button
+        onClick={handleDownload}
+        style={{
+          marginTop: 32,
+          padding: '12px 32px',
+          background: '#FFD700',
+          color: '#0a192f',
+          border: 'none',
+          borderRadius: 10,
+          fontWeight: 700,
+          fontSize: 18,
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px #FFD70044',
+        }}
+        disabled={!shareData}
+      >
+        Download Share
+      </button>
+      {!shareData && (
+        <div style={{ color: 'red', marginTop: 20 }}>
+          No share data available.
+        </div>
+      )}
+    </div>
+  );
+}
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 export default function DownloadShare() {
   // Defensive: check for window and location
   if (typeof window === 'undefined' || !window.location) {

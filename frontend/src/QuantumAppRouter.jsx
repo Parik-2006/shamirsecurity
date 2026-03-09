@@ -1,10 +1,14 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
-import VaultPage from './VaultPage';
+// import VaultPage from './VaultPage';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
+import AboutPage from './pages/about';
 import DownloadShare from './pages/DownloadShare';
+import VaultPage from './VaultPage';
+import RegistrationVaultPage from './RegistrationVaultPage';
+import UnlockWithShare from './UnlockWithShare';
 import App from './App';
 
 function Layout({ children }) {
@@ -26,34 +30,58 @@ function Layout({ children }) {
   );
 }
 
-export default function QuantumAppRouter({ username, goldenKey, onLogout }) {
+export default function QuantumAppRouter() {
   return (
     <Layout>
-      <Routes>
+      // frontend/src/QuantumAppRouter.jsx
 
-        <Route path="/" element={<App />} />
+      import React, { useState } from 'react';
+      import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+      import RegistrationVaultPage from './RegistrationVaultPage';
+      import UnlockWithShare from './UnlockWithShare';
+      import VaultPage from './VaultPage';
 
-        <Route path="/documentation" element={<Documentation />} />
+      export default function QuantumAppRouter() {
+        const [username, setUsername] = useState(() => localStorage.getItem('username'));
+        const [goldenKey, setGoldenKey] = useState(() => localStorage.getItem('goldenKey'));
 
-        <Route path="/verification" element={<Verification />} />
+        const handleLogin = (user, key) => {
+          setUsername(user);
+          setGoldenKey(key);
+          localStorage.setItem('username', user);
+          localStorage.setItem('goldenKey', key);
+        };
 
-        <Route
-          path="/vault"
-          element={
-            <VaultPage
-              username={username}
-              goldenKey={goldenKey}
-              onLogout={onLogout}
-            />
-          }
-        />
+        const handleLogout = () => {
+          setUsername(null);
+          setGoldenKey(null);
+          localStorage.removeItem('username');
+          localStorage.removeItem('goldenKey');
+        };
 
-        <Route path="/download-share" element={<DownloadShare />} />
-
-        {/* fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-
-      </Routes>
-    </Layout>
-  );
-}
+        return (
+          <Router>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  username && goldenKey ? (
+                    <VaultPage username={username} goldenKey={goldenKey} onLogout={handleLogout} />
+                  ) : (
+                    <RegistrationVaultPage onLogin={handleLogin} />
+                  )
+                }
+              />
+              <Route
+                path="/unlock"
+                element={<UnlockWithShare onLogin={handleLogin} />}
+              />
+              <Route
+                path="/registration-vault"
+                element={<RegistrationVaultPage onLogin={handleLogin} />}
+              />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </Router>
+        );
+      }

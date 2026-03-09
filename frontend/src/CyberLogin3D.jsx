@@ -1,8 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
 import FloatingShapes from "./FloatingShapes";
-import Cyber3DShapes from "./Cyber3DShapes";
+// import Cyber3DShapes from "./Cyber3DShapes";
 
-export default function CyberLogin3D() {
+export default function CyberLogin3D({ onLoginSuccess }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setError("");
+    if (!username || !password) {
+      setError("Please enter username and password.");
+      return;
+    }
+    // Simulate login success, call parent handler
+    if (onLoginSuccess) {
+      onLoginSuccess({ username, password });
+    }
+  };
+
   return (
     <div
       style={{
@@ -15,7 +32,7 @@ export default function CyberLogin3D() {
       }}
     >
       {/* Background animated shapes */}
-      <Cyber3DShapes zIndex={0} />
+      {/* <Cyber3DShapes zIndex={0} /> */}
 
       {/* Login Card */}
       <div
@@ -33,43 +50,51 @@ export default function CyberLogin3D() {
           Cyber Login
         </h2>
 
-        <input
-          type="text"
-          placeholder="Username"
-          style={{
-            width: "100%",
-            padding: "10px",
-            marginBottom: "15px",
-            borderRadius: "6px",
-            border: "none",
-          }}
-        />
+        <form onSubmit={handleLogin}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px",
+              marginBottom: "15px",
+              borderRadius: "6px",
+              border: "none",
+            }}
+          />
 
-        <input
-          type="password"
-          placeholder="Password"
-          style={{
-            width: "100%",
-            padding: "10px",
-            marginBottom: "20px",
-            borderRadius: "6px",
-            border: "none",
-          }}
-        />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px",
+              marginBottom: "20px",
+              borderRadius: "6px",
+              border: "none",
+            }}
+          />
 
-        <button
-          style={{
-            width: "100%",
-            padding: "10px",
-            background: "#00fff7",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "bold",
-          }}
-        >
-          Login
-        </button>
+          <button
+            type="submit"
+            style={{
+              width: "100%",
+              padding: "10px",
+              background: "#00fff7",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontWeight: "bold",
+            }}
+          >
+            Login
+          </button>
+        </form>
+        {error && <p style={{ color: '#FFD700', marginTop: 12 }}>{error}</p>}
       </div>
     </div>
   );

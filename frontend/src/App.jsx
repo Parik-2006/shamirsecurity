@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import Documentation from './pages/documentation.jsx';
 import Verification from './pages/verification.jsx';
-import VaultPage from './VaultPage';
 import CyberLogin3D from './CyberLogin3D';
+import UnlockWithShare from './UnlockWithShare';
+import VaultPage from './VaultPage';
 
 // Safely resolve API URL from environment
 const API_URL = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
@@ -12,18 +13,17 @@ const API_URL = typeof import.meta !== 'undefined' && import.meta.env && import.
   : '';
 
 
-// --- Top Navigation with 3D Buttons ---
-const TopRightNav = ({ onNavigate }) => {
-  const btn3D = {
-    background: 'linear-gradient(145deg, #151A21 60%, #23272f 100%)',
+// --- Top Navigation with classic buttons ---
+const TopNav = ({ onNavigate }) => {
+  const btnStyle = {
+    background: '#23272f',
     color: '#FFD700',
-    border: '2.5px solid #FFD700',
-    borderRadius: 14,
-    fontWeight: 800,
+    border: '2px solid #FFD700',
+    borderRadius: 10,
+    fontWeight: 700,
     fontSize: 15,
-    padding: '12px 28px',
-    margin: 0,
-    boxShadow: '4px 4px 16px #0a192f99, -4px -4px 16px #23272f55, 0 2px 8px #FFD70033',
+    padding: '10px 22px',
+    margin: '0 8px',
     cursor: 'pointer',
     outline: 'none',
     transition: 'all 0.18s cubic-bezier(.4,2,.6,1)',
@@ -32,23 +32,13 @@ const TopRightNav = ({ onNavigate }) => {
     minWidth: 0,
     minHeight: 0,
     lineHeight: 1.2,
-    display: 'flex',
-    alignItems: 'center',
-    gap: 0,
-    perspective: 400,
-    transformStyle: 'preserve-3d',
+    display: 'inline-block',
   };
   return (
-    <div style={{ display: 'flex', gap: 16 }}>
-      <button onClick={() => onNavigate('documentation')} style={btn3D}>
-        <span style={{ color: '#FFD700' }}>Documentation</span>
-      </button>
-      <button onClick={() => onNavigate('verification')} style={btn3D}>
-        <span style={{ color: '#FFD700' }}>Verification</span>
-      </button>
-      <button onClick={() => onNavigate('about')} style={btn3D}>
-        <span style={{ color: '#FFD700' }}>About</span>
-      </button>
+    <div style={{ display: 'flex', gap: 8 }}>
+      <button onClick={() => onNavigate('documentation')} style={btnStyle}>Documentation</button>
+      <button onClick={() => onNavigate('verification')} style={btnStyle}>Verification</button>
+      <button onClick={() => onNavigate('about')} style={btnStyle}>About</button>
     </div>
   );
 };
@@ -135,7 +125,7 @@ function AuthSuccessPage() {
       if (regComplete) {
         try {
           localStorage.setItem('reg_complete', regComplete);
-        } catch {}
+        } catch {/* ignore */}
       }
       if (window.opener && !window.opener.closed && regComplete) {
         try {
@@ -152,7 +142,7 @@ function AuthSuccessPage() {
             if (raw && contentType && contentType.includes('application/json')) {
               data = JSON.parse(raw);
             }
-          } catch (jsonErr) {
+          } catch {
             data = null;
           }
           if (data && data.status === 'success') {
@@ -188,18 +178,10 @@ function AuthSuccessPage() {
 }
 
 export default function App() {
-  // --- HOOKS: All hooks at the top, correct order ---
-  const navigate = useNavigate(); // Must be first in component
+  const navigate = useNavigate();
   const [page, setPage] = useState('login');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [goldenKey, setGoldenKey] = useState(null);
-  const [vaultUser, setVaultUser] = useState(null);
-  const [vaultPage, setVaultPage] = useState(false);
-  const [localShare, setLocalShare] = useState(null);
+  const [unlockStep, setUnlockStep] = useState(null); // null | 'uploadShare' | 'vault'
+  const [vaultData, setVaultData] = useState(null); // Store credentials/share
   const [showAbout, setShowAbout] = useState(() => {
     try {
       const seen = sessionStorage.getItem('about_seen');
@@ -209,127 +191,7 @@ export default function App() {
     }
   });
 
-  // --- Poll for registration completion after registration attempt ---
-  useEffect(() => {
-    let intervalId;
-    try {
-      if (!window.sessionStorage.getItem('registration_attempted')) return;
-      const onLoginPage = window.location.pathname === '/' || window.location.pathname === '/login';
-      if (onLoginPage) {
-        intervalId = setInterval(() => {
-          let regCompleteStored = null;
-          try { regCompleteStored = localStorage.getItem('reg_complete'); } catch {}
-          if (regCompleteStored) {
-            navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
-            try { localStorage.removeItem('reg_complete'); } catch {}
-            try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
-            clearInterval(intervalId);
-          }
-        }, 500);
-      }
-    } catch {}
-    return () => intervalId && clearInterval(intervalId);
-  }, [navigate]);
-
-  // --- Listen for registration-complete message from AuthSuccessPage ---
-  useEffect(() => {
-    function handleRegistrationComplete(event) {
-      if (event.data && event.data.type === 'registration-complete') {
-        if (event.data.reg_complete) {
-          try { localStorage.setItem('reg_complete', event.data.reg_complete); } catch {}
-          navigate(`/download-share?reg_complete=${encodeURIComponent(event.data.reg_complete)}`);
-        } else if (event.data.username) {
-          navigate(`/download-share?username=${encodeURIComponent(event.data.username)}`);
-        }
-      }
-    }
-    window.addEventListener('message', handleRegistrationComplete);
-    // On mount, check localStorage for reg_complete
-    let regCompleteStored = null;
-    try { regCompleteStored = localStorage.getItem('reg_complete'); } catch {}
-    const onLoginPage = window.location.pathname === '/' || window.location.pathname === '/login';
-    if (regCompleteStored && window.location.pathname !== '/download-share') {
-      navigate(`/download-share?reg_complete=${encodeURIComponent(regCompleteStored)}`);
-      try { localStorage.removeItem('reg_complete'); } catch {}
-      try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
-    } else if (window.sessionStorage.getItem('registration_attempted') && onLoginPage) {
-      // No reg_complete found after registration attempt
-    }
-    // Also check URL params for reg_complete on login page
-    if (onLoginPage) {
-      const params = new URLSearchParams(window.location.search);
-      const regComplete = params.get('reg_complete');
-      if (regComplete) {
-        navigate(`/download-share?reg_complete=${encodeURIComponent(regComplete)}`);
-        try { window.sessionStorage.removeItem('registration_attempted'); } catch {}
-      }
-    }
-    return () => window.removeEventListener('message', handleRegistrationComplete);
-  }, [navigate]);
-
-  // --- Step 1: Start registration, get Google OAuth URL ---
-  const handleCreateVault = async () => {
-    setError(''); setSuccess(''); setLoading(true);
-    try { window.sessionStorage.setItem('registration_attempted', '1'); } catch {}
-    try {
-      if (!username || !password) {
-        setError('Please enter username and password.'); setLoading(false); return;
-      }
-      if (!API_URL) {
-        setError('API URL is not configured.'); setLoading(false); return;
-      }
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
-      let res;
-      try {
-        res = await fetch(`${API_URL}/api/register/init`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password }),
-          signal: controller.signal
-        });
-      } catch (err) {
-        if (err.name === 'AbortError') {
-          setError('Vault creation timed out. Please try again or check your connection.');
-          setLoading(false);
-          return;
-        } else {
-          throw err;
-        }
-      } finally {
-        clearTimeout(timeoutId);
-      }
-      const contentType = res.headers.get('Content-Type');
-      let raw = '';
-      let data = null;
-      try {
-        raw = await res.text();
-        if (raw && contentType && contentType.includes('application/json')) {
-          data = JSON.parse(raw);
-        }
-      } catch (jsonErr) {
-        data = null;
-      }
-      if (data && data.auth_url) {
-        setSuccess('Redirecting to Google sign-in...');
-        window.location.href = data.auth_url;
-        return;
-      }
-      if (data && data.message) {
-        setError('Vault creation failed: ' + data.message);
-      } else if (raw) {
-        setError('Vault creation failed. Backend says: ' + raw);
-      } else {
-        setError('Vault creation failed. No response from backend.');
-      }
-    } catch {
-      setError('Could not connect to the server. Please check your internet connection or try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // --- Step 2: After Google OAuth, complete registration and redirect to download page ---
+  // Registration complete: redirect to download share
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const regComplete = params.get('reg_complete');
@@ -338,54 +200,40 @@ export default function App() {
     }
   }, [navigate]);
 
-  // --- Step 3: Unlock vault (user uploads local_share.enc) ---
-  const handleUnlockVault = async () => {
-    setError(''); setSuccess(''); setLoading(true);
-    try {
-      if (!username || !password || !localShare) {
-        setError('Please enter username, password, and upload your local_share.enc file.'); setLoading(false); return;
-      }
-      if (!API_URL) {
-        setError('API URL is not configured.'); setLoading(false); return;
-      }
-      const res = await fetch(`${API_URL}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, local_share: localShare })
-      });
-      const contentType = res.headers.get('Content-Type');
-      let raw = '';
-      let data = null;
-      try {
-        raw = await res.text();
-        if (raw && contentType && contentType.includes('application/json')) {
-          data = JSON.parse(raw);
-        }
-      } catch {
-        data = null;
-      }
-      if (data && data.status === 'success') {
-        setGoldenKey(data.golden_key);
-        setVaultUser(username);
-        setVaultPage(true);
-        setSuccess('Vault unlocked!');
-      } else {
-        setError((data && data.message) || 'Unlock failed.');
-      }
-    } catch {
-      setError('Network error unlocking vault.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Handle navigation for docs, verification, about
   const handleNavigate = (target) => {
     if (target === 'about') {
       setShowAbout(true);
-      try { sessionStorage.setItem('about_seen', '1'); } catch {}
     } else {
       setPage(target);
     }
+  };
+
+  // Handle login success (simulate, should be called from CyberLogin3D)
+  const handleLoginSuccess = (credentials) => {
+    setUnlockStep('uploadShare');
+    setVaultData({ credentials });
+    setPage('unlock');
+  };
+
+  // Handle unlock with share success
+  const handleUnlockSuccess = (share) => {
+    // Store credentials and share in localStorage
+    if (vaultData && vaultData.credentials) {
+      localStorage.setItem('vault_credentials', JSON.stringify(vaultData.credentials));
+    }
+    localStorage.setItem('vault_share', share);
+    setUnlockStep('vault');
+    setPage('vault');
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('vault_credentials');
+    localStorage.removeItem('vault_share');
+    setVaultData(null);
+    setUnlockStep(null);
+    setPage('login');
   };
 
   // --- Route: OAuth callback ---
@@ -393,45 +241,13 @@ export default function App() {
     return <AuthSuccessPage />;
   }
 
-  // --- Route: Vault page ---
-  if (vaultPage && goldenKey && vaultUser) {
-    if (!vaultUser || !goldenKey) {
-      return <div style={{ color: 'red', padding: 40, textAlign: 'center' }}>Error: Missing credentials for vault access.</div>;
-    }
-    return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setGoldenKey(null); setVaultUser(null); setPage('login'); }} />;
-  }
-
-  // --- Main App UI ---
-  // --- Handler for downloading local_share.enc from modal ---
-  const handleDownloadShare = () => {
-    if (localShare) {
-      const blob = new Blob([localShare], { type: 'text/plain' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'local_share.enc';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setShowDownloadModal(false);
-      setVaultPage(true);
-    }
-  };
-
-  // --- FloatingShapes and CyberLogin3D are visual only, skip logic ---
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      {/* Top navigation remains */}
-      {(page === 'login' || page === 'verification') && (
-        <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
-          <TopRightNav onNavigate={handleNavigate} />
-        </div>
-      )}
+      <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
+        <TopNav onNavigate={handleNavigate} />
+      </div>
       <AnimatePresence mode="wait">
         {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
-        {/* DownloadShareModal for local_share.enc download */}
-        {typeof DownloadShareModal !== 'undefined' && (
-          <DownloadShareModal show={showDownloadModal} onDownload={handleDownloadShare} onClose={() => setShowDownloadModal(false)} />
-        )}
         {page === 'login' && (
           <motion.div
             key="login"
@@ -441,8 +257,31 @@ export default function App() {
             transition={{ duration: 0.6, ease: 'anticipate' }}
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
           >
-            {/* Render the advanced dark-themed floating login UI/UX */}
-            <CyberLogin3D />
+            <CyberLogin3D onLoginSuccess={handleLoginSuccess} />
+          </motion.div>
+        )}
+        {page === 'unlock' && (
+          <motion.div
+            key="unlock"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -40 }}
+            transition={{ duration: 0.6, ease: 'anticipate' }}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
+          >
+            <UnlockWithShare onUnlockSuccess={handleUnlockSuccess} />
+          </motion.div>
+        )}
+        {page === 'vault' && (
+          <motion.div
+            key="vault"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -40 }}
+            transition={{ duration: 0.6, ease: 'anticipate' }}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
+          >
+            <VaultPage onLogout={handleLogout} />
           </motion.div>
         )}
         {page === 'documentation' && (
