@@ -136,29 +136,156 @@ export default function App() {
   if (window.location.pathname.startsWith('/auth-success')) {
     return <AuthSuccessPage />;
   }
+  // Show vault page if unlocked
+  if (vaultPage && goldenKey && vaultUser) {
+    return (
+      <VaultPage
+        username={vaultUser}
+        goldenKey={goldenKey}
+        onLogout={() => {
+          setVaultPage(false);
+          setGoldenKey(null);
+          setVaultUser(null);
+          setPage('login');
+          setShowLocalShareStep(false);
+          setLocalShare(null);
+        }}
+      />
+    );
+  }
 
+  // Handler for downloading local_share.enc from modal
+  const handleDownloadShare = () => {
+    if (localShare) {
+      const blob = new Blob([localShare], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'local_share.enc';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setShowDownloadModal(false);
+      setVaultPage(true);
+    }
+  };
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [goldenKey, setGoldenKey] = useState(null);
+  const [vaultUser, setVaultUser] = useState(null);
+  const [vaultPage, setVaultPage] = useState(false);
+  const [localShare, setLocalShare] = useState(null);
+  const [showLocalShareStep, setShowLocalShareStep] = useState(false);
+  const [showAbout, setShowAbout] = useState(() => {
+    const seen = sessionStorage.getItem('about_seen');
+    return !seen;
+  });
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+
+  // Only show AuthSuccessPage on /auth-success route (OAuth callback)
+  if (window.location.pathname.startsWith('/auth-success')) {
+    return <AuthSuccessPage />;
+  }
+  // Show vault page if unlocked
+  if (vaultPage && goldenKey && vaultUser) {
+    return (
+      <VaultPage
+        username={vaultUser}
+        goldenKey={goldenKey}
+        onLogout={() => {
+          setVaultPage(false);
+          setGoldenKey(null);
+          setVaultUser(null);
+          setPage('login');
+          setShowLocalShareStep(false);
+          setLocalShare(null);
+        }}
+      />
+    );
+  }
+
+  // Handler for downloading local_share.enc from modal
+  const handleDownloadShare = () => {
+    if (localShare) {
+      const blob = new Blob([localShare], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'local_share.enc';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setShowDownloadModal(false);
+      setVaultPage(true);
+    }
+  };
+  // Handler for creating a new vault
+  const handleCreateVault = () => {
+    if (username && password) {
+      setLoading(true);
+      setSuccess('');
+      setError('');
+      setVaultUser(username);
+      setGoldenKey(generateGoldenKey());
+      setVaultPage(true);
+      setLocalShare(null);
+      setShowLocalShareStep(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
+    }
+  };
+  // Handler for unlocking a vault
+  const handleUnlockVault = () => {
+    if (username && password) {
+      setLoading(true);
+      setSuccess('');
+      setError('');
+      setVaultUser(username);
+      setGoldenKey(generateGoldenKey());
+      setVaultPage(true);
+      setLocalShare(null);
+      setShowLocalShareStep(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
+    }
+  };
+  // Handler for uploading a local_share.enc
+  const handleLocalShareUpload = () => {
+    if (localShare) {
+      const blob = new Blob([localShare], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'local_share.enc';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setShowDownloadModal(false);
+      setVaultPage(true);
+    }
+  };
+
+  // Main app UI
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <FloatingShapes zIndex={1} />
-      <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
-        <Nav3D onNavigate={handleNavigate} />
-      </div>
+      <FloatingShapes zIndex={0} />
+      {(page === 'login' || page === 'verification') && (
+        <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
+          <TopRightNav onNavigate={target => {
+            if (target === 'about') {
+              setShowAbout(true);
+              sessionStorage.setItem('about_seen', '1');
+            } else {
+              setPage(target);
+            }
+          }} />
+        </div>
+      )}
       <AnimatePresence mode="wait">
-        {showAbout && (
-          <motion.div
-            key="about-modal"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#0B0D10ee', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            aria-modal="true" role="dialog" tabIndex={-1}
-          >
-            <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-              <AboutPage onBack={() => setShowAbout(false)} />
-            </div>
-          </motion.div>
-        )}
-        {page === 'login' && (
+        {showAbout && <AboutModal show={showAbout} onClose={() => setShowAbout(false)} />}
+        {page === 'login' && !showLocalShareStep && (
           <motion.div
             key="login"
             initial={{ opacity: 0, y: 40 }}
@@ -219,7 +346,69 @@ export default function App() {
             <Verification onBack={() => setPage('login')} />
           </motion.div>
         )}
+        {page === 'login' && showLocalShareStep && (
+          <motion.div
+            key="localshare"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -40 }}
+            transition={{ duration: 0.6, ease: 'anticipate' }}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}
+          >
+            <CyberLogin3D zIndex={2} />
+            <div style={{ maxWidth: 420, width: '95vw', padding: '40px 24px', background: '#151A21', borderRadius: 28, boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 3 }}>
+              <h2 style={{ color: '#FFD66B', fontWeight: 800, fontSize: 28, textAlign: 'center', marginBottom: 18 }}>Upload Your local_share.enc</h2>
+              <input
+                type="file"
+                accept=".enc,.txt"
+                onChange={e => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = ev => setLocalShare(ev.target.result);
+                    reader.readAsText(file);
+                  }
+                }}
+                style={{ marginBottom: 18 }}
+              />
+              <button
+                className="floating"
+                style={{ width: '100%', padding: '16px', fontSize: 20, fontWeight: 800, background: 'linear-gradient(90deg, #23272f 60%, #151A21 100%)', color: '#FFD66B', border: '2px solid #23272f', borderRadius: 14, cursor: 'pointer', marginBottom: 8, boxShadow: '0 2px 8px #23272f55', letterSpacing: 1.1, transition: 'all 0.18s cubic-bezier(.4,2,.6,1)', textShadow: '0 2px 8px #FFD66B33', opacity: loading ? 0.7 : 1 }}
+                onClick={handleLocalShareUpload}
+                disabled={loading}
+              >
+                Unlock Vault
+              </button>
+              <button
+                style={{ marginTop: 10, color: '#FFD66B', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 16 }}
+                onClick={() => { setShowLocalShareStep(false); setLocalShare(null); setError(''); setSuccess(''); }}
+              >
+                &larr; Back to Login
+              </button>
+              {error && <div style={{ color: '#ef4444', margin: '10px 0', fontWeight: 600 }}>{error}</div>}
+              {success && <div style={{ color: '#FFD66B', margin: '10px 0', fontWeight: 600 }}>{success}</div>}
+            </div>
+          </motion.div>
+        )}
+        {page === 'verification' && (
+          <Verification
+            username={username}
+            setUsername={setUsername}
+            password={password}
+            setPassword={setPassword}
+            setVaultPage={setVaultPage}
+            setGoldenKey={setGoldenKey}
+            setVaultUser={setVaultUser}
+            setLocalShare={setLocalShare}
+            setShowDownloadModal={setShowDownloadModal}
+            setError={setError}
+            setSuccess={setSuccess}
+            setPage={setPage}
+          />
+        )}
       </AnimatePresence>
+      <DownloadShareModal show={showDownloadModal} onDownload={handleDownloadShare} onClose={() => setShowDownloadModal(false)} />
+      <TestWindowOpen />
     </div>
   );
 }
