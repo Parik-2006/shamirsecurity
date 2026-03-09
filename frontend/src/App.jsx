@@ -6,6 +6,7 @@ import Verification from './pages/verification.jsx';
 import CyberLogin3D from './CyberLogin3D';
 import UnlockWithShare from './UnlockWithShare';
 import VaultPage from './VaultPage';
+import FloatingShapes from './FloatingShapes';
 
 // Safely resolve API URL from environment
 const API_URL = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
@@ -243,6 +244,7 @@ export default function App() {
 
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <FloatingShapes zIndex={1} />
       <div style={{ position: 'absolute', top: 32, right: 32, zIndex: 10 }}>
         <TopNav onNavigate={handleNavigate} />
       </div>
