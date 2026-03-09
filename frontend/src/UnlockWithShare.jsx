@@ -1,9 +1,6 @@
 // UnlockWithShare.jsx
 // Restored: Handles uploading the user's share after login
 import React, { useRef, useState } from 'react';
-// UnlockWithShare.jsx
-// Restored: Handles uploading the user's share after login
-import React, { useRef, useState } from 'react';
 
 export default function UnlockWithShare({ username, password, onUnlock, onBack }) {
   const [localShare, setLocalShare] = useState(null);
