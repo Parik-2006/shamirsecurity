@@ -46,7 +46,7 @@ export default function Documentation({ onBack }) {
     <div style={{ minHeight: '100vh', minWidth: '100vw', width: '100%', position: 'relative', overflow: 'hidden', background: palette.bg }}>
       {/* Background grid, always at the back */}
       <div style={{ ...gridBg, zIndex: 0 }} />
-      <FloatingShapes zIndex={1} />
+      {/* <FloatingShapes zIndex={1} /> removed: not defined */}
       <AnimatedGrid position={{ top: 40, left: 40 }} color={palette.cyan} />
       <AnimatedGrid position={{ top: 40, right: 40 }} color={palette.yellow} />
       <AnimatedGrid position={{ bottom: 40, left: 40 }} color={palette.green} />

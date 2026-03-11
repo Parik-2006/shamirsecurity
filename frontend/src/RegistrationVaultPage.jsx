@@ -1,8 +1,15 @@
+<<<<<<< HEAD
 // RegistrationVaultPage.jsx
 // Restored: Page shown after registration for share download/instructions
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from './config';
+=======
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-098.onrender.com';
+>>>>>>> copy_parik2
 
 export default function RegistrationVaultPage() {
   const navigate = useNavigate();
@@ -79,6 +86,7 @@ export default function RegistrationVaultPage() {
     navigate('/');
   };
 
+<<<<<<< HEAD
   return (
     <div style={{ maxWidth: 600, margin: '40px auto', padding: 24, background: '#181a20', borderRadius: 16, color: '#fff' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -121,4 +129,50 @@ export default function RegistrationVaultPage() {
       )}
     </div>
   );
+=======
+    return (
+      <div className="cyber-bg cyber-login-wrapper">
+        <div className="cyber-login-card animate-fade-in" style={{ maxWidth: 600 }}>
+          <div className="cyber-login-header" style={{ justifyContent: 'space-between' }}>
+            <h2 className="cyber-title" style={{ fontSize: 28 }}>Welcome, {username}!</h2>
+            <button className="cyber-btn cyber-btn-outline" onClick={handleLogout}>Logout</button>
+          </div>
+          <h3 className="cyber-subtitle" style={{ marginBottom: 18 }}>Your Vault</h3>
+          {error && <div className="cyber-error-msg">{error}</div>}
+          <form onSubmit={handleAddPassword} className="cyber-login-form" style={{ flexDirection: 'row', gap: 8, marginBottom: 24 }}>
+            <input className="cyber-input" placeholder="Service" value={newService} onChange={e => setNewService(e.target.value)} />
+            <input className="cyber-input" placeholder="Username (optional)" value={newServiceUser} onChange={e => setNewServiceUser(e.target.value)} />
+            <input className="cyber-input" placeholder="Password" value={newPass} onChange={e => setNewPass(e.target.value)} />
+            <button type="submit" className="cyber-btn cyber-btn-neon">Add</button>
+          </form>
+          {loading ? (
+            <div className="cyber-loading">Loading...</div>
+          ) : (
+            <table className="cyber-vault-table">
+              <thead>
+                <tr>
+                  <th>Service</th>
+                  <th>Username</th>
+                  <th>Password</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vaultData.length === 0 ? (
+                  <tr><td colSpan={3} className="cyber-empty">No secrets saved yet.</td></tr>
+                ) : (
+                  vaultData.map((item, idx) => (
+                    <tr key={item.id || idx}>
+                      <td>{item.service}</td>
+                      <td>{item.username}</td>
+                      <td>{item.password}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    );
+>>>>>>> copy_parik2
 }

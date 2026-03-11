@@ -11,9 +11,22 @@ from flask import Flask, request, jsonify, redirect, send_from_directory
 from flask_cors import CORS
 # ...existing code...
 import logging
+import traceback
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
+
+# Enable CORS for all /api/* endpoints and localhost for dev
+CORS(app, resources={r"/api/*": {"origins": [
+    "*",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://shamirsecurity.onrender.com",
+    "https://shamirsecurity-1.onrender.com",
+    "https://shamirsecurity-1234.onrender.com",
+    "https://shamirsecurity-1-aclh.onrender.com"
+]}}, supports_credentials=True)
+
 
 # --- CHECK CREDENTIALS ENDPOINT ---
 @app.route('/api/check_credentials', methods=['POST'])
@@ -49,16 +62,15 @@ def check_credentials():
         import traceback
         traceback.print_exc()
         return jsonify({"status": "error", "message": f"Credential check failed: {str(e)}"}), 500
-# Flask and CORS
-from flask import Flask, request, jsonify, redirect, send_from_directory
-from flask_cors import CORS
-# ...existing code...
-import logging
+# --- TEST CALLBACK ENDPOINT ---
+@app.route('/api/test-callback')
+def test_callback():
+    print("[TEST CALLBACK] Hit!")
+    return "Callback reached!", 200
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 
-import traceback
 # --- GLOBAL ERROR HANDLERS FOR JSON RESPONSES ---
 @app.errorhandler(404)
 def not_found_error(error):
@@ -385,22 +397,7 @@ print(f"[INIT] Google redirect: {GOOGLE_REDIRECT_URI}")
 # --- PENDING REGISTRATIONS (in-memory store) ---
 # Each entry: { username, share1, local_share, golden_key, created_at, completed }
 import json
-PENDING_REG_PATH = 'pending_registrations.json'
-def load_pending_registrations():
-    try:
-        with open(PENDING_REG_PATH, 'r') as f:
-            return json.load(f)
-    except Exception:
-        return {}
 
-def save_pending_registrations():
-    try:
-        with open(PENDING_REG_PATH, 'w') as f:
-            json.dump(pending_registrations, f)
-    except Exception as e:
-        print(f"[PERSIST] Failed to save pending_registrations: {e}")
-
-pending_registrations = load_pending_registrations()
 
 # --- RETRY HELPER FOR SUPABASE OPERATIONS ---
 def supabase_retry(operation, max_retries=3, delay=2):
@@ -591,21 +588,21 @@ def register_init():
             return jsonify({"status": "error", "message": f"Encryption error: {e}"}), 500
 
         # Create a unique registration ID and store pending data
+
         reg_id = secrets.token_urlsafe(32)
-        pending_registrations[reg_id] = {
-            'username': username,
-            'share1': share1,
-            'local_share': local_share_package,
-            'golden_key': str(golden_key_int),
-            'created_at': time.time(),
-            'completed': False
-        }
-        # Clean up expired pending registrations (> 10 min old)
-        now = time.time()
-        expired = [k for k, v in pending_registrations.items() if now - v.get('created_at', 0) > 600]
-        for k in expired:
-            del pending_registrations[k]
-        save_pending_registrations()
+        try:
+            supabase.table("pending_registrations").insert({
+                "reg_id": reg_id,
+                "username": username,
+                "share1": share1,
+                "local_share": local_share_package,
+                "golden_key": str(golden_key_int),
+                "created_at": time.time(),
+                "completed": False
+            }).execute()
+        except Exception as e:
+            print(f"[REGISTER INIT][SUPABASE ERROR] {e}")
+            return jsonify({"status": "error", "message": f"Supabase error: {e}"}), 500
 
         # Generate Google OAuth URL -- user will sign in with THEIR Google account
         print(f"[TRACE] Generating Google OAuth URL...")
@@ -618,8 +615,10 @@ def register_init():
                 login_hint=username,
                 max_auth_age=0  # Always require fresh login and MFA
             )
-            # Store code_verifier in pending_registrations
-            pending_registrations[reg_id]['code_verifier'] = getattr(flow, 'code_verifier', None)
+            # Store code_verifier in Supabase
+            code_verifier = getattr(flow, 'code_verifier', None)
+            if code_verifier:
+                supabase.table("pending_registrations").update({"code_verifier": code_verifier}).eq("reg_id", reg_id).execute()
             print(f"[REGISTER INIT] OAuth URL generated: {auth_url}")
             return jsonify({
                 "status": "redirect",
@@ -646,69 +645,93 @@ def google_callback():
     - Redirect back to frontend
     """
     try:
+        print("[GOOGLE CALLBACK] Endpoint hit!")
+        print(f"[GOOGLE CALLBACK] Query params: {dict(request.args)}")
+
         code = request.args.get('code')
         state = request.args.get('state')  # This is our reg_id
         error = request.args.get('error')
-        
+
         if error:
             print(f"[GOOGLE CALLBACK] Error from Google: {error}")
-            return redirect(f"{FRONTEND_URL}?reg_error=Google+authentication+was+denied")
-        
-        if not state or state not in pending_registrations:
-            print(f"[GOOGLE CALLBACK] Invalid/expired registration state")
-            return redirect(f"{FRONTEND_URL}?reg_error=Registration+expired.+Please+try+again.")
-        
-        reg_data = pending_registrations[state]
-        username = reg_data['username']
-        share1 = reg_data['share1']
-        
-        print(f"[GOOGLE CALLBACK] Processing for user: {username}")
-        
-        # Exchange authorization code for user's Google credentials
-        flow = get_google_flow()
-        code_verifier = reg_data.get('code_verifier')
-        if code_verifier:
-            flow.fetch_token(code=code, code_verifier=code_verifier)
-        else:
-            flow.fetch_token(code=code)
-        credentials = flow.credentials
-        # Check for MFA (2-step verification) in ID token
-        id_token = credentials.id_token
-        import jwt
-        mfa_enabled = False
-        if id_token:
-            try:
-                decoded = jwt.decode(id_token, options={"verify_signature": False})
-                amr = decoded.get('amr', [])
-                if 'mfa' in amr or 'otp' in amr or 'sms' in amr:
-                    mfa_enabled = True
-            except Exception as e:
-                print(f"[GOOGLE CALLBACK] Failed to decode ID token for MFA check: {e}")
-        # Mark registration as complete
-        pending_registrations[state]['completed'] = True
-        pending_registrations[state]['mfa_enabled'] = mfa_enabled
-        save_pending_registrations()
-        
-        # Upload share1 to THIS USER'S Google Drive
-        print(f"[GOOGLE CALLBACK] Uploading share1 to user's Google Drive...")
-        service = build('drive', 'v3', credentials=credentials)
-        file_metadata = {'name': f'{username}_share1.txt'}
-        media = MediaIoBaseUpload(io.BytesIO(share1.encode()), mimetype='text/plain')
-        service.files().create(body=file_metadata, media_body=media).execute()
-        print(f"[GOOGLE CALLBACK] Share1 uploaded to {username}'s Drive!")
-        
-        # Mark registration as complete
-        pending_registrations[state]['completed'] = True
-        save_pending_registrations()
-        
-        # Redirect to /auth-success for a dedicated close-message page
-        print(f"[GOOGLE CALLBACK] Redirecting to frontend /auth-success...")
-        return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?reg_complete={state}")
-        
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Google+authentication+was+denied")
+
+        if not state:
+            print(f"[GOOGLE CALLBACK] Missing state param.")
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Missing+registration+state.")
+
+        # Fetch registration from Supabase
+        try:
+            response = supabase.table("pending_registrations").select("*").eq("reg_id", state).execute()
+            if not response.data or len(response.data) == 0:
+                print(f"[GOOGLE CALLBACK] Registration not found for reg_id: {state}")
+                return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Registration+expired+or+not+found.+Please+try+again.")
+            reg_data = response.data[0]
+        except Exception as e:
+            print(f"[GOOGLE CALLBACK][SUPABASE ERROR] {e}")
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Supabase+error:+{str(e)}")
+
+        username = reg_data.get('username')
+        share1 = reg_data.get('share1')
+        local_share = reg_data.get('local_share')
+        golden_key = reg_data.get('golden_key')
+
+        print(f"[GOOGLE CALLBACK] Processing for user: {username}, reg_id: {state}")
+        print(f"[GOOGLE CALLBACK] local_share present: {bool(local_share)}, golden_key present: {bool(golden_key)}")
+        if not local_share or not golden_key:
+            print(f"[GOOGLE CALLBACK] Missing local_share or golden_key for reg_id: {state}")
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error=Missing+share+data.+Please+retry+registration.")
+
+
+        try:
+            # Exchange authorization code for user's Google credentials
+            flow = get_google_flow()
+            code_verifier = reg_data.get('code_verifier')
+            if code_verifier:
+                flow.fetch_token(code=code, code_verifier=code_verifier)
+            else:
+                flow.fetch_token(code=code)
+            credentials = flow.credentials
+            # Check for MFA (2-step verification) in ID token
+            id_token = credentials.id_token
+            import jwt
+            mfa_enabled = False
+            if id_token:
+                try:
+                    decoded = jwt.decode(id_token, options={"verify_signature": False})
+                    amr = decoded.get('amr', [])
+                    if 'mfa' in amr or 'otp' in amr or 'sms' in amr:
+                        mfa_enabled = True
+                except Exception as e:
+                    print(f"[GOOGLE CALLBACK] Failed to decode ID token for MFA check: {e}")
+
+            # Upload share1 to THIS USER'S Google Drive
+            print(f"[GOOGLE CALLBACK] Uploading share1 to user's Google Drive...")
+            service = build('drive', 'v3', credentials=credentials)
+            file_metadata = {'name': f'{username}_share1.txt'}
+            media = MediaIoBaseUpload(io.BytesIO(share1.encode()), mimetype='text/plain')
+            service.files().create(body=file_metadata, media_body=media).execute()
+            print(f"[GOOGLE CALLBACK] Share1 uploaded to {username}'s Drive!")
+
+            # Mark registration as completed in Supabase
+            supabase.table("pending_registrations").update({"completed": True}).eq("reg_id", state).execute()
+            print(f"[GOOGLE CALLBACK] Marked registration as completed for reg_id: {state}")
+
+            # Redirect to /download-share with local_share and golden_key as URL params (base64url safe)
+            import urllib.parse
+            local_share_url = urllib.parse.quote(local_share)
+            golden_key_url = urllib.parse.quote(golden_key)
+            print(f"[GOOGLE CALLBACK] Redirecting to frontend /download-share with share in URL...")
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/download-share?local_share={local_share_url}&golden_key={golden_key_url}&username={urllib.parse.quote(username)}")
+        except Exception as e:
+            print(f"[GOOGLE CALLBACK] Error during Google credential exchange or Drive upload: {e}")
+            error_msg = str(e)[:200].replace(' ', '+')
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error={error_msg}")
+
     except Exception as e:
-        print(f"[GOOGLE CALLBACK] Error: {e}")
+        print(f"[GOOGLE CALLBACK] Fatal error: {e}")
         error_msg = str(e)[:200].replace(' ', '+')
-        return redirect(f"{FRONTEND_URL}?reg_error={error_msg}")
+        return redirect(f"{FRONTEND_URL.rstrip('/')}/auth-success?error={error_msg}")
 
 
 @app.route('/api/register/complete', methods=['POST'])
@@ -719,30 +742,36 @@ def register_complete():
     try:
         data = request.json
         reg_id = data.get('reg_id')
-        
-        if not reg_id or reg_id not in pending_registrations:
+        now = time.time()
+        if not reg_id:
             return jsonify({"status": "error", "message": "Invalid or expired registration. Please try again."}), 400
-        
-        reg_data = pending_registrations[reg_id]
-        
-        if not reg_data.get('completed'):
-            return jsonify({"status": "error", "message": "Google authentication not completed yet."}), 400
-        
-        username = reg_data['username']
-        result = {
-            "status": "success",
-            "local_share": reg_data['local_share'],
-            "golden_key": reg_data['golden_key'],
-            "username": username
-        }
-        
-        # Clean up - remove from pending
-        del pending_registrations[reg_id]
-        save_pending_registrations()
-        
-        print(f"[REGISTER COMPLETE] Keys delivered to {username}'s browser!")
-        return jsonify(result)
-        
+        try:
+            response = supabase.table("pending_registrations").select("*").eq("reg_id", reg_id).execute()
+            if not response.data or len(response.data) == 0:
+                return jsonify({"status": "error", "message": "Invalid or expired registration. Please try again."}), 400
+            reg_data = response.data[0]
+            if not reg_data.get('completed'):
+                # Expire if not completed within 10 minutes
+                if now - reg_data.get('created_at', 0) > 600:
+                    # Optionally, delete from Supabase here if desired
+                    supabase.table("pending_registrations").delete().eq("reg_id", reg_id).execute()
+                    return jsonify({"status": "error", "message": "Registration expired. Please try again."}), 400
+                return jsonify({"status": "error", "message": "Google authentication not completed yet."}), 400
+            # Allow unlimited downloads after completion, never expire
+            username = reg_data['username']
+            result = {
+                "status": "success",
+                "local_share": reg_data['local_share'],
+                "golden_key": reg_data['golden_key'],
+                "username": username
+            }
+            print(f"[REGISTER COMPLETE] Keys delivered to {username}'s browser!")
+            return jsonify(result)
+        except Exception as e:
+            print(f"[REGISTER COMPLETE][SUPABASE ERROR] {e}")
+            return jsonify({"status": "error", "message": f"Supabase error: {e}"}), 500
+            # All registration state is now managed in Supabase
+            # (logic already replaced above)
     except Exception as e:
         print(f"[REGISTER COMPLETE] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500

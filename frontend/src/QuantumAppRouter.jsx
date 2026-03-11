@@ -1,8 +1,23 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import RegistrationVaultPage from './RegistrationVaultPage';
 import UnlockWithShare from './UnlockWithShare';
 import VaultPage from './VaultPage';
+=======
+// ...existing code...
+import { default as App, AuthSuccessPage } from './App';
+  <Route path="/auth-success" element={<AuthSuccessPage />} />
+import React from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+
+import VaultPage from './VaultPage';
+import RegistrationVaultPage from './RegistrationVaultPage';
+import Documentation from './pages/documentation';
+import Verification from './pages/verification';
+import DownloadShare from './pages/DownloadShare';
+// Duplicate import removed
+>>>>>>> copy_parik2
 
 export default function QuantumAppRouter() {
   const [username, setUsername] = useState(() => localStorage.getItem('username'));
@@ -23,6 +38,7 @@ export default function QuantumAppRouter() {
   };
 
   return (
+<<<<<<< HEAD
     <Routes>
       <Route
         path="/"
@@ -44,5 +60,53 @@ export default function QuantumAppRouter() {
       />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
+=======
+    <>
+      {/* cleaned up */}
+
+      <div style={containerStyle}>
+        {children}
+      </div>
+    </>
+  );
+}
+
+export default function QuantumAppRouter({ username, goldenKey, onLogout }) {
+  return (
+    <Layout>
+
+      <Routes>
+        <Route path="/registration-vault" element={<RegistrationVaultPage />} />
+
+        <Route path="/" element={<App />} />
+
+        <Route path="/documentation" element={<Documentation />} />
+
+        <Route path="/verification" element={<Verification />} />
+
+        <Route path="/auth-success" element={<AuthSuccessPage />} />
+
+
+        <Route
+          path="/vault"
+          element={
+            localStorage.getItem('justRegistered') === 'true'
+              ? <RegistrationVaultPage />
+              : <VaultPage
+                  username={username}
+                  goldenKey={goldenKey}
+                  onLogout={onLogout}
+                />
+          }
+        />
+
+        <Route path="/download-share" element={<DownloadShare />} />
+
+        {/* fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+
+      </Routes>
+    </Layout>
+>>>>>>> copy_parik2
   );
 }
