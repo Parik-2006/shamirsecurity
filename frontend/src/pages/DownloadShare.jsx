@@ -2,64 +2,12 @@ import React, { useState } from 'react';
 // DEBUG: Log component mount
 console.log('[DownloadShare] Component loaded');
 import { useNavigate, useLocation } from 'react-router-dom';
-import { API_URL } from '../config';
-
 
 export default function DownloadShare() {
-<<<<<<< HEAD
-  const [error, setError] = useState('');
-=======
->>>>>>> copy_parik2
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-<<<<<<< HEAD
-  // Defensive: check for window and location
-  // All hooks must be called before any return
-
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.location) return;
-    const params = new URLSearchParams(location.search);
-    const regComplete = params.get('reg_complete');
-    if (!regComplete) {
-      setTimeout(() => {
-        setError('Missing registration completion token.');
-      }, 0);
-      return;
-    }
-    fetch(`${API_URL}/api/register/complete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reg_id: regComplete })
-    })
-      .then(async res => {
-        const contentType = res.headers.get('Content-Type');
-        let raw = '';
-        let data = null;
-        try {
-          raw = await res.text();
-          if (raw && contentType && contentType.includes('application/json')) {
-            data = JSON.parse(raw);
-          }
-        } catch {
-          data = null;
-        }
-        return data;
-      })
-      .then(data => {
-        if (data && data.status === 'success' && data.local_share) {
-          setLocalShareData(data.local_share);
-        } else {
-          setError((data && data.message) || 'Failed to retrieve vault share.');
-        }
-      })
-      .catch(() => {
-        setError('Network error while fetching vault share.');
-      });
-  }, [location]);
-=======
   const params = new URLSearchParams(location.search);
   console.log('[DownloadShare] location.pathname:', location.pathname, 'location.search:', location.search);
   const localShareData = params.get('local_share');
@@ -77,11 +25,6 @@ export default function DownloadShare() {
     localStorage.setItem('justRegistered', 'true');
     console.log('[DownloadShare] Setting vaultUser:', username, 'goldenKey:', goldenKey);
     console.log('[DownloadShare] localStorage after set:', localStorage.getItem('vaultUser'), localStorage.getItem('goldenKey'));
-  }
->>>>>>> copy_parik2
-
-  if (typeof window === 'undefined' || !window.location) {
-    return <div style={{ color: 'red', padding: 40 }}>Error: Environment not supported.</div>;
   }
 
   const handleDownload = () => {
