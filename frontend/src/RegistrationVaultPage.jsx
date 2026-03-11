@@ -122,5 +122,4 @@ export default function RegistrationVaultPage() {
         </div>
       </div>
     );
->>>>>>> copy_parik2
-}
+  }
