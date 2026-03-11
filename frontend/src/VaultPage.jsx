@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
-import { API_URL } from './config';
+
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  'https://shamirsecurity-098.onrender.com';
 
 export default function VaultPage({ username, goldenKey, onLogout }) {
   const navigate = useNavigate();
@@ -72,15 +74,6 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
           alignItems: 'center',
         }}
       >
-=======
-
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  return (
-    <div className="modern-card">
-      {/* HEADER */}
-      <header className="vault-header" style={{ marginBottom: 25 }}>
->>>>>>> copy_parik2
         <div>
           <h2 style={{ margin: 0 }}>{username}'s Vault</h2>
           <p style={{ margin: 0, color: '#888' }}>
@@ -88,7 +81,6 @@ const API_URL =
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-<<<<<<< HEAD
           <button
             onClick={() => navigate('/registration-vault')}
             style={{
@@ -117,49 +109,11 @@ const API_URL =
           >
             Logout
           </button>
-=======
-          <button className="modern-btn" onClick={() => navigate('/registration-vault')}>Add New Password</button>
-          <button className="modern-btn" onClick={handleLogout}>Logout</button>
->>>>>>> copy_parik2
         </div>
       </header>
 
       {/* ERROR */}
-<<<<<<< HEAD
       {error && (
-=======
-      {error && <div className="modern-error">{error}</div>}
-
-      {/* VAULT TABLE AREA: loading, empty, or table */}
-      <div style={{ minHeight: 200 }}>
-        {loading ? (
-          <div className="modern-loading">Loading...</div>
-        ) : vaultData.length === 0 ? (
-          <div className="modern-empty">Your vault is empty.</div>
-        ) : (
-          <table className="modern-table">
-            <thead>
-              <tr>
-                <th>Service</th>
-                <th>Username</th>
-                <th>Password</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vaultData.map((item, idx) => (
-                <tr key={item.id || idx}>
-                  <td>{item.service}</td>
-                  <td>{item.username}</td>
-                  <td>{item.password}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  );
->>>>>>> copy_parik2
         <div style={{ color: 'red', marginBottom: 20 }}>
           {error}
         </div>
@@ -210,8 +164,4 @@ const API_URL =
       </div>
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> copy_parik2
