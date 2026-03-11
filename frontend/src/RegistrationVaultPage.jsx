@@ -78,66 +78,22 @@ export default function RegistrationVaultPage() {
     navigate('/');
   };
 
-<<<<<<< HEAD
   return (
-    <div style={{ maxWidth: 600, margin: '40px auto', padding: 24, background: '#181a20', borderRadius: 16, color: '#fff' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Welcome, {username}!</h2>
-        <button onClick={handleLogout} style={{ background: '#FFD66B', color: '#181a20', fontWeight: 700, border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer' }}>Logout</button>
-      </div>
-      <h3>Your Vault</h3>
-      {error && <div style={{ color: 'red', marginBottom: 12 }}>{error}</div>}
-      <form onSubmit={handleAddPassword} style={{ marginBottom: 24 }}>
-        <input placeholder="Service" value={newService} onChange={e => setNewService(e.target.value)} style={{ marginRight: 8 }} />
-        <input placeholder="Username (optional)" value={newServiceUser} onChange={e => setNewServiceUser(e.target.value)} style={{ marginRight: 8 }} />
-        <input placeholder="Password" value={newPass} onChange={e => setNewPass(e.target.value)} style={{ marginRight: 8 }} />
-        <button type="submit" style={{ padding: '6px 18px' }}>Add</button>
-      </form>
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <table style={{ width: '100%', background: '#23272f', borderRadius: 8 }}>
-          <thead>
-            <tr>
-              <th style={{ color: '#FFD66B' }}>Service</th>
-              <th style={{ color: '#FFD66B' }}>Username</th>
-              <th style={{ color: '#FFD66B' }}>Password</th>
-            </tr>
-          </thead>
-          <tbody>
-            {vaultData.length === 0 ? (
-              <tr><td colSpan={3} style={{ color: '#888', textAlign: 'center', padding: 24 }}>No secrets saved yet.</td></tr>
-            ) : (
-              vaultData.map((item, idx) => (
-                <tr key={item.id || idx}>
-                  <td>{item.service}</td>
-                  <td>{item.username}</td>
-                  <td>{item.password}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      )}
-    </div>
-  );
-=======
-    return (
-      <div className="cyber-bg cyber-login-wrapper">
-        <div className="cyber-login-card animate-fade-in" style={{ maxWidth: 600 }}>
-          <div className="cyber-login-header" style={{ justifyContent: 'space-between' }}>
-            <h2 className="cyber-title" style={{ fontSize: 28 }}>Welcome, {username}!</h2>
-            <button className="cyber-btn cyber-btn-outline" onClick={handleLogout}>Logout</button>
-          </div>
-          <h3 className="cyber-subtitle" style={{ marginBottom: 18 }}>Your Vault</h3>
-          {error && <div className="cyber-error-msg">{error}</div>}
-          <form onSubmit={handleAddPassword} className="cyber-login-form" style={{ flexDirection: 'row', gap: 8, marginBottom: 24 }}>
-            <input className="cyber-input" placeholder="Service" value={newService} onChange={e => setNewService(e.target.value)} />
-            <input className="cyber-input" placeholder="Username (optional)" value={newServiceUser} onChange={e => setNewServiceUser(e.target.value)} />
-            <input className="cyber-input" placeholder="Password" value={newPass} onChange={e => setNewPass(e.target.value)} />
-            <button type="submit" className="cyber-btn cyber-btn-neon">Add</button>
-          </form>
-          {loading ? (
+    <div className="cyber-bg cyber-login-wrapper">
+      <div className="cyber-login-card animate-fade-in" style={{ maxWidth: 600 }}>
+        <div className="cyber-login-header" style={{ justifyContent: 'space-between' }}>
+          <h2 className="cyber-title" style={{ fontSize: 28 }}>Welcome, {username}!</h2>
+          <button className="cyber-btn cyber-btn-outline" onClick={handleLogout}>Logout</button>
+        </div>
+        <h3 className="cyber-subtitle" style={{ marginBottom: 18 }}>Your Vault</h3>
+        {error && <div className="cyber-error-msg">{error}</div>}
+        <form onSubmit={handleAddPassword} className="cyber-login-form" style={{ flexDirection: 'row', gap: 8, marginBottom: 24 }}>
+          <input className="cyber-input" placeholder="Service" value={newService} onChange={e => setNewService(e.target.value)} />
+          <input className="cyber-input" placeholder="Username (optional)" value={newServiceUser} onChange={e => setNewServiceUser(e.target.value)} />
+          <input className="cyber-input" placeholder="Password" value={newPass} onChange={e => setNewPass(e.target.value)} />
+          <button type="submit" className="cyber-btn cyber-btn-neon">Add</button>
+        </form>
+        {loading ? ( 
             <div className="cyber-loading">Loading...</div>
           ) : (
             <table className="cyber-vault-table">
