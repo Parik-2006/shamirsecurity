@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaGoogle, FaGithub, FaFacebook, FaTwitter, FaLinkedin, FaApple, FaMicrosoft, FaYoutube, FaInstagram, FaSlack, FaDiscord, FaDropbox, FaFigma, FaPaypal, FaAmazon, FaSpotify, FaTwitch, FaReddit, FaPinterest, FaAws, FaGitlab, FaBitbucket, FaTrello, FaJira, FaZoom } from 'react-icons/fa';
+import { FaGoogle, FaGithub, FaFacebook, FaTwitter, FaLinkedin, FaApple, FaMicrosoft, FaYoutube, FaInstagram, FaSlack, FaDiscord, FaDropbox, FaFigma, FaPaypal, FaAmazon, FaSpotify, FaTwitch, FaReddit, FaPinterest, FaAws, FaGitlab, FaBitbucket, FaTrello, FaJira } from 'react-icons/fa';
+import { SiZoom } from 'react-icons/si';
 
 /* ─────────────────────────────────────────────────────────────
    SERVICE LOGO RECOGNITION
@@ -177,7 +178,7 @@ const SERVICE_ICON_COMPONENTS = {
   bitbucket: FaBitbucket,
   trello: FaTrello,
   jira: FaJira,
-  zoom: FaZoom,
+  zoom: SiZoom,
 };
 
 // Ensure react-icons is installed for SVG brand logos
