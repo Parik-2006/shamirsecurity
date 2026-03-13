@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 console.log('[DownloadShare] Component loaded');
 
-/* ── Icons ─────────────────────────────────────────────────── */
+/* ── Icons ──────────────────────────────────────────────────────── */
 function DownloadIcon({ size = 24 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -25,7 +25,7 @@ function ShieldIcon({ size = 28 }) {
   );
 }
 
-function AlertTriangleIcon({ size = 18 }) {
+function AlertTriangleIcon({ size = 16 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -36,7 +36,27 @@ function AlertTriangleIcon({ size = 18 }) {
   );
 }
 
-/* ── Cyber Canvas Background ───────────────────────────────── */
+function DriveIcon({ size = 36 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 87.3 78" fill="none">
+      <path d="M6.6 66.85L23.1 45.5H87.3L70.7 66.85Z" fill="rgba(100,210,195,0.55)"/>
+      <path d="M29.15 0L0 50.2H43.65L72.8 0Z" fill="rgba(100,210,195,0.35)"/>
+      <path d="M43.65 0L87.3 0L58.15 50.2H14.5Z" fill="rgba(100,210,195,0.45)"/>
+    </svg>
+  );
+}
+
+function CheckCircleIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+  );
+}
+
+/* ── Cyber Canvas Background ─────────────────────────────────────── */
 function CyberBackground() {
   const canvasRef = useRef(null);
 
@@ -44,8 +64,7 @@ function CyberBackground() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let animId;
-    let w, h;
+    let animId, w, h;
 
     const resize = () => {
       w = canvas.width  = window.innerWidth;
@@ -54,73 +73,105 @@ function CyberBackground() {
     resize();
     window.addEventListener('resize', resize);
 
-    /* ── Nodes ── */
+    /* floating nodes */
     const nodes = Array.from({ length: 38 }, () => ({
-      x:  Math.random() * window.innerWidth,
-      y:  Math.random() * window.innerHeight,
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
       vx: (Math.random() - 0.5) * 0.22,
       vy: (Math.random() - 0.5) * 0.22,
-      r:  Math.random() * 1.6 + 0.5,
+      r: Math.random() * 1.6 + 0.5,
     }));
 
-    /* ── Scan line ── */
     let scanY = 0;
 
-    /* ── Hex/binary drift chars — mix gold + faint cyan ── */
+    /* drifting hex chars */
     const CHARS = '0123456789ABCDEF01';
-    const drifters = Array.from({ length: 22 }, () => ({
+    const drifters = Array.from({ length: 24 }, () => ({
       x:        Math.random() * window.innerWidth,
       y:        Math.random() * window.innerHeight,
       vy:       Math.random() * 0.35 + 0.12,
       char:     CHARS[Math.floor(Math.random() * CHARS.length)],
-      opacity:  Math.random() * 0.14 + 0.04,
+      opacity:  Math.random() * 0.13 + 0.04,
       size:     Math.floor(Math.random() * 4) + 9,
       timer:    0,
       interval: Math.floor(Math.random() * 80) + 35,
-      cyan:     Math.random() < 0.25, // 25% get muted cyan tint
+      cyan:     Math.random() < 0.3,
     }));
 
-    /* ── Data-pulse rings that expand from random nodes ── */
+    /* data pulse rings */
     const pulses = [];
     let pulseTimer = 0;
 
+    /* circuit traces — L-shaped paths with traveling dots */
+    const buildTraces = () =>
+      Array.from({ length: Math.floor(window.innerWidth / 200) }, () => {
+        const x1 = Math.random() * window.innerWidth;
+        const y1 = Math.random() * window.innerHeight;
+        const x2 = x1 + (Math.random() - 0.5) * 320;
+        const y2 = y1 + (Math.random() - 0.5) * 220;
+        const cx = Math.random() < 0.5 ? x2 : x1;
+        const cy = Math.random() < 0.5 ? y1 : y2;
+        return {
+          pts: [[x1,y1],[cx,cy],[x2,y2]],
+          alpha: Math.random() * 0.06 + 0.02,
+          cyan: Math.random() < 0.45,
+          dot: { t: Math.random(), speed: Math.random() * 0.003 + 0.001 },
+        };
+      });
+    let traces = buildTraces();
+    let frame = 0;
+
+    const lerp = (a, b, t) => a + (b - a) * t;
+
     const draw = () => {
       ctx.clearRect(0, 0, w, h);
+      frame++;
 
       /* dot grid */
-      ctx.fillStyle = 'rgba(255,215,80,0.055)';
+      ctx.fillStyle = 'rgba(255,215,80,0.05)';
       const step = 36;
       for (let x = 0; x < w; x += step)
         for (let y = 0; y < h; y += step) {
-          ctx.beginPath();
-          ctx.arc(x, y, 0.7, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(x, y, 0.7, 0, Math.PI * 2); ctx.fill();
         }
 
-      /* connections */
-      for (let i = 0; i < nodes.length; i++) {
+      /* circuit traces */
+      traces.forEach(tr => {
+        const [[x1,y1],[cx,cy],[x2,y2]] = tr.pts;
+        const col = tr.cyan
+          ? `rgba(90,210,190,${tr.alpha})`
+          : `rgba(255,215,80,${tr.alpha})`;
+        ctx.strokeStyle = col; ctx.lineWidth = 0.6;
+        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(cx,cy); ctx.lineTo(x2,y2); ctx.stroke();
+        [[x1,y1],[cx,cy],[x2,y2]].forEach(([px,py]) => {
+          ctx.beginPath(); ctx.arc(px,py,1.5,0,Math.PI*2);
+          ctx.fillStyle = col; ctx.fill();
+        });
+        tr.dot.t = (tr.dot.t + tr.dot.speed) % 1;
+        const t = tr.dot.t;
+        const px = t < 0.5 ? lerp(x1,cx,t*2) : lerp(cx,x2,(t-0.5)*2);
+        const py = t < 0.5 ? lerp(y1,cy,t*2) : lerp(cy,y2,(t-0.5)*2);
+        ctx.beginPath(); ctx.arc(px,py,2,0,Math.PI*2);
+        ctx.fillStyle = tr.cyan ? 'rgba(90,210,190,0.6)' : 'rgba(255,215,80,0.6)';
+        ctx.fill();
+      });
+
+      /* node connections */
+      for (let i = 0; i < nodes.length; i++)
         for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[i].x - nodes[j].x;
-          const dy = nodes[i].y - nodes[j].y;
-          const d  = Math.sqrt(dx * dx + dy * dy);
+          const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+          const d = Math.sqrt(dx*dx + dy*dy);
           if (d < 150) {
-            const a = (1 - d / 150) * 0.085;
-            ctx.strokeStyle = `rgba(255,215,80,${a})`;
-            ctx.lineWidth = 0.55;
-            ctx.beginPath();
-            ctx.moveTo(nodes[i].x, nodes[i].y);
-            ctx.lineTo(nodes[j].x, nodes[j].y);
-            ctx.stroke();
+            ctx.strokeStyle = `rgba(255,215,80,${(1-d/150)*0.08})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.moveTo(nodes[i].x,nodes[i].y); ctx.lineTo(nodes[j].x,nodes[j].y); ctx.stroke();
           }
         }
-      }
 
       /* nodes */
       nodes.forEach(n => {
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,215,80,0.20)';
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+        ctx.fillStyle = 'rgba(255,215,80,0.18)'; ctx.fill();
         n.x += n.vx; n.y += n.vy;
         if (n.x < 0 || n.x > w) n.vx *= -1;
         if (n.y < 0 || n.y > h) n.vy *= -1;
@@ -128,137 +179,103 @@ function CyberBackground() {
 
       /* scan line */
       scanY = (scanY + 0.45) % h;
-      const sg = ctx.createLinearGradient(0, scanY - 55, 0, scanY + 55);
+      const sg = ctx.createLinearGradient(0, scanY-55, 0, scanY+55);
       sg.addColorStop(0,   'rgba(255,215,80,0)');
-      sg.addColorStop(0.5, 'rgba(255,215,80,0.038)');
+      sg.addColorStop(0.5, 'rgba(255,215,80,0.035)');
       sg.addColorStop(1,   'rgba(255,215,80,0)');
-      ctx.fillStyle = sg;
-      ctx.fillRect(0, scanY - 55, w, 110);
-      ctx.strokeStyle = 'rgba(255,215,80,0.06)';
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(0, scanY); ctx.lineTo(w, scanY); ctx.stroke();
+      ctx.fillStyle = sg; ctx.fillRect(0, scanY-55, w, 110);
+      ctx.strokeStyle = 'rgba(255,215,80,0.055)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0,scanY); ctx.lineTo(w,scanY); ctx.stroke();
 
-      /* data-pulse rings */
+      /* pulse rings */
       pulseTimer++;
       if (pulseTimer % 120 === 0) {
         const n = nodes[Math.floor(Math.random() * nodes.length)];
-        pulses.push({ x: n.x, y: n.y, r: 0, maxR: 80, alpha: 0.3 });
+        pulses.push({ x:n.x, y:n.y, r:0, maxR:85, alpha:0.28 });
       }
-      for (let i = pulses.length - 1; i >= 0; i--) {
+      for (let i = pulses.length-1; i >= 0; i--) {
         const p = pulses[i];
-        p.r    += 1.1;
-        p.alpha = 0.3 * (1 - p.r / p.maxR);
-        ctx.strokeStyle = `rgba(255,215,80,${p.alpha})`;
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.stroke();
-        if (p.r >= p.maxR) pulses.splice(i, 1);
+        p.r += 1.1; p.alpha = 0.28*(1-p.r/p.maxR);
+        ctx.strokeStyle = `rgba(255,215,80,${p.alpha})`; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.stroke();
+        if (p.r >= p.maxR) pulses.splice(i,1);
       }
 
       /* drifting hex chars */
       drifters.forEach(d => {
         d.timer++;
-        if (d.timer >= d.interval) {
-          d.char = CHARS[Math.floor(Math.random() * CHARS.length)];
-          d.timer = 0;
-        }
+        if (d.timer >= d.interval) { d.char = CHARS[Math.floor(Math.random()*CHARS.length)]; d.timer = 0; }
         ctx.font = `${d.size}px "JetBrains Mono", monospace`;
-        ctx.fillStyle = d.cyan
-          ? `rgba(100,220,200,${d.opacity})`
-          : `rgba(255,215,80,${d.opacity})`;
+        ctx.fillStyle = d.cyan ? `rgba(100,220,200,${d.opacity})` : `rgba(255,215,80,${d.opacity})`;
         ctx.fillText(d.char, d.x, d.y);
         d.y += d.vy;
-        if (d.y > h + 20) { d.y = -20; d.x = Math.random() * w; }
+        if (d.y > h+20) { d.y = -20; d.x = Math.random()*w; }
       });
 
+      if (frame % 1800 === 0) traces = buildTraces();
       animId = requestAnimationFrame(draw);
     };
 
     draw();
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener('resize', resize);
-    };
+    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-        zIndex: 0,
-      }}
-    />
+    <canvas ref={canvasRef} style={{
+      position: 'fixed', inset: 0,
+      width: '100%', height: '100%',
+      pointerEvents: 'none', zIndex: 0,
+    }} />
   );
 }
 
-/* ── Decorative Rings (behind card) ───────────────────────── */
+/* ── Decorative rings centered behind the two cards ─────────────── */
 function CenterRings() {
   return (
     <div style={{
       position: 'fixed',
       top: '50%', left: '50%',
       transform: 'translate(-50%, -50%)',
-      width: 'min(560px, 92vw)',
-      height: 'min(560px, 92vw)',
+      width: 'min(900px, 95vw)',
+      height: 'min(600px, 80vh)',
       zIndex: 1,
       pointerEvents: 'none',
     }}>
-      {/* Outer slow-spin ring */}
       <motion.div
         animate={{ rotate: 360 }}
-        transition={{ duration: 70, repeat: Infinity, ease: 'linear' }}
+        transition={{ duration: 80, repeat: Infinity, ease: 'linear' }}
         style={{
           position: 'absolute', inset: 0,
-          borderRadius: '50%',
-          border: '1px solid rgba(255,215,80,0.07)',
+          borderRadius: '40%',
+          border: '1px solid rgba(255,215,80,0.05)',
         }}
       />
-      {/* Mid counter-spin dashed ring */}
       <motion.div
         animate={{ rotate: -360 }}
-        transition={{ duration: 45, repeat: Infinity, ease: 'linear' }}
+        transition={{ duration: 55, repeat: Infinity, ease: 'linear' }}
         style={{
-          position: 'absolute', inset: '10%',
-          borderRadius: '50%',
-          border: '1px dashed rgba(255,215,80,0.05)',
+          position: 'absolute', inset: '8%',
+          borderRadius: '38%',
+          border: '1px dashed rgba(100,210,195,0.04)',
         }}
       />
-      {/* Inner subtle glow */}
       <div style={{
-        position: 'absolute', inset: '30%',
+        position: 'absolute', inset: '28%',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,215,80,0.05) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(255,215,80,0.03) 0%, transparent 70%)',
       }} />
-      {/* Four tick marks */}
-      {[0, 90, 180, 270].map(deg => (
-        <div key={deg} style={{
-          position: 'absolute',
-          top: '50%', left: '50%',
-          width: 10, height: 2,
-          background: 'rgba(255,215,80,0.16)',
-          borderRadius: 1,
-          transform: `rotate(${deg}deg) translateX(calc(min(560px, 92vw) * 0.46)) translateY(-50%)`,
-          transformOrigin: '0 50%',
-        }} />
-      ))}
     </div>
   );
 }
 
-/* ── Main Component ────────────────────────────────────────── */
+/* ── Main Component ──────────────────────────────────────────────── */
 export default function DownloadShare() {
-  // ── ALL ORIGINAL LOGIC PRESERVED EXACTLY ──
+  /* ── ALL ORIGINAL LOGIC PRESERVED EXACTLY ── */
   const [downloading, setDownloading] = useState(false);
-  const [downloaded, setDownloaded] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
+  const [downloaded, setDownloaded]   = useState(false);
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const params    = new URLSearchParams(location.search);
 
   console.log('[DownloadShare] location.pathname:', location.pathname, 'location.search:', location.search);
 
@@ -295,68 +312,57 @@ export default function DownloadShare() {
     navigate('/registration-vault', { replace: true });
   };
 
-  /* ── UI ── */
+  /* ── UI ────────────────────────────────────────────────────────── */
   return (
     <div style={{
       position: 'relative',
       minHeight: '100vh',
+      width: '100%',
       background: 'var(--bg-base)',
       display: 'flex',
-      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'hidden',
+      padding: '32px 20px',
     }}>
-      {/* Animated canvas layer */}
+
+      {/* Layer 0 — animated canvas */}
       <CyberBackground />
 
-      {/* Decorative rings centered behind the card */}
+      {/* Layer 1 — decorative rings */}
       <CenterRings />
 
-      {/* Download card — centered, z above everything */}
-      <motion.div
-        initial={{ opacity: 0, y: 28, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          width: '100%',
-          maxWidth: 500,
-          padding: '0 20px',
-        }}
+      {/* Layer 2 — two-column card grid */}
+      <div style={{
+        position: 'relative',
+        zIndex: 10,
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 24,
+        width: '100%',
+        maxWidth: 960,
+        alignItems: 'stretch',
+      }}
+        className="download-grid"
       >
-        <div style={{
-          background: 'rgba(19,22,27,0.84)',
-          border: '1px solid rgba(255,215,80,0.14)',
-          borderRadius: 20,
-          padding: '40px 36px',
-          backdropFilter: 'blur(22px)',
-          boxShadow: '0 8px 56px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,215,80,0.04) inset',
-        }}>
 
-          {/* ── Info for Google Drive Share ── */}
-          <div style={{
-            background: 'rgba(100,220,200,0.08)',
-            border: '1px solid rgba(100,220,200,0.18)',
-            borderRadius: 14,
-            padding: '14px 18px',
-            marginBottom: 22,
+        {/* ── LEFT CARD: Download Recovery Share ── */}
+        <motion.div
+          initial={{ opacity: 0, x: -24, scale: 0.97 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            background: 'rgba(19,22,27,0.86)',
+            border: '1px solid rgba(255,215,80,0.15)',
+            borderRadius: 20,
+            padding: '40px 36px',
+            backdropFilter: 'blur(24px)',
+            boxShadow: '0 8px 56px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,215,80,0.04) inset',
             display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-          }}>
-            <span style={{ color: 'rgba(100,220,200,1)', fontSize: 18, flexShrink: 0 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l4 4-4 4-4-4z"/><path d="M2 12l4 4 4-4-4-4z"/><path d="M12 22l4-4-4-4-4 4z"/></svg>
-            </span>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-              <strong>Next step:</strong> After downloading <code style={{ background: 'var(--bg-elevated)', padding: '1px 6px', borderRadius: 4, color: 'var(--gold)', fontSize: '0.77rem' }}>local_share.enc</code>,<br />
-              please go to your Google Drive and check for <b>Share 1</b>.<br />
-              Make sure it is present and safely stored. This is required for vault unlock.
-            </div>
-          </div>
-
-          {/* ── Header ── */}
+            flexDirection: 'column',
+          }}
+        >
+          {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
             <motion.div
               initial={{ scale: 0.75, opacity: 0 }}
@@ -367,12 +373,10 @@ export default function DownloadShare() {
                 borderRadius: '50%',
                 background: 'rgba(255,215,80,0.09)',
                 border: '1px solid rgba(255,215,80,0.28)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 margin: '0 auto 18px',
                 color: 'var(--gold)',
-                boxShadow: '0 0 28px rgba(255,215,80,0.1)',
+                boxShadow: '0 0 28px rgba(255,215,80,0.12)',
               }}
             >
               <ShieldIcon size={28} />
@@ -380,7 +384,7 @@ export default function DownloadShare() {
 
             <h2 style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '1.45rem',
+              fontSize: '1.4rem',
               fontWeight: 700,
               color: 'var(--text-primary)',
               marginBottom: 10,
@@ -395,7 +399,7 @@ export default function DownloadShare() {
             )}
           </div>
 
-          {/* ── Warning box ── */}
+          {/* Warning box */}
           <div style={{
             background: 'rgba(255,215,80,0.055)',
             border: '1px solid rgba(255,215,80,0.2)',
@@ -413,11 +417,8 @@ export default function DownloadShare() {
                 </p>
                 <p style={{ fontSize: '0.79rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
                   <code style={{
-                    background: 'var(--bg-elevated)',
-                    padding: '1px 6px',
-                    borderRadius: 4,
-                    color: 'var(--gold)',
-                    fontSize: '0.77rem',
+                    background: 'var(--bg-elevated)', padding: '1px 6px',
+                    borderRadius: 4, color: 'var(--gold)', fontSize: '0.77rem',
                   }}>local_share.enc</code>
                   {' '}is your personal cryptographic share — required every time you unlock your vault.
                   Without it, vault access is permanently lost. Store it in a secure location.
@@ -426,8 +427,8 @@ export default function DownloadShare() {
             </div>
           </div>
 
-          {/* ── Bullet points ── */}
-          <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 9 }}>
+          {/* Bullet points */}
+          <div style={{ marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 9 }}>
             {[
               'Required for vault unlock on any device',
               'Combined with Google Drive & Supabase shares',
@@ -438,75 +439,227 @@ export default function DownloadShare() {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.28 + i * 0.08 }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  fontSize: '0.8rem',
-                  color: 'var(--text-secondary)',
-                }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.8rem', color: 'var(--text-secondary)' }}
               >
                 <div style={{
-                  width: 5, height: 5,
-                  borderRadius: '50%',
-                  background: 'var(--gold)',
-                  flexShrink: 0,
-                  opacity: 0.55,
-                  boxShadow: '0 0 4px rgba(255,215,80,0.4)',
+                  width: 5, height: 5, borderRadius: '50%',
+                  background: 'var(--gold)', flexShrink: 0,
+                  opacity: 0.55, boxShadow: '0 0 4px rgba(255,215,80,0.4)',
                 }} />
                 {txt}
               </motion.div>
             ))}
           </div>
 
-          {/* ── Error ── */}
+          {/* Error */}
           {error && (
-            <div className="sv-alert sv-alert-error" style={{ marginBottom: 20 }}>
-              {error}
-            </div>
+            <div className="sv-alert sv-alert-error" style={{ marginBottom: 20 }}>{error}</div>
           )}
 
-          {/* ── Download CTA ── */}
-          {!error && !downloaded && localShareData && (
-            <motion.button
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45 }}
-              className="sv-btn sv-btn-primary sv-btn-full"
-              onClick={handleDownload}
-              disabled={downloading}
-              style={{ height: 52, fontSize: '0.93rem', gap: 10 }}
-            >
-              {downloading ? <span className="sv-spinner" /> : <DownloadIcon size={18} />}
-              {downloading ? 'Preparing…' : 'Download local_share.enc'}
-            </motion.button>
-          )}
+          {/* Download CTA */}
+          <div style={{ marginTop: 'auto' }}>
+            {!error && !downloaded && localShareData && (
+              <motion.button
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45 }}
+                className="sv-btn sv-btn-primary sv-btn-full"
+                onClick={handleDownload}
+                disabled={downloading}
+                style={{ height: 52, fontSize: '0.93rem', gap: 10 }}
+              >
+                {downloading ? <span className="sv-spinner" /> : <DownloadIcon size={18} />}
+                {downloading ? 'Preparing…' : 'Download local_share.enc'}
+              </motion.button>
+            )}
 
-          {/* Status bar */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-            marginTop: 20,
-          }}>
+            {/* Status bar */}
             <div style={{
-              width: 5, height: 5,
-              borderRadius: '50%',
-              background: 'var(--green)',
-              boxShadow: '0 0 5px rgba(74,222,128,0.55)',
-            }} />
-            <span style={{
-              fontSize: '0.62rem',
-              color: 'var(--text-muted)',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: 6, marginTop: 18,
             }}>
-              Shamir (2-of-3) · End-to-end encrypted
+              <div style={{
+                width: 5, height: 5, borderRadius: '50%',
+                background: 'var(--green)', boxShadow: '0 0 5px rgba(74,222,128,0.55)',
+              }} />
+              <span style={{
+                fontSize: '0.62rem', color: 'var(--text-muted)',
+                letterSpacing: '0.1em', textTransform: 'uppercase',
+              }}>
+                Shamir (2-of-3) · End-to-end encrypted
+              </span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── RIGHT CARD: Google Drive Share Info ── */}
+        <motion.div
+          initial={{ opacity: 0, x: 24, scale: 0.97 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            background: 'rgba(16,26,28,0.88)',
+            border: '1px solid rgba(90,210,190,0.18)',
+            borderRadius: 20,
+            padding: '40px 36px',
+            backdropFilter: 'blur(24px)',
+            boxShadow: '0 8px 56px rgba(0,0,0,0.55), 0 0 0 1px rgba(90,210,190,0.04) inset',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            <motion.div
+              initial={{ scale: 0.75, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 220, damping: 18 }}
+              style={{
+                width: 64, height: 64,
+                borderRadius: '50%',
+                background: 'rgba(90,210,190,0.08)',
+                border: '1px solid rgba(90,210,190,0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 18px',
+                boxShadow: '0 0 28px rgba(90,210,190,0.1)',
+              }}
+            >
+              <DriveIcon size={30} />
+            </motion.div>
+
+            <h2 style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.4rem',
+              fontWeight: 700,
+              color: 'var(--text-primary)',
+              marginBottom: 10,
+            }}>
+              Google Drive Share
+            </h2>
+
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              padding: '4px 10px', borderRadius: 99,
+              background: 'rgba(90,210,190,0.1)',
+              border: '1px solid rgba(90,210,190,0.22)',
+              fontSize: '0.68rem', fontWeight: 600,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+              color: 'rgba(90,210,190,0.9)',
+            }}>
+              Share 1 of 3
             </span>
           </div>
-        </div>
-      </motion.div>
+
+          {/* Info box */}
+          <div style={{
+            background: 'rgba(90,210,190,0.055)',
+            border: '1px solid rgba(90,210,190,0.18)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '16px 18px',
+            marginBottom: 20,
+          }}>
+            <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgba(90,210,190,0.9)', marginBottom: 7 }}>
+              Automatically saved to your Drive
+            </p>
+            <p style={{ fontSize: '0.79rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+              During Google OAuth registration, <strong style={{ color: 'rgba(90,210,190,0.8)' }}>Share 1</strong> was
+              automatically stored in your Google Drive. This is your cloud cryptographic fragment —
+              it is combined with your local share and the server share to reconstruct the vault key.
+            </p>
+          </div>
+
+          {/* Checklist */}
+          <div style={{ marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[
+              { text: 'Stored automatically via Google OAuth', done: true },
+              { text: 'Encrypted — unreadable without other shares', done: true },
+              { text: 'Verify it exists in your Google Drive', done: false },
+              { text: 'Do not delete or move this file', done: false },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.35 + i * 0.07 }}
+                style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: '0.8rem' }}
+              >
+                <span style={{
+                  color: item.done ? 'rgba(90,210,190,0.8)' : 'rgba(255,215,80,0.55)',
+                  flexShrink: 0, marginTop: 1,
+                }}>
+                  {item.done
+                    ? <CheckCircleIcon size={14} />
+                    : <AlertTriangleIcon size={14} />}
+                </span>
+                <span style={{ color: item.done ? 'var(--text-secondary)' : 'rgba(255,215,80,0.75)' }}>
+                  {item.text}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Open Drive button */}
+          <div style={{ marginTop: 'auto' }}>
+            <motion.a
+              href="https://drive.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: 10, height: 52, width: '100%',
+                background: 'rgba(90,210,190,0.1)',
+                border: '1px solid rgba(90,210,190,0.3)',
+                borderRadius: 'var(--radius-md)',
+                color: 'rgba(90,210,190,0.9)',
+                fontFamily: 'var(--font-display)',
+                fontSize: '0.9rem', fontWeight: 600,
+                textDecoration: 'none', cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 0 16px rgba(90,210,190,0.06)',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(90,210,190,0.18)';
+                e.currentTarget.style.boxShadow  = '0 0 24px rgba(90,210,190,0.14)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(90,210,190,0.1)';
+                e.currentTarget.style.boxShadow  = '0 0 16px rgba(90,210,190,0.06)';
+              }}
+            >
+              <DriveIcon size={20} />
+              Open Google Drive
+            </motion.a>
+
+            {/* Status bar */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: 6, marginTop: 18,
+            }}>
+              <div style={{
+                width: 5, height: 5, borderRadius: '50%',
+                background: 'rgba(90,210,190,0.8)',
+                boxShadow: '0 0 5px rgba(90,210,190,0.5)',
+              }} />
+              <span style={{
+                fontSize: '0.62rem', color: 'var(--text-muted)',
+                letterSpacing: '0.1em', textTransform: 'uppercase',
+              }}>
+                Cloud share · Auto-synced
+              </span>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Responsive: collapse to single column on mobile */}
+      <style>{`
+        @media (max-width: 720px) {
+          .download-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }
