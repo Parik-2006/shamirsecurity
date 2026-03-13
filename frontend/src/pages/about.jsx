@@ -6,7 +6,6 @@ export default function About({ onClose }) {
   const navigate = useNavigate();
   // Popup/modal style, concise info, clickable text
   const handleClose = () => {
-    onClose();
     navigate('/login');
   };
   const handleMail = () => {
