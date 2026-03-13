@@ -1,18 +1,20 @@
+Here is your fully integrated, professional **README.md**. I have merged your technical deep-dive, the real-world scenarios, the specific RVCE mentor credits, and the full team list into one high-impact document.
+
+---
+
 # 🛡️ ShamirSecurity: Multi-Part Cryptographic Sharding
 
-> **A High-Entropy Threshold Cryptography Engine.**
-> *Built for Distributed Key Management, Secure Multiparty Computation, and Data Resilience.*
+> **A High-Entropy Threshold Cryptography Engine.** > *Main Experiential Learning (EL) | 3rd Semester | RV College of Engineering*
 
 ---
 
 ## 📖 Project Objective
 
-In modern cybersecurity, the "Single Point of Failure" is the greatest risk to sensitive data. If a master key is stolen, the entire system is compromised. Traditional encryption often relies on a single entity holding the "keys to the kingdom."
+In modern cybersecurity, the **"Single Point of Failure"** is the greatest risk to sensitive data. If a master key is stolen, the entire system is compromised. Traditional encryption often relies on a single entity holding the "keys to the kingdom."
 
-**The Solution:**
-This project implements **Shamir's Secret Sharing (SSS)**. It allows a secret (like a password or a private key) to be divided into $N$ unique parts (shares). The original secret can only be reconstructed when a minimum threshold $T$ of shares are combined.
+**The Solution:** This project implements **Shamir's Secret Sharing (SSS)**. It allows a secret (like a password or a private key) to be divided into $N$ unique parts (shares). The original secret can only be reconstructed when a minimum threshold $T$ of shares are combined.
 
-* **Fault Tolerance:** Losing a few shares doesn't lose the data.
+* **Fault Tolerance:** Losing a few shares doesn't result in data loss.
 * **Information-Theoretic Security:** An attacker with $T-1$ shares has zero knowledge of the secret.
 * **Mathematical Integrity:** Based on polynomial interpolation over Finite Fields.
 
@@ -37,27 +39,25 @@ By generating random coefficients for $a_1 \dots a_{T-1}$, the system ensures th
 To prevent "approximation attacks" and ensure precision with large numbers, the system operates within a **Finite Field (GF($P$))**.
 
 * **The Theory:** All calculations are performed modulo a large Prime number.
-* **The Benefit:** This ensures that coordinates remain integers and that the secret space is uniformly distributed, making brute-force attacks mathematically impossible.
+* **The Benefit:** This ensures coordinates remain integers and the secret space is uniformly distributed, making brute-force attacks mathematically impossible.
 
 ### **3. Lagrange Interpolation (The Reconstructor)**
 
 To recover the secret, the engine utilizes the **Lagrange Basis Polynomial**.
 
 * **The Process:** Given $T$ points $(x, y)$, the system reconstructs the original polynomial to find the $y$-intercept ($x=0$).
-* **Complexity:** This allows for $O(T^2)$ reconstruction time, providing near-instant access for authorized users while remaining impenetrable to others.
+* **Complexity:** This allows for $O(T^2)$ reconstruction time, providing near-instant access for authorized users.
 
 ---
 
 ## 🌍 Real-World Scenarios
 
-This project simulates secret management across critical security use cases:
-
 | Scenario | The Challenge | The Solution |
 | --- | --- | --- |
 | **🔑 Digital Vaults** | Protecting a Master Root Key. | **Threshold Logic:** Distribute 3 shares; require any 2 to open the vault. |
-| **🛰️ Nuclear/Military** | Preventing unauthorized launch. | **Multi-Sig Auth:** Multiple officers must provide their shares simultaneously. |
+| **🛰️ Nuclear/Military** | Preventing unauthorized launch. | **Multi-Sig Auth:** Multiple officers must provide shares simultaneously. |
 | **☁️ Cloud Sharding** | Storing keys across different nodes. | **Distributed Storage:** Even if one node is breached, the secret is safe. |
-| **🧬 Inheritance** | Passing digital assets to heirs. | **Partial Disclosure:** Heirs receive shares that only work when combined. |
+| **🧬 Inheritance** | Passing assets to heirs. | **Partial Disclosure:** Shares only work when combined after a specific event. |
 
 ---
 
@@ -65,42 +65,48 @@ This project simulates secret management across critical security use cases:
 
 * **Runtime Environment:** Node.js
 * **Backend Framework:** Express.js
-* **Cryptographic Logic:** JavaScript (Implementation of SSS & Lagrange Interpolation)
-* **Frontend:** EJS (Embedded JavaScript Templates), CSS (Cyberpunk Dark Mode)
-* **Data Flow:** JSON-based Secret Sharding and Reconstruction
+* **Frontend:** React.js / EJS (Hybrid implementation for simulation)
+* **Styling:** CSS (Cyberpunk Dark Mode)
+* **Math Logic:** Custom JavaScript implementation of SSS & Lagrange Interpolation.
 
 ---
 
-## ☁️ Deployment
+## 👨‍🏫 Acknowledgments & Team
 
-This project is optimized for cloud-native environments and web-based interaction.
+Developed as part of the **Main Experiential Learning (EL)** curriculum at **R V College of Engineering**.
 
-* The Node.js backend handles the polynomial math and coordinate generation.
-* The Express server manages the interactive simulation of splitting and joining secrets.
-* **Live Link:** https://shamirsecurity-1-aclh.onrender.com
+### **Mentors**
 
+* **Dr. Anitha Sandeep**, Assistant Professor, Dept. of Computer Science, RVCE.
+* **Srinivas BK**, Assistant Professor, Dept. of Information Science, RVCE.
+
+### **The Team**
+
+* **Parikshith B B** (Lead Developer)
+* **Ganesh Badiger**
+* **Ved U**
+* **VN Swamy**
+* **Vivek**
 
 ---
 
-### 👨‍🏫 Acknowledgments
+## 🚀 Live Demo & Deployment
 
-This project was developed as part of the **Data Structures and Applications (DSA-EL)** curriculum at **R V College of Engineering**. Special thanks to:
+This project is optimized for cloud-native environments. Try the live simulation here:
 
-* **Department of Computer Science**, RVCE.
-* Inspired by the cryptographic research of **Adi Shamir**.
+**Live Link:** [https://shamirsecurity-1-aclh.onrender.com](https://shamirsecurity-1-aclh.onrender.com)
 
 ---
 
 ### 📄 License
 
-Educational Research Purpose - RVCE CSE 2025.
+Educational Research Purpose - RVCE CSE/ISE 2026.
+
+### 🤝 Contributing
+
+This project is open for viewing. **Direct changes are restricted.**
+Found a bug? Please [Open a New Issue](https://www.google.com/search?q=https://github.com/Parik-2006/shamirsecurity/issues).
 
 ---
 
-### 🤝 Contributing & Issues
-
-This project is open for viewing. **Direct changes are restricted.**
-
-* **Found a bug?** Please [Open a New Issue](https://www.google.com/search?q=https://github.com/Parik-2006/shamirsecurity/issues) and describe the problem.
-* **Want to fix it?** Please Fork the repo and submit a Pull Request (PR) for review.
-
+**Would you like me to generate a "Project Highlight" section for your portfolio website that summarizes this for recruiters?**
