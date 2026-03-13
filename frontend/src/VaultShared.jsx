@@ -81,6 +81,74 @@ const SERVICE_DOMAIN_MAP = {
   dashlane:     'dashlane.com',
 };
 
+// Well-known services: map keyword → emoji icon
+const SERVICE_ICON_MAP = {
+  google: '🟢',
+  gmail: '🟢',
+  youtube: '🔴',
+  microsoft: '🟦',
+  outlook: '🟦',
+  apple: '⚪',
+  icloud: '⚪',
+  facebook: '🔵',
+  instagram: '🟣',
+  twitter: '🔷',
+  x: '❌',
+  linkedin: '🔷',
+  github: '⚫',
+  gitlab: '🟧',
+  bitbucket: '🟦',
+  netflix: '🔴',
+  spotify: '🟢',
+  disney: '🔵',
+  hulu: '🟢',
+  amazon: '🟠',
+  prime: '🟠',
+  twitch: '🟣',
+  paypal: '🔵',
+  stripe: '🔵',
+  coinbase: '🔵',
+  binance: '🟡',
+  robinhood: '🟢',
+  chase: '🔵',
+  wellsfargo: '🟠',
+  notion: '⚫',
+  slack: '🟣',
+  discord: '🔵',
+  zoom: '🔵',
+  dropbox: '🔵',
+  figma: '⚫',
+  jira: '🔵',
+  confluence: '🔵',
+  trello: '🔵',
+  asana: '🟣',
+  airtable: '🔵',
+  aws: '🟠',
+  azure: '🔵',
+  digitalocean: '🔵',
+  heroku: '🟣',
+  vercel: '⚫',
+  netlify: '🟢',
+  cloudflare: '🟠',
+  npm: '🔴',
+  ebay: '🟡',
+  etsy: '🟠',
+  shopify: '🟢',
+  airbnb: '🟠',
+  uber: '⚫',
+  lyft: '🟣',
+  reddit: '🟠',
+  pinterest: '🔴',
+  tiktok: '⚫',
+  snapchat: '🟡',
+  whatsapp: '🟢',
+  telegram: '🔵',
+  protonmail: '🟢',
+  lastpass: '🔴',
+  bitwarden: '🔵',
+  dashlane: '🟢',
+};
+
 /** Resolve a service name to a Clearbit logo URL, or null */
 function resolveLogoDomain(name) {
   if (!name) return null;
@@ -100,22 +168,24 @@ function resolveLogoDomain(name) {
   return null;
 }
 
+/** Resolve a service name to an emoji icon, or null */
+function resolveServiceIcon(name) {
+  if (!name) return null;
+  const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (SERVICE_ICON_MAP[key]) return SERVICE_ICON_MAP[key];
+  for (const k of Object.keys(SERVICE_ICON_MAP)) {
+    if (key.startsWith(k) || k.startsWith(key)) return SERVICE_ICON_MAP[k];
+  }
+  return null;
+}
+
 const AVATAR_COLORS = ['#ffd750','#3ecf8e','#5b8dee','#e879a4','#a78bfa','#fb923c'];
 
 /** Smart service logo: tries Clearbit, falls back to letter avatar */
 export function ServiceLogo({ name = '?' }) {
-  const domain  = resolveLogoDomain(name);
-  const logoUrl = domain
-    ? `https://logo.clearbit.com/${domain}?size=64`
-    : null;
-
-  const [imgOk, setImgOk] = useState(!!logoUrl); // optimistic
+  const icon = resolveServiceIcon(name);
   const colorIdx = (name.charCodeAt(0) || 0) % AVATAR_COLORS.length;
   const color    = AVATAR_COLORS[colorIdx];
-
-  // Reset when name changes
-  useEffect(() => { setImgOk(!!logoUrl); }, [logoUrl]);
-
   const containerStyle = {
     width: 34,
     height: 34,
@@ -125,24 +195,17 @@ export function ServiceLogo({ name = '?' }) {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: imgOk ? 'rgba(255,255,255,0.04)' : `${color}18`,
-    border: `1px solid ${imgOk ? 'rgba(255,255,255,0.08)' : color + '33'}`,
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.08)',
     transition: 'all 0.2s ease',
   };
-
-  if (logoUrl && imgOk) {
+  if (icon) {
     return (
       <div style={containerStyle}>
-        <img
-          src={logoUrl}
-          alt={name}
-          onError={() => setImgOk(false)}
-          style={{ width: 22, height: 22, objectFit: 'contain', borderRadius: 3 }}
-        />
+        <span style={{ fontSize: 22, fontWeight: 700, color, fontFamily: 'var(--font-display)' }}>{icon}</span>
       </div>
     );
   }
-
   return (
     <div style={containerStyle}>
       <span style={{ fontSize: 13, fontWeight: 700, color, fontFamily: 'var(--font-display)' }}>
