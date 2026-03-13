@@ -178,7 +178,8 @@ function CyberBackground() {
 }
 
 /* ── Top-Right Nav ─────────────────────────────────────────── */
-function TopNav({ onNavigate }) {
+function TopNav() {
+  const navigate = useNavigate();
   return (
     <motion.nav
       initial={{ opacity: 0, y: -12 }}
@@ -193,41 +194,96 @@ function TopNav({ onNavigate }) {
         zIndex: 20,
       }}
     >
-      {['Documentation', 'Verification', 'About'].map((label, i) => (
-        <motion.button
-          key={label}
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 + i * 0.07 }}
-          onClick={() => onNavigate && onNavigate(label.toLowerCase())}
-          style={{
-            background: 'rgba(13,15,18,0.7)',
-            border: '1px solid rgba(255,215,80,0.14)',
-            color: 'rgba(255,215,80,0.65)',
-            fontFamily: 'var(--font-display)',
-            fontSize: '0.72rem',
-            fontWeight: 600,
-            letterSpacing: '0.06em',
-            padding: '7px 14px',
-            borderRadius: 8,
-            cursor: 'pointer',
-            backdropFilter: 'blur(12px)',
-            transition: 'all 0.18s ease',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.borderColor = 'rgba(255,215,80,0.35)';
-            e.currentTarget.style.color = 'rgba(255,215,80,1)';
-            e.currentTarget.style.background = 'rgba(255,215,80,0.07)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.borderColor = 'rgba(255,215,80,0.14)';
-            e.currentTarget.style.color = 'rgba(255,215,80,0.65)';
-            e.currentTarget.style.background = 'rgba(13,15,18,0.7)';
-          }}
-        >
-          {label}
-        </motion.button>
-      ))}
+      <motion.button
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        onClick={() => navigate('/documentation')}
+        style={{
+          background: 'rgba(13,15,18,0.7)',
+          border: '1px solid rgba(255,215,80,0.14)',
+          color: 'rgba(255,215,80,0.65)',
+          fontFamily: 'var(--font-display)',
+          fontSize: '0.72rem',
+          fontWeight: 600,
+          letterSpacing: '0.06em',
+          padding: '7px 14px',
+          borderRadius: 8,
+          cursor: 'pointer',
+          backdropFilter: 'blur(12px)',
+          transition: 'all 0.18s ease',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.borderColor = 'rgba(255,215,80,0.35)';
+          e.currentTarget.style.color = 'rgba(255,215,80,1)';
+          e.currentTarget.style.background = 'rgba(255,215,80,0.07)';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.borderColor = 'rgba(255,215,80,0.14)';
+          e.currentTarget.style.color = 'rgba(255,215,80,0.65)';
+          e.currentTarget.style.background = 'rgba(13,15,18,0.7)';
+        }}
+      >Documentation</motion.button>
+      <motion.button
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.22 }}
+        onClick={() => navigate('/verification')}
+        style={{
+          background: 'rgba(13,15,18,0.7)',
+          border: '1px solid rgba(255,215,80,0.14)',
+          color: 'rgba(255,215,80,0.65)',
+          fontFamily: 'var(--font-display)',
+          fontSize: '0.72rem',
+          fontWeight: 600,
+          letterSpacing: '0.06em',
+          padding: '7px 14px',
+          borderRadius: 8,
+          cursor: 'pointer',
+          backdropFilter: 'blur(12px)',
+          transition: 'all 0.18s ease',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.borderColor = 'rgba(255,215,80,0.35)';
+          e.currentTarget.style.color = 'rgba(255,215,80,1)';
+          e.currentTarget.style.background = 'rgba(255,215,80,0.07)';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.borderColor = 'rgba(255,215,80,0.14)';
+          e.currentTarget.style.color = 'rgba(255,215,80,0.65)';
+          e.currentTarget.style.background = 'rgba(13,15,18,0.7)';
+        }}
+      >Verification</motion.button>
+      <motion.button
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.29 }}
+        onClick={() => navigate('/about')}
+        style={{
+          background: 'rgba(13,15,18,0.7)',
+          border: '1px solid rgba(255,215,80,0.14)',
+          color: 'rgba(255,215,80,0.65)',
+          fontFamily: 'var(--font-display)',
+          fontSize: '0.72rem',
+          fontWeight: 600,
+          letterSpacing: '0.06em',
+          padding: '7px 14px',
+          borderRadius: 8,
+          cursor: 'pointer',
+          backdropFilter: 'blur(12px)',
+          transition: 'all 0.18s ease',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.borderColor = 'rgba(255,215,80,0.35)';
+          e.currentTarget.style.color = 'rgba(255,215,80,1)';
+          e.currentTarget.style.background = 'rgba(255,215,80,0.07)';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.borderColor = 'rgba(255,215,80,0.14)';
+          e.currentTarget.style.color = 'rgba(255,215,80,0.65)';
+          e.currentTarget.style.background = 'rgba(13,15,18,0.7)';
+        }}
+      >About</motion.button>
     </motion.nav>
   );
 }
