@@ -22,12 +22,12 @@ export default function About({ onClose }) {
           Secure multi-key secret management using Shamir Secret Sharing.<br />
           For help, feedback, or bug reports:<br />
           <span style={{ display: 'block', marginTop: 12 }}>
-            <a href="mailto:parikshithbb.cs25@rvce.edu.in" style={{ cursor: 'pointer', textDecoration: 'underline', color: '#FFD66B', fontWeight: 600 }}>Contact via email</a>
+            <a href="mailto:parikshithbb.cs25@rvce.edu.in" style={{ cursor: 'pointer', textDecoration: 'underline', color: '#FFD66B', fontWeight: 600 }} tabIndex={0}>Contact via email</a>
             {' | '}
-            <a href="https://discord.gg/9RxnKJPV" target="_blank" rel="noopener noreferrer" style={{ cursor: 'pointer', textDecoration: 'underline', color: '#FFD66B', fontWeight: 600 }}>Join Discord</a>
+            <a href="https://discord.gg/9RxnKJPV" target="_blank" rel="noopener noreferrer" style={{ cursor: 'pointer', textDecoration: 'underline', color: '#FFD66B', fontWeight: 600 }} tabIndex={0}>Join Discord</a>
           </span>
         </div>
-        <button onClick={onClose} style={{ marginTop: 18, background: '#FFD66B', color: '#151A21', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, fontSize: 15, cursor: 'pointer', boxShadow: '0 2px 16px #FFD66B55' }}>Close</button>
+        <button onClick={onClose} tabIndex={0} style={{ marginTop: 18, background: '#FFD66B', color: '#151A21', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, fontSize: 15, cursor: 'pointer', boxShadow: '0 2px 16px #FFD66B55' }}>Close</button>
       </motion.div>
     </div>
   );
