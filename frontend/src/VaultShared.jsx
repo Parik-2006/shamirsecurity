@@ -230,9 +230,12 @@ const AVATAR_COLORS = ['#ffd750','#3ecf8e','#5b8dee','#e879a4','#a78bfa','#fb923
 
 /** Smart service logo: tries Clearbit, falls back to letter avatar */
 export function ServiceLogo({ name = '?' }) {
-  const IconComponent = resolveServiceIconComponent(name);
+  const domain = resolveLogoDomain(name);
+  const logoUrl = domain ? `https://logo.clearbit.com/${domain}?size=64` : null;
+  const [imgOk, setImgOk] = React.useState(!!logoUrl);
   const colorIdx = (name.charCodeAt(0) || 0) % AVATAR_COLORS.length;
   const color = AVATAR_COLORS[colorIdx];
+  React.useEffect(() => { setImgOk(!!logoUrl); }, [logoUrl]);
   const containerStyle = {
     width: 34,
     height: 34,
@@ -242,14 +245,19 @@ export function ServiceLogo({ name = '?' }) {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: imgOk ? 'rgba(255,255,255,0.04)' : `${color}18`,
+    border: `1px solid ${imgOk ? 'rgba(255,255,255,0.08)' : color + '33'}`,
     transition: 'all 0.2s ease',
   };
-  if (IconComponent) {
+  if (logoUrl && imgOk) {
     return (
       <div style={containerStyle}>
-        <IconComponent size={22} color={color} />
+        <img
+          src={logoUrl}
+          alt={name}
+          onError={() => setImgOk(false)}
+          style={{ width: 22, height: 22, objectFit: 'contain', borderRadius: 3 }}
+        />
       </div>
     );
   }

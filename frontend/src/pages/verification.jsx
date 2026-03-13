@@ -21,7 +21,7 @@ export default function Verification() {
           <GlowingCog />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} style={{ color: '#00fff7', fontWeight: 700, fontSize: 22, marginTop: 32, textShadow: '0 2px 24px #00fff755', letterSpacing: 1.2 }}>
-          Working on it...
+          Verification is under development.<br />Please check back soon!
         </motion.div>
       </div>
     </motion.div>
