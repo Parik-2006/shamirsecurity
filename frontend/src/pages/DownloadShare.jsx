@@ -1,7 +1,36 @@
 import React, { useState } from 'react';
-// DEBUG: Log component mount
-console.log('[DownloadShare] Component loaded');
 import { useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+
+console.log('[DownloadShare] Component loaded');
+
+function DownloadIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+  );
+}
+
+function ShieldIcon({ size = 28 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  );
+}
+
+function AlertTriangleIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  );
+}
 
 export default function DownloadShare() {
   const [downloading, setDownloading] = useState(false);
@@ -9,22 +38,25 @@ export default function DownloadShare() {
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
+
   console.log('[DownloadShare] location.pathname:', location.pathname, 'location.search:', location.search);
+
+  // --- ORIGINAL LOGIC PRESERVED ---
   const localShareData = params.get('local_share');
   const goldenKey = params.get('golden_key');
   const username = params.get('username');
+
   let error = '';
   if (!localShareData || !goldenKey || !username) {
     error = 'Missing registration data. Please retry registration.';
     console.warn('[DownloadShare] Missing registration data:', { localShareData, goldenKey, username });
   }
-  // Store credentials for vault page as soon as possible
+
   if (username && goldenKey) {
     localStorage.setItem('vaultUser', username);
     localStorage.setItem('goldenKey', goldenKey);
     localStorage.setItem('justRegistered', 'true');
     console.log('[DownloadShare] Setting vaultUser:', username, 'goldenKey:', goldenKey);
-    console.log('[DownloadShare] localStorage after set:', localStorage.getItem('vaultUser'), localStorage.getItem('goldenKey'));
   }
 
   const handleDownload = () => {
@@ -39,41 +71,134 @@ export default function DownloadShare() {
     a.click();
     document.body.removeChild(a);
     setDownloading(false);
-    // Immediately navigate to registration vault page after download (SPA navigation)
     console.log('[DownloadShare] Navigating to /registration-vault');
     navigate('/registration-vault', { replace: true });
   };
 
   return (
-    <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: '#151A21', borderRadius: 24, padding: 48, maxWidth: 520, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}>
-        <h2 style={{ fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Vault Share Download</h2>
-        <div style={{ fontSize: 12, color: '#FFD66B', marginBottom: 8 }}>User: {username || 'N/A'}</div>
-        <p style={{ fontSize: 18, marginBottom: 18, color: '#FFD66B' }}>
-          <b>Why download this file?</b><br />
-          <span style={{ color: '#fff', fontWeight: 400 }}>
-            <br />
-            <b>local_share.enc</b> is a critical part of your vault security. It is unique to your account and required to recover your vault or reset your password.<br /><br />
-            <b>Keep this file safe!</b> Without it, you may lose access to your vault forever. Store it in a secure location and do not share it with anyone.<br /><br />
-            You will need this file if you ever want to restore your account or access your encrypted data from a new device.
-          </span>
-        </p>
-        {error && (
-          <div style={{ color: '#ef4444', fontWeight: 600, margin: '18px 0' }}>{error}</div>
-        )}
-        {!error && !downloaded && localShareData && (
-          <button
-            onClick={handleDownload}
-            style={{
-              background: '#FFD66B', color: '#151A21', fontWeight: 700, fontSize: 20, border: 'none', borderRadius: 12, padding: '14px 36px', marginTop: 18, cursor: 'pointer', boxShadow: '0 2px 12px #0006', transition: 'background 0.2s'
-            }}
-            disabled={downloading}
-          >
-            {downloading ? 'Preparing Download...' : 'Download local_share.enc'}
-          </button>
-        )}
-        {/* After download, user is immediately redirected. No post-download UI. */}
-      </div>
+    <div className="sv-page">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        style={{ width: '100%', maxWidth: 520 }}
+      >
+        <div className="sv-card" style={{ padding: '40px 36px' }}>
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              style={{
+                width: 64, height: 64,
+                borderRadius: '50%',
+                background: 'var(--gold-muted)',
+                border: '1px solid var(--border-accent)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 20px',
+                color: 'var(--gold)',
+              }}
+            >
+              <ShieldIcon size={28} />
+            </motion.div>
+            <h2 style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              marginBottom: 8,
+            }}>
+              Save Your Recovery Share
+            </h2>
+            {username && (
+              <span className="sv-badge sv-badge-gold" style={{ fontSize: '0.7rem' }}>
+                {username}
+              </span>
+            )}
+          </div>
+
+          {/* Warning box */}
+          <div style={{
+            background: 'rgba(255,215,80,0.06)',
+            border: '1px solid rgba(255,215,80,0.2)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '18px 20px',
+            marginBottom: 24,
+          }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <span style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 1 }}>
+                <AlertTriangleIcon size={16} />
+              </span>
+              <div>
+                <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--gold)', marginBottom: 8 }}>
+                  Critical: Keep this file safe
+                </p>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+                  <code style={{
+                    background: 'var(--bg-elevated)',
+                    padding: '1px 6px',
+                    borderRadius: 4,
+                    color: 'var(--gold)',
+                    fontSize: '0.78rem',
+                  }}>local_share.enc</code>
+                  {' '}is your personal cryptographic share — required every time you unlock your vault.
+                  Without it, vault access is permanently lost. Store it in a secure location.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Info rows */}
+          <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[
+              'Required for vault unlock on any device',
+              'Combined with Google Drive & Supabase shares',
+              'Never stored on our servers',
+            ].map((txt, i) => (
+              <div key={i} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                fontSize: '0.8rem',
+                color: 'var(--text-secondary)',
+              }}>
+                <div style={{
+                  width: 6, height: 6,
+                  borderRadius: '50%',
+                  background: 'var(--gold)',
+                  flexShrink: 0,
+                  opacity: 0.6,
+                }} />
+                {txt}
+              </div>
+            ))}
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="sv-alert sv-alert-error" style={{ marginBottom: 20 }}>{error}</div>
+          )}
+
+          {/* CTA */}
+          {!error && !downloaded && localShareData && (
+            <button
+              className="sv-btn sv-btn-primary sv-btn-full"
+              onClick={handleDownload}
+              disabled={downloading}
+              style={{ height: 52, fontSize: '0.95rem', gap: 10 }}
+            >
+              {downloading ? (
+                <span className="sv-spinner" />
+              ) : (
+                <DownloadIcon size={18} />
+              )}
+              {downloading ? 'Preparing…' : 'Download local_share.enc'}
+            </button>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 }

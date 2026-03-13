@@ -1,126 +1,22 @@
-/* App-specific styles - complements index.css */
+/* App.css — component-level overrides only */
+/* All base styles live in index.css */
 
-#root {
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
+/* Vault dashboard layout */
+.vault-layout {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  background: var(--bg-base);
 }
 
-/* Additional animations for app components */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
-}
-
-@keyframes glow {
-  0%, 100% { filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4)); }
-  50% { filter: drop-shadow(0 0 25px rgba(99, 102, 241, 0.7)); }
-}
-
-.floating {
-  animation: float 4s ease-in-out infinite;
-}
-
-.glowing {
-  animation: glow 3s ease-in-out infinite;
-}
-
-/* Tooltip styles */
-.tooltip {
-  position: relative;
-}
-
-.tooltip::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 6px 12px;
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
-  font-size: 0.75rem;
-  border-radius: 6px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.2s ease;
-}
-
-.tooltip:hover::after {
-  opacity: 1;
-  bottom: calc(100% + 8px);
-}
-
-/* Ripple effect */
-.ripple {
-  position: relative;
-  overflow: hidden;
-}
-
-.ripple::after {
-  content: '';
-  position: absolute;
+.vault-main {
+  flex: 1;
+  padding: 32px;
+  max-width: 1100px;
+  margin: 0 auto;
   width: 100%;
-  height: 100%;
-  top: 50%;
-  left: 50%;
-  pointer-events: none;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 10%, transparent 10%);
-  background-repeat: no-repeat;
-  background-position: 50%;
-  transform: translate(-50%, -50%) scale(10);
-  opacity: 0;
-  transition: transform 0.5s, opacity 0.5s;
 }
 
-.ripple:active::after {
-  transform: translate(-50%, -50%) scale(0);
-  opacity: 1;
-  transition: 0s;
-}
-
-/* Password strength indicator */
-.password-strength {
-  height: 4px;
-  border-radius: 2px;
-  margin-top: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-}
-
-.password-strength-bar {
-  height: 100%;
-  transition: width 0.3s ease, background 0.3s ease;
-  border-radius: 2px;
-}
-
-.strength-weak { 
-  width: 25%; 
-  background: linear-gradient(90deg, #ef4444, #f87171); 
-}
-.strength-fair { 
-  width: 50%; 
-  background: linear-gradient(90deg, #f59e0b, #fbbf24); 
-}
-.strength-good { 
-  width: 75%; 
-  background: linear-gradient(90deg, #3b82f6, #60a5fa); 
-}
-.strength-strong { 
-  width: 100%; 
-  background: linear-gradient(90deg, #10b981, #34d399); 
-}
-
-/* Card hover effects */
-.card-interactive {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-interactive:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.4),
-    0 0 40px rgba(99, 102, 241, 0.1);
+@media (max-width: 768px) {
+  .vault-main { padding: 16px; }
 }

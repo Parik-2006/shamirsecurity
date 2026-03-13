@@ -1,20 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-098.onrender.com';
 
+// ── Icons ──────────────────────────────────────────────────────────
+const LockIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+  </svg>
+);
+const PlusIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+  </svg>
+);
+const CheckIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+const LogOutIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+    <polyline points="16 17 21 12 16 7"/>
+    <line x1="21" y1="12" x2="9" y2="12"/>
+  </svg>
+);
+const EyeIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+const EyeOffIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+    <line x1="1" y1="1" x2="23" y2="23"/>
+  </svg>
+);
+
+function ServiceAvatar({ name }) {
+  const colors = ['#ffd750','#3ecf8e','#5b8dee','#e879a4','#a78bfa','#fb923c'];
+  const idx = (name.charCodeAt(0) || 0) % colors.length;
+  return (
+    <div style={{ width:32, height:32, borderRadius:8, background:`${colors[idx]}18`, border:`1px solid ${colors[idx]}33`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:colors[idx], flexShrink:0 }}>
+      {(name[0] || '?').toUpperCase()}
+    </div>
+  );
+}
+
+function PasswordCell({ password }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+      <span style={{ fontFamily:'var(--font-mono)', fontSize:13, color:'var(--text-primary)', letterSpacing: visible ? 0 : '0.12em' }}>
+        {visible ? password : '••••••••••'}
+      </span>
+      <button
+        onClick={() => setVisible(v => !v)}
+        style={{ background:'var(--bg-elevated)', border:'1px solid var(--border-subtle)', borderRadius:6, padding:'4px 7px', cursor:'pointer', color:'var(--text-muted)', display:'flex', alignItems:'center', transition:'all var(--t-fast)' }}
+      >
+        {visible ? <EyeOffIcon /> : <EyeIcon />}
+      </button>
+    </div>
+  );
+}
+
 export default function RegistrationVaultPage() {
   const navigate = useNavigate();
-  const username = localStorage.getItem('vaultUser') || 'User';
+  const username  = localStorage.getItem('vaultUser') || 'User';
   const goldenKey = localStorage.getItem('goldenKey') || '';
-  const [vaultData, setVaultData] = useState([]);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [newService, setNewService] = useState('');
-  const [newServiceUser, setNewServiceUser] = useState('');
-  const [newPass, setNewPass] = useState('');
 
-  // Helper to fetch vault
+  const [vaultData, setVaultData]         = useState([]);
+  const [error, setError]                 = useState('');
+  const [loading, setLoading]             = useState(true);
+  const [newService, setNewService]       = useState('');
+  const [newServiceUser, setNewServiceUser] = useState('');
+  const [newPass, setNewPass]             = useState('');
+  const [addSuccess, setAddSuccess]       = useState(false);
+
   const fetchVault = () => {
     setLoading(true);
     fetch(`${API_URL}/api/get_passwords`, {
@@ -22,7 +86,7 @@ export default function RegistrationVaultPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, golden_key: goldenKey })
     })
-      .then(res => res.json())
+      .then(r => r.json())
       .then(data => {
         if (data.status === 'success') setVaultData(data.passwords);
         else setError('Failed to load vault: ' + (data.message || 'Unknown error'));
@@ -38,86 +102,174 @@ export default function RegistrationVaultPage() {
 
   const handleAddPassword = async (e) => {
     e.preventDefault();
-    if (!newService || !newPass) {
-      setError('Please fill Service name and Password');
-      return;
-    }
-    setError('');
-    setLoading(true);
+    if (!newService || !newPass) { setError('Please fill Service name and Password'); return; }
+    setError(''); setLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/add_password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username,
-          golden_key: goldenKey,
-          service_name: newService,
-          service_username: newServiceUser,
-          password_to_save: newPass
-        }),
+        body: JSON.stringify({ username, golden_key: goldenKey, service_name: newService, service_username: newServiceUser, password_to_save: newPass }),
       });
       const data = await res.json();
       if (data.status === 'success') {
-        setNewService('');
-        setNewServiceUser('');
-        setNewPass('');
-        fetchVault(); // Fetch latest vault after add
-      } else {
-        setError('Save Error: ' + (data.message || 'Unknown error'));
-      }
-    } catch (e) {
-      setError('Save failed.');
-    } finally {
-      setLoading(false);
-    }
+        setNewService(''); setNewServiceUser(''); setNewPass('');
+        setAddSuccess(true); setTimeout(() => setAddSuccess(false), 1500);
+        fetchVault();
+      } else { setError('Save Error: ' + (data.message || 'Unknown error')); }
+    } catch { setError('Save failed.'); }
+    finally { setLoading(false); }
   };
 
-  // Logout handler
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/');
-  };
+  const handleLogout = () => { localStorage.clear(); navigate('/'); };
 
   return (
-    <div style={{ maxWidth: 600, margin: '40px auto', padding: 24, background: '#181a20', borderRadius: 16, color: '#fff' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Welcome, {username}!</h2>
-        <button onClick={handleLogout} style={{ background: '#FFD66B', color: '#181a20', fontWeight: 700, border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer' }}>Logout</button>
-      </div>
-      <h3>Your Vault</h3>
-      {error && <div style={{ color: 'red', marginBottom: 12 }}>{error}</div>}
-      <form onSubmit={handleAddPassword} style={{ marginBottom: 24 }}>
-        <input placeholder="Service" value={newService} onChange={e => setNewService(e.target.value)} style={{ marginRight: 8 }} />
-        <input placeholder="Username (optional)" value={newServiceUser} onChange={e => setNewServiceUser(e.target.value)} style={{ marginRight: 8 }} />
-        <input placeholder="Password" value={newPass} onChange={e => setNewPass(e.target.value)} style={{ marginRight: 8 }} />
-        <button type="submit" style={{ padding: '6px 18px' }}>Add</button>
-      </form>
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <table style={{ width: '100%', background: '#23272f', borderRadius: 8 }}>
-          <thead>
-            <tr>
-              <th style={{ color: '#FFD66B' }}>Service</th>
-              <th style={{ color: '#FFD66B' }}>Username</th>
-              <th style={{ color: '#FFD66B' }}>Password</th>
-            </tr>
-          </thead>
-          <tbody>
-            {vaultData.length === 0 ? (
-              <tr><td colSpan={3} style={{ color: '#888', textAlign: 'center', padding: 24 }}>No secrets saved yet.</td></tr>
-            ) : (
-              vaultData.map((item, idx) => (
-                <tr key={item.id || idx}>
-                  <td>{item.service}</td>
-                  <td>{item.username}</td>
-                  <td>{item.password}</td>
+    <div className="sv-page vault-layout">
+      {/* Navbar */}
+      <nav className="sv-navbar">
+        <div className="sv-navbar-brand">
+          <div style={{ color:'var(--gold)', display:'flex' }}><LockIcon /></div>
+          Shamir Vault
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <span className="sv-badge sv-badge-gold">Registration</span>
+          <div style={{ fontSize:13, color:'var(--text-muted)' }}>
+            <span style={{ color:'var(--gold)', fontWeight:600 }}>{username}</span>
+          </div>
+          <button className="sv-btn sv-btn-ghost" onClick={handleLogout} style={{ padding:'8px 14px', fontSize:13 }}>
+            <LogOutIcon />
+            Logout
+          </button>
+        </div>
+      </nav>
+
+      <main className="vault-main">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity:0, y:-10 }}
+          animate={{ opacity:1, y:0 }}
+          transition={{ duration:0.4 }}
+          style={{ marginBottom:28 }}
+        >
+          <h1 style={{ fontFamily:'var(--font-display)', fontSize:28, fontWeight:800, color:'var(--text-primary)', marginBottom:4 }}>
+            Add Credentials
+          </h1>
+          <p style={{ color:'var(--text-muted)', fontSize:13 }}>
+            Save your passwords to the encrypted vault
+          </p>
+        </motion.div>
+
+        {/* Add form */}
+        <motion.div
+          initial={{ opacity:0, y:14 }}
+          animate={{ opacity:1, y:0 }}
+          transition={{ delay:0.1, duration:0.4 }}
+          className="sv-card"
+          style={{ padding:'24px 28px', marginBottom:24 }}
+        >
+          <h3 style={{ fontFamily:'var(--font-display)', fontSize:15, fontWeight:700, color:'var(--text-primary)', marginBottom:18 }}>
+            New Credential
+          </h3>
+          <form onSubmit={handleAddPassword}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr auto', gap:12, alignItems:'flex-end' }}>
+              <div>
+                <label className="sv-label">Service</label>
+                <input className="sv-input" placeholder="github.com" value={newService} onChange={e => setNewService(e.target.value)} required />
+              </div>
+              <div>
+                <label className="sv-label">Username</label>
+                <input className="sv-input" placeholder="optional" value={newServiceUser} onChange={e => setNewServiceUser(e.target.value)} />
+              </div>
+              <div>
+                <label className="sv-label">Password</label>
+                <input className="sv-input" type="password" placeholder="••••••••" value={newPass} onChange={e => setNewPass(e.target.value)} required />
+              </div>
+              <button
+                type="submit"
+                className={`sv-btn ${addSuccess ? 'sv-btn-ghost' : 'sv-btn-primary'}`}
+                disabled={loading}
+                style={{ alignSelf:'flex-end', minWidth:44, height:46, padding:'0 16px', transition:'all var(--t-base)', borderColor: addSuccess ? 'rgba(62,207,142,0.4)' : undefined, color: addSuccess ? 'var(--success)' : undefined, background: addSuccess ? 'rgba(62,207,142,0.08)' : undefined }}
+              >
+                {loading ? <span className="sv-spinner" style={{ borderTopColor: addSuccess ? 'var(--success)' : '#0d0f12' }} /> : addSuccess ? <CheckIcon /> : <PlusIcon />}
+              </button>
+            </div>
+
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity:0, height:0 }}
+                  animate={{ opacity:1, height:'auto' }}
+                  exit={{ opacity:0, height:0 }}
+                  transition={{ duration:0.2 }}
+                  className="sv-alert sv-alert-error"
+                  style={{ marginTop:14 }}
+                >
+                  <span>⚠</span><span>{error}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </form>
+        </motion.div>
+
+        {/* Vault table */}
+        <motion.div
+          initial={{ opacity:0, y:14 }}
+          animate={{ opacity:1, y:0 }}
+          transition={{ delay:0.2, duration:0.4 }}
+          className="sv-card"
+        >
+          <div style={{ padding:'16px 20px', borderBottom:'1px solid var(--border-subtle)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <span style={{ fontFamily:'var(--font-display)', fontSize:14, fontWeight:700, color:'var(--text-primary)' }}>Vault</span>
+            <span className="sv-badge sv-badge-muted">{vaultData.length} entries</span>
+          </div>
+
+          {loading ? (
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:12, padding:48, color:'var(--text-muted)', fontSize:14 }}>
+              <span className="sv-spinner" />
+              Loading...
+            </div>
+          ) : vaultData.length === 0 ? (
+            <div className="sv-empty">
+              <div className="sv-empty-text">No secrets saved yet.<br/>Add your first credential above.</div>
+            </div>
+          ) : (
+            <table className="sv-table">
+              <thead>
+                <tr>
+                  <th>Service</th>
+                  <th>Username</th>
+                  <th>Password</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      )}
+              </thead>
+              <tbody>
+                {vaultData.map((item, idx) => (
+                  <motion.tr
+                    key={item.id || idx}
+                    initial={{ opacity:0, x:-8 }}
+                    animate={{ opacity:1, x:0 }}
+                    transition={{ delay: idx * 0.04, duration:0.28 }}
+                  >
+                    <td>
+                      <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                        <ServiceAvatar name={item.service || '?'} />
+                        <span style={{ fontWeight:500 }}>{item.service}</span>
+                      </div>
+                    </td>
+                    <td style={{ color:'var(--text-secondary)' }}>{item.username || '—'}</td>
+                    <td><PasswordCell password={item.password || ''} /></td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </motion.div>
+      </main>
+
+      {/* Responsive form style override */}
+      <style>{`
+        @media (max-width: 768px) {
+          .reg-form-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }
