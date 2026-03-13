@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { FaGoogle, FaGithub, FaFacebook, FaTwitter, FaLinkedin, FaApple, FaMicrosoft, FaYoutube, FaInstagram, FaSlack, FaDiscord, FaDropbox, FaFigma, FaPaypal, FaAmazon, FaSpotify, FaTwitch, FaReddit, FaPinterest, FaAws, FaGitlab, FaBitbucket, FaTrello, FaJira, FaZoom } from 'react-icons/fa';
 
 /* ─────────────────────────────────────────────────────────────
    SERVICE LOGO RECOGNITION
@@ -149,6 +150,36 @@ const SERVICE_ICON_MAP = {
   dashlane: '🟢',
 };
 
+// Well-known services: map keyword → SVG icon component
+const SERVICE_ICON_COMPONENTS = {
+  google: FaGoogle,
+  gmail: FaGoogle,
+  github: FaGithub,
+  facebook: FaFacebook,
+  twitter: FaTwitter,
+  linkedin: FaLinkedin,
+  apple: FaApple,
+  microsoft: FaMicrosoft,
+  youtube: FaYoutube,
+  instagram: FaInstagram,
+  slack: FaSlack,
+  discord: FaDiscord,
+  dropbox: FaDropbox,
+  figma: FaFigma,
+  paypal: FaPaypal,
+  amazon: FaAmazon,
+  spotify: FaSpotify,
+  twitch: FaTwitch,
+  reddit: FaReddit,
+  pinterest: FaPinterest,
+  aws: FaAws,
+  gitlab: FaGitlab,
+  bitbucket: FaBitbucket,
+  trello: FaTrello,
+  jira: FaJira,
+  zoom: FaZoom,
+};
+
 /** Resolve a service name to a Clearbit logo URL, or null */
 function resolveLogoDomain(name) {
   if (!name) return null;
@@ -179,13 +210,24 @@ function resolveServiceIcon(name) {
   return null;
 }
 
+/** Resolve a service name to an SVG icon component, or null */
+function resolveServiceIconComponent(name) {
+  if (!name) return null;
+  const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (SERVICE_ICON_COMPONENTS[key]) return SERVICE_ICON_COMPONENTS[key];
+  for (const k of Object.keys(SERVICE_ICON_COMPONENTS)) {
+    if (key.startsWith(k) || k.startsWith(key)) return SERVICE_ICON_COMPONENTS[k];
+  }
+  return null;
+}
+
 const AVATAR_COLORS = ['#ffd750','#3ecf8e','#5b8dee','#e879a4','#a78bfa','#fb923c'];
 
 /** Smart service logo: tries Clearbit, falls back to letter avatar */
 export function ServiceLogo({ name = '?' }) {
-  const icon = resolveServiceIcon(name);
+  const IconComponent = resolveServiceIconComponent(name);
   const colorIdx = (name.charCodeAt(0) || 0) % AVATAR_COLORS.length;
-  const color    = AVATAR_COLORS[colorIdx];
+  const color = AVATAR_COLORS[colorIdx];
   const containerStyle = {
     width: 34,
     height: 34,
@@ -199,10 +241,10 @@ export function ServiceLogo({ name = '?' }) {
     border: '1px solid rgba(255,255,255,0.08)',
     transition: 'all 0.2s ease',
   };
-  if (icon) {
+  if (IconComponent) {
     return (
       <div style={containerStyle}>
-        <span style={{ fontSize: 22, fontWeight: 700, color, fontFamily: 'var(--font-display)' }}>{icon}</span>
+        <IconComponent size={22} color={color} />
       </div>
     );
   }
