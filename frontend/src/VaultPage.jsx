@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ServiceLogo, VaultCyberBg } from './VaultShared';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-098.onrender.com';
 
@@ -50,17 +51,6 @@ const ShieldIcon = () => (
   </svg>
 );
 
-// ── Service Avatar ──────────────────────────────────────────────────
-function ServiceAvatar({ name }) {
-  const colors = ['#ffd750','#3ecf8e','#5b8dee','#e879a4','#a78bfa','#fb923c'];
-  const idx = (name.charCodeAt(0) || 0) % colors.length;
-  return (
-    <div style={{ width:32, height:32, borderRadius:8, background:`${colors[idx]}18`, border:`1px solid ${colors[idx]}33`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:colors[idx], flexShrink:0 }}>
-      {(name[0] || '?').toUpperCase()}
-    </div>
-  );
-}
-
 // ── Password cell with toggle + copy ──────────────────────────────
 function PasswordCell({ password }) {
   const [visible, setVisible] = useState(false);
@@ -105,6 +95,7 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
     );
   }
 
+  // ── ALL ORIGINAL LOGIC PRESERVED EXACTLY ──
   const [vaultData, setVaultData] = useState([]);
   const [error, setError]         = useState('');
   const [loading, setLoading]     = useState(true);
@@ -126,145 +117,153 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
   }, [username, goldenKey]);
 
   return (
-    <div className="sv-page vault-layout">
-      {/* Navbar */}
-      <nav className="sv-navbar">
-        <div className="sv-navbar-brand">
-          <div style={{ color:'var(--gold)' }}><LockIcon /></div>
-          Shamir Vault
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <div style={{ fontSize:13, color:'var(--text-muted)' }}>
-            <span style={{ color:'var(--text-secondary)', marginRight:6 }}>Signed in as</span>
-            <span style={{ color:'var(--gold)', fontWeight:600 }}>{username}</span>
-          </div>
-          <button className="sv-btn sv-btn-ghost" onClick={onLogout} style={{ padding:'8px 14px', fontSize:13 }}>
-            <LogOutIcon />
-            Sign out
-          </button>
-        </div>
-      </nav>
+    <div style={{ position:'relative', minHeight:'100vh', background:'var(--bg-base)' }}>
 
-      <main className="vault-main">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity:0, y:-10 }}
-          animate={{ opacity:1, y:0 }}
-          transition={{ duration:0.4 }}
-          style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:28, flexWrap:'wrap', gap:16 }}
-        >
-          <div>
-            <h1 style={{ fontFamily:'var(--font-display)', fontSize:28, fontWeight:800, color:'var(--text-primary)', marginBottom:4 }}>
-              Vault
-            </h1>
-            <p style={{ color:'var(--text-muted)', fontSize:13 }}>
-              Your encrypted credentials
-            </p>
+      {/* ── Cyber background canvas ── */}
+      <VaultCyberBg />
+
+      {/* ── All content sits above canvas ── */}
+      <div style={{ position:'relative', zIndex:1 }} className="vault-layout">
+
+        {/* Navbar */}
+        <nav className="sv-navbar">
+          <div className="sv-navbar-brand">
+            <div style={{ color:'var(--gold)' }}><LockIcon /></div>
+            Shamir Vault
           </div>
-          <button
-            className="sv-btn sv-btn-primary"
-            onClick={() => navigate('/registration-vault')}
-            style={{ fontSize:13 }}
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ fontSize:13, color:'var(--text-muted)' }}>
+              <span style={{ color:'var(--text-secondary)', marginRight:6 }}>Signed in as</span>
+              <span style={{ color:'var(--gold)', fontWeight:600 }}>{username}</span>
+            </div>
+            <button className="sv-btn sv-btn-ghost" onClick={onLogout} style={{ padding:'8px 14px', fontSize:13 }}>
+              <LogOutIcon />
+              Sign out
+            </button>
+          </div>
+        </nav>
+
+        <main className="vault-main">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity:0, y:-10 }}
+            animate={{ opacity:1, y:0 }}
+            transition={{ duration:0.4 }}
+            style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:28, flexWrap:'wrap', gap:16 }}
           >
-            <PlusIcon />
-            Add Password
-          </button>
-        </motion.div>
-
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity:0, y:10 }}
-          animate={{ opacity:1, y:0 }}
-          transition={{ delay:0.1, duration:0.4 }}
-          className="sv-grid-3"
-          style={{ marginBottom:28 }}
-        >
-          <div className="sv-stat">
-            <div className="sv-stat-value">{vaultData.length}</div>
-            <div className="sv-stat-label">Total Secrets</div>
-          </div>
-          <div className="sv-stat">
-            <div className="sv-stat-value" style={{ color:'var(--success)', fontSize:18, display:'flex', alignItems:'center', gap:8 }}>
-              <span style={{ width:8, height:8, borderRadius:'50%', background:'var(--success)', display:'inline-block' }}/>
-              Secure
+            <div>
+              <h1 style={{ fontFamily:'var(--font-display)', fontSize:28, fontWeight:800, color:'var(--text-primary)', marginBottom:4 }}>
+                Vault
+              </h1>
+              <p style={{ color:'var(--text-muted)', fontSize:13 }}>
+                Your encrypted credentials
+              </p>
             </div>
-            <div className="sv-stat-label">Vault Status</div>
-          </div>
-          <div className="sv-stat">
-            <div className="sv-stat-value">3-of-3</div>
-            <div className="sv-stat-label">Share Threshold</div>
-          </div>
-        </motion.div>
-
-        {/* Error */}
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity:0, height:0 }}
-              animate={{ opacity:1, height:'auto' }}
-              exit={{ opacity:0, height:0 }}
-              className="sv-alert sv-alert-error"
-              style={{ marginBottom:20 }}
+            <button
+              className="sv-btn sv-btn-primary"
+              onClick={() => navigate('/registration-vault')}
+              style={{ fontSize:13 }}
             >
-              <span>⚠</span><span>{error}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <PlusIcon />
+              Add Password
+            </button>
+          </motion.div>
 
-        {/* Table */}
-        <motion.div
-          initial={{ opacity:0, y:16 }}
-          animate={{ opacity:1, y:0 }}
-          transition={{ delay:0.2, duration:0.4 }}
-          className="sv-card"
-        >
-          {loading ? (
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:12, padding:48, color:'var(--text-muted)', fontSize:14 }}>
-              <span className="sv-spinner" />
-              Loading vault...
+          {/* Stats */}
+          <motion.div
+            initial={{ opacity:0, y:10 }}
+            animate={{ opacity:1, y:0 }}
+            transition={{ delay:0.1, duration:0.4 }}
+            className="sv-grid-3"
+            style={{ marginBottom:28 }}
+          >
+            <div className="sv-stat">
+              <div className="sv-stat-value">{vaultData.length}</div>
+              <div className="sv-stat-label">Total Secrets</div>
             </div>
-          ) : vaultData.length === 0 ? (
-            <div className="sv-empty">
-              <div className="sv-empty-icon" style={{ display:'flex', justifyContent:'center', color:'var(--gold)' }}>
-                <ShieldIcon />
+            <div className="sv-stat">
+              <div className="sv-stat-value" style={{ color:'var(--success)', fontSize:18, display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ width:8, height:8, borderRadius:'50%', background:'var(--success)', display:'inline-block' }}/>
+                Secure
               </div>
-              <div className="sv-empty-text">
-                Your vault is empty.<br />
-                <span style={{ color:'var(--gold)', cursor:'pointer' }} onClick={() => navigate('/registration-vault')}>Add your first credential →</span>
-              </div>
+              <div className="sv-stat-label">Vault Status</div>
             </div>
-          ) : (
-            <table className="sv-table">
-              <thead>
-                <tr>
-                  <th>Service</th>
-                  <th>Username</th>
-                  <th>Password</th>
-                </tr>
-              </thead>
-              <tbody>
-                {vaultData.map((item, idx) => (
-                  <motion.tr
-                    key={item.id || idx}
-                    initial={{ opacity:0, x:-8 }}
-                    animate={{ opacity:1, x:0 }}
-                    transition={{ delay: idx * 0.04, duration:0.28 }}
-                  >
-                    <td>
-                      <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                        <ServiceAvatar name={item.service || '?'} />
-                        <span style={{ fontWeight:500 }}>{item.service}</span>
-                      </div>
-                    </td>
-                    <td style={{ color:'var(--text-secondary)' }}>{item.username || '—'}</td>
-                    <td><PasswordCell password={item.password || ''} /></td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </motion.div>
-      </main>
+            <div className="sv-stat">
+              <div className="sv-stat-value">3-of-3</div>
+              <div className="sv-stat-label">Share Threshold</div>
+            </div>
+          </motion.div>
+
+          {/* Error */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity:0, height:0 }}
+                animate={{ opacity:1, height:'auto' }}
+                exit={{ opacity:0, height:0 }}
+                className="sv-alert sv-alert-error"
+                style={{ marginBottom:20 }}
+              >
+                <span>⚠</span><span>{error}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Table */}
+          <motion.div
+            initial={{ opacity:0, y:16 }}
+            animate={{ opacity:1, y:0 }}
+            transition={{ delay:0.2, duration:0.4 }}
+            className="sv-card"
+          >
+            {loading ? (
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:12, padding:48, color:'var(--text-muted)', fontSize:14 }}>
+                <span className="sv-spinner" />
+                Loading vault...
+              </div>
+            ) : vaultData.length === 0 ? (
+              <div className="sv-empty">
+                <div className="sv-empty-icon" style={{ display:'flex', justifyContent:'center', color:'var(--gold)' }}>
+                  <ShieldIcon />
+                </div>
+                <div className="sv-empty-text">
+                  Your vault is empty.<br />
+                  <span style={{ color:'var(--gold)', cursor:'pointer' }} onClick={() => navigate('/registration-vault')}>Add your first credential →</span>
+                </div>
+              </div>
+            ) : (
+              <table className="sv-table">
+                <thead>
+                  <tr>
+                    <th>Service</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vaultData.map((item, idx) => (
+                    <motion.tr
+                      key={item.id || idx}
+                      initial={{ opacity:0, x:-8 }}
+                      animate={{ opacity:1, x:0 }}
+                      transition={{ delay: idx * 0.04, duration:0.28 }}
+                    >
+                      <td>
+                        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                          <ServiceLogo name={item.service || '?'} />
+                          <span style={{ fontWeight:500 }}>{item.service}</span>
+                        </div>
+                      </td>
+                      <td style={{ color:'var(--text-secondary)' }}>{item.username || '—'}</td>
+                      <td><PasswordCell password={item.password || ''} /></td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </motion.div>
+        </main>
+      </div>
     </div>
   );
 }
