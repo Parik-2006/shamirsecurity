@@ -9,6 +9,7 @@ import RegistrationVaultPage from './RegistrationVaultPage';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import DownloadShare from './pages/DownloadShare';
+import About from './pages/about';
 // Duplicate import removed
 
 function Layout({ children }) {
