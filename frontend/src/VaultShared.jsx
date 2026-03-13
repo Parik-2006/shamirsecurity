@@ -180,6 +180,10 @@ const SERVICE_ICON_COMPONENTS = {
   zoom: FaZoom,
 };
 
+// Ensure react-icons is installed for SVG brand logos
+// Run: npm install react-icons --save
+// This is required for Vite and production builds
+
 /** Resolve a service name to a Clearbit logo URL, or null */
 function resolveLogoDomain(name) {
   if (!name) return null;
