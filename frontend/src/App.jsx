@@ -203,16 +203,17 @@ function TopNav() {
         style={{
           background: 'rgba(13,15,18,0.7)',
           border: '1px solid rgba(255,215,80,0.14)',
-          color: 'rgba(255,215,80,0.65)',
+          color: 'rgba(255,215,80,0.85)',
           fontFamily: 'var(--font-display)',
-          fontSize: '0.72rem',
-          fontWeight: 600,
+          fontSize: '1rem',
+          fontWeight: 700,
           letterSpacing: '0.06em',
-          padding: '7px 14px',
-          borderRadius: 8,
+          padding: '12px 24px',
+          borderRadius: 12,
           cursor: 'pointer',
           backdropFilter: 'blur(12px)',
           transition: 'all 0.18s ease',
+          marginRight: 16,
         }}
         onMouseEnter={e => {
           e.currentTarget.style.borderColor = 'rgba(255,215,80,0.35)';
@@ -221,7 +222,7 @@ function TopNav() {
         }}
         onMouseLeave={e => {
           e.currentTarget.style.borderColor = 'rgba(255,215,80,0.14)';
-          e.currentTarget.style.color = 'rgba(255,215,80,0.65)';
+          e.currentTarget.style.color = 'rgba(255,215,80,0.85)';
           e.currentTarget.style.background = 'rgba(13,15,18,0.7)';
         }}
       >Documentation</motion.button>
@@ -233,16 +234,17 @@ function TopNav() {
         style={{
           background: 'rgba(13,15,18,0.7)',
           border: '1px solid rgba(255,215,80,0.14)',
-          color: 'rgba(255,215,80,0.65)',
+          color: 'rgba(255,215,80,0.85)',
           fontFamily: 'var(--font-display)',
-          fontSize: '0.72rem',
-          fontWeight: 600,
+          fontSize: '1rem',
+          fontWeight: 700,
           letterSpacing: '0.06em',
-          padding: '7px 14px',
-          borderRadius: 8,
+          padding: '12px 24px',
+          borderRadius: 12,
           cursor: 'pointer',
           backdropFilter: 'blur(12px)',
           transition: 'all 0.18s ease',
+          marginRight: 16,
         }}
         onMouseEnter={e => {
           e.currentTarget.style.borderColor = 'rgba(255,215,80,0.35)';
@@ -251,7 +253,7 @@ function TopNav() {
         }}
         onMouseLeave={e => {
           e.currentTarget.style.borderColor = 'rgba(255,215,80,0.14)';
-          e.currentTarget.style.color = 'rgba(255,215,80,0.65)';
+          e.currentTarget.style.color = 'rgba(255,215,80,0.85)';
           e.currentTarget.style.background = 'rgba(13,15,18,0.7)';
         }}
       >Verification</motion.button>
@@ -263,13 +265,13 @@ function TopNav() {
         style={{
           background: 'rgba(13,15,18,0.7)',
           border: '1px solid rgba(255,215,80,0.14)',
-          color: 'rgba(255,215,80,0.65)',
+          color: 'rgba(255,215,80,0.85)',
           fontFamily: 'var(--font-display)',
-          fontSize: '0.72rem',
-          fontWeight: 600,
+          fontSize: '1rem',
+          fontWeight: 700,
           letterSpacing: '0.06em',
-          padding: '7px 14px',
-          borderRadius: 8,
+          padding: '12px 24px',
+          borderRadius: 12,
           cursor: 'pointer',
           backdropFilter: 'blur(12px)',
           transition: 'all 0.18s ease',
@@ -281,7 +283,7 @@ function TopNav() {
         }}
         onMouseLeave={e => {
           e.currentTarget.style.borderColor = 'rgba(255,215,80,0.14)';
-          e.currentTarget.style.color = 'rgba(255,215,80,0.65)';
+          e.currentTarget.style.color = 'rgba(255,215,80,0.85)';
           e.currentTarget.style.background = 'rgba(13,15,18,0.7)';
         }}
       >About</motion.button>
