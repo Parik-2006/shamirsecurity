@@ -20,6 +20,15 @@ export default function About({ onClose }) {
         </motion.h2>
         <div style={{ fontSize: 15, color: '#FFD66B', marginBottom: 18, lineHeight: 1.6 }}>
           Secure multi-key secret management using Shamir Secret Sharing.<br />
+          <div style={{ margin: '18px 0', textAlign: 'left', color: '#FFD66B', fontSize: 14 }}>
+            <b>How to use:</b>
+            <ol style={{ margin: '12px 0 0 18px', padding: 0, textAlign: 'left', color: '#FFD66B' }}>
+              <li>Create a new vault with your username and master password.</li>
+              <li>Register and save your credentials (service, username, password).</li>
+              <li>Download your share for backup and recovery.</li>
+              <li>Unlock your vault using your credentials and share.</li>
+            </ol>
+          </div>
           For help, feedback, or bug reports:<br />
           <span style={{ display: 'block', marginTop: 12 }}>
             <a href="mailto:parikshithbb.cs25@rvce.edu.in" style={{ cursor: 'pointer', textDecoration: 'underline', color: '#FFD66B', fontWeight: 600 }} tabIndex={0}>Contact via email</a>
@@ -27,7 +36,7 @@ export default function About({ onClose }) {
             <a href="https://discord.gg/9RxnKJPV" target="_blank" rel="noopener noreferrer" style={{ cursor: 'pointer', textDecoration: 'underline', color: '#FFD66B', fontWeight: 600 }} tabIndex={0}>Join Discord</a>
           </span>
         </div>
-        <button onClick={onClose} tabIndex={0} style={{ marginTop: 18, background: '#FFD66B', color: '#151A21', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, fontSize: 15, cursor: 'pointer', boxShadow: '0 2px 16px #FFD66B55' }}>Close</button>
+        <button onClick={e => { e.stopPropagation(); onClose(); }} tabIndex={0} style={{ marginTop: 18, background: '#FFD66B', color: '#151A21', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, fontSize: 15, cursor: 'pointer', boxShadow: '0 2px 16px #FFD66B55' }}>Close</button>
       </motion.div>
     </div>
   );
