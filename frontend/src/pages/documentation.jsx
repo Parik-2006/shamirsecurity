@@ -22,7 +22,10 @@ function Section({ children, delay = 0, style }) {
   );
 }
 
-export default function Documentation({ onBack }) {
+import { useNavigate } from 'react-router-dom';
+
+export default function Documentation() {
+  const navigate = useNavigate();
   const cards = [
     {
       title: 'Project Vision',
@@ -67,27 +70,30 @@ export default function Documentation({ onBack }) {
           animate={{ opacity: 1, y: 0 }}
           style={{ marginBottom: 48, textAlign: 'center' }}
         >
-          {onBack && (
-            <button
-              onClick={onBack}
-              style={{
-                background: 'transparent',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: palette.muted,
-                padding: '8px 16px',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontSize: '0.83rem',
-                fontFamily: 'var(--font-mono)',
-                marginBottom: 24,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              ← Back
-            </button>
-          )}
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              position: 'fixed',
+              top: 32,
+              left: 32,
+              zIndex: 20,
+              background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: palette.muted,
+              padding: '8px 16px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: '0.83rem',
+              fontFamily: 'var(--font-mono)',
+              marginBottom: 24,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: '0 2px 16px #FFD66B55',
+            }}
+          >
+            ← Back
+          </button>
           <h1 style={{
             fontFamily: 'var(--font-display)',
             fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
