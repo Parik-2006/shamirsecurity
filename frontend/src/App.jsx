@@ -533,6 +533,9 @@ function App() {
         onLogout={() => {
           setVaultPage(false);
           setPage('login');
+          setUsername('');
+          setPassword('');
+          setPendingUnlock({ username: '', password: '' });
           localStorage.removeItem('vaultUser');
           localStorage.removeItem('goldenKey');
         }}
