@@ -1,12 +1,21 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 export default function About({ onClose }) {
+  const navigate = useNavigate();
   // Popup/modal style, concise info, clickable text
+  const handleClose = () => {
+    onClose();
+    navigate('/login');
+  };
+  const handleMail = () => {
+    window.open('https://mail.google.com/mail/?view=cm&fs=1&to=parikshithbb.cs25@rvce.edu.in', '_blank');
+  };
   return (
     <div
       style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(11,13,16,0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      onClick={onClose}
+      onClick={handleClose}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.92 }}
@@ -31,12 +40,12 @@ export default function About({ onClose }) {
           </div>
           For help, feedback, or bug reports:<br />
           <span style={{ display: 'block', marginTop: 12 }}>
-            <a href="mailto:parikshithbb.cs25@rvce.edu.in" style={{ cursor: 'pointer', textDecoration: 'underline', color: '#FFD66B', fontWeight: 600 }} tabIndex={0}>Contact via email</a>
+            <span onClick={handleMail} style={{ cursor: 'pointer', textDecoration: 'underline', color: '#FFD66B', fontWeight: 600 }} tabIndex={0}>Contact via Gmail</span>
             {' | '}
             <a href="https://discord.gg/9RxnKJPV" target="_blank" rel="noopener noreferrer" style={{ cursor: 'pointer', textDecoration: 'underline', color: '#FFD66B', fontWeight: 600 }} tabIndex={0}>Join Discord</a>
           </span>
         </div>
-        <button onClick={e => { e.stopPropagation(); onClose(); }} tabIndex={0} style={{ marginTop: 18, background: '#FFD66B', color: '#151A21', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, fontSize: 15, cursor: 'pointer', boxShadow: '0 2px 16px #FFD66B55' }}>Close</button>
+        <button onClick={handleClose} tabIndex={0} style={{ marginTop: 18, background: '#FFD66B', color: '#151A21', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, fontSize: 15, cursor: 'pointer', boxShadow: '0 2px 16px #FFD66B55' }}>Close</button>
       </motion.div>
     </div>
   );
