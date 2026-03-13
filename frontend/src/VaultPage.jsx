@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ServiceLogo, VaultCyberBg } from './VaultShared';
+import { ServiceLogo, VaultPageCyberBg } from './VaultShared';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-098.onrender.com';
 
@@ -120,7 +120,7 @@ export default function VaultPage({ username, goldenKey, onLogout }) {
     <div style={{ position:'relative', minHeight:'100vh', background:'var(--bg-base)' }}>
 
       {/* ── Cyber background canvas ── */}
-      <VaultCyberBg />
+      <VaultPageCyberBg />
 
       {/* ── All content sits above canvas ── */}
       <div style={{ position:'relative', zIndex:1 }} className="vault-layout">
