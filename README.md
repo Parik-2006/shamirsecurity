@@ -107,6 +107,3 @@ Educational Research Purpose - RVCE CSE/ISE 2026.
 This project is open for viewing. **Direct changes are restricted.**
 Found a bug? Please [Open a New Issue](https://www.google.com/search?q=https://github.com/Parik-2006/shamirsecurity/issues).
 
----
-
-**Would you like me to generate a "Project Highlight" section for your portfolio website that summarizes this for recruiters?**
