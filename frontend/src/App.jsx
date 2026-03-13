@@ -5,7 +5,6 @@ import RegistrationVaultPage from './RegistrationVaultPage';
 import UnlockWithShare from './UnlockWithShare';
 import './App.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import About from './pages/about';
 
 const API_URL = "https://shamirsecurity-098.onrender.com";
 
@@ -405,9 +404,7 @@ function App() {
   const [success, setSuccess] = useState('');
   const [vaultPage, setVaultPage] = useState(false);
   const [localShare, setLocalShare] = useState(null);
-  const [showAbout, setShowAbout] = useState(() => {
-    try { return !sessionStorage.getItem('about_seen'); } catch { return true; }
-  });
+  const [showAbout, setShowAbout] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
 
   useEffect(() => {
@@ -518,7 +515,6 @@ function App() {
   const handleNavigate = (target) => {
     if (target === 'about') {
       setShowAbout(true);
-      try { sessionStorage.setItem('about_seen', '1'); } catch {}
     } else { setPage(target); }
   };
 
