@@ -5,6 +5,7 @@ import RegistrationVaultPage from './RegistrationVaultPage';
 import UnlockWithShare from './UnlockWithShare';
 import './App.css';
 import { motion, AnimatePresence } from 'framer-motion';
+import About from './pages/about';
 
 const API_URL = "https://shamirsecurity-098.onrender.com";
 
@@ -572,6 +573,7 @@ function App() {
 
           {/* Top-right navigation */}
           <TopNav onNavigate={handleNavigate} />
+          {showAbout && <About onClose={() => setShowAbout(false)} />}
 
           {/* Centered login stack */}
           <motion.div

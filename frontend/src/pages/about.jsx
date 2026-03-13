@@ -1,34 +1,31 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-export default function About() {
+export default function About({ onClose }) {
+  // Popup/modal style, concise info, clickable text
+  const openMail = () => window.open('mailto:parikshithbb.cs25@rvce.edu.in', '_blank');
+  const openDiscord = () => window.open('https://discord.gg/9RxnKJPV', '_blank');
   return (
-    <div style={{ minHeight: '100vh', width: '100vw', background: '#0B0D10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(11,13,16,0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.92 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: 'anticipate' }}
-        style={{ background: '#151A21', borderRadius: 28, padding: '48px 32px', maxWidth: 540, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'left', position: 'relative' }}
+        transition={{ duration: 0.35, ease: 'anticipate' }}
+        style={{ background: '#151A21', borderRadius: 20, padding: '32px 24px', maxWidth: 380, width: '90vw', boxShadow: '0 8px 48px #000b, 0 1.5px 16px #23272f99', color: '#FFD66B', textAlign: 'center', position: 'relative' }}
       >
-        <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: 'anticipate' }} style={{ color: '#FFD66B', fontSize: 38, fontWeight: 800, letterSpacing: 1.5, marginBottom: 32, textAlign: 'center', textShadow: '0 2px 24px #FFD66B55' }}>
+        <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} style={{ color: '#FFD66B', fontSize: 24, fontWeight: 800, marginBottom: 18, textShadow: '0 2px 24px #FFD66B55' }}>
           About Shamir Vault
-        </motion.h1>
-        <ol style={{ color: '#FFD66B', fontSize: 17, lineHeight: 1.7, marginBottom: 32, paddingLeft: 24 }}>
-          <li style={{ marginBottom: 16 }}><b>Step 1:</b> Enter your username and master password to create a new vault.</li>
-          <li style={{ marginBottom: 16 }}><b>Step 2:</b> Complete Google OAuth to store your first share securely in your Google Drive.</li>
-          <li style={{ marginBottom: 16 }}><b>Step 3:</b> Download your local encrypted share file and keep it safe. This is required to unlock your vault.</li>
-          <li style={{ marginBottom: 16 }}><b>Step 4:</b> Use your username, master password, and local share file to unlock your vault and access your credentials.</li>
-          <li style={{ marginBottom: 16 }}><b>Step 5:</b> Add, view, and manage your passwords securely. All secrets are split and encrypted using Shamir Secret Sharing.</li>
-        </ol>
-        <div style={{ marginBottom: 24, fontSize: 16 }}>
-          <b>Contact:</b> <a href="mailto:parikshithbb.cs25@rvce.edu.in" style={{ color: '#FFD66B', textDecoration: 'underline' }}>parikshithbb.cs25@rvce.edu.in</a>
+        </motion.h2>
+        <div style={{ fontSize: 15, color: '#FFD66B', marginBottom: 18, lineHeight: 1.6 }}>
+          Secure multi-key secret management using Shamir Secret Sharing.<br />
+          For help, feedback, or bug reports:<br />
+          <span style={{ display: 'block', marginTop: 12 }}>
+            <span style={{ cursor: 'pointer', textDecoration: 'underline', color: '#FFD66B', fontWeight: 600 }} onClick={openMail}>Contact via email</span>
+            {' | '}
+            <span style={{ cursor: 'pointer', textDecoration: 'underline', color: '#FFD66B', fontWeight: 600 }} onClick={openDiscord}>Join Discord</span>
+          </span>
         </div>
-        <div style={{ marginBottom: 24, fontSize: 16 }}>
-          <b>Discord:</b> <a href="https://discord.gg/9RxnKJPV" target="_blank" rel="noopener noreferrer" style={{ color: '#FFD66B', textDecoration: 'underline' }}>https://discord.gg/9RxnKJPV</a>
-        </div>
-        <div style={{ fontSize: 15, color: '#FFD66B99', marginTop: 12 }}>
-          For help, feedback, or bug reports, reach out via email or join the Discord community.
-        </div>
+        <button onClick={onClose} style={{ marginTop: 18, background: '#FFD66B', color: '#151A21', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, fontSize: 15, cursor: 'pointer', boxShadow: '0 2px 16px #FFD66B55' }}>Close</button>
       </motion.div>
     </div>
   );
