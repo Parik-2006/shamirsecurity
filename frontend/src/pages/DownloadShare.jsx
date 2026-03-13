@@ -300,9 +300,9 @@ export default function DownloadShare() {
     <div style={{
       position: 'relative',
       minHeight: '100vh',
-      width: '100%',
       background: 'var(--bg-base)',
       display: 'flex',
+      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'hidden',
@@ -334,6 +334,27 @@ export default function DownloadShare() {
           backdropFilter: 'blur(22px)',
           boxShadow: '0 8px 56px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,215,80,0.04) inset',
         }}>
+
+          {/* ── Info for Google Drive Share ── */}
+          <div style={{
+            background: 'rgba(100,220,200,0.08)',
+            border: '1px solid rgba(100,220,200,0.18)',
+            borderRadius: 14,
+            padding: '14px 18px',
+            marginBottom: 22,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+          }}>
+            <span style={{ color: 'rgba(100,220,200,1)', fontSize: 18, flexShrink: 0 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l4 4-4 4-4-4z"/><path d="M2 12l4 4 4-4-4-4z"/><path d="M12 22l4-4-4-4-4 4z"/></svg>
+            </span>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+              <strong>Next step:</strong> After downloading <code style={{ background: 'var(--bg-elevated)', padding: '1px 6px', borderRadius: 4, color: 'var(--gold)', fontSize: '0.77rem' }}>local_share.enc</code>,<br />
+              please go to your Google Drive and check for <b>Share 1</b>.<br />
+              Make sure it is present and safely stored. This is required for vault unlock.
+            </div>
+          </div>
 
           {/* ── Header ── */}
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
