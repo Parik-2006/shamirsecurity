@@ -9,7 +9,7 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-        '/api': 'https://congenial-journey-v6jg9xv764q4h75p-8080.app.github.dev', // Proxy API requests to Flask backend (hosted/prod)
+        '/api': 'https://shamirsecurity-709.onrender.com', // Proxy API requests to Flask backend (hosted/prod)
     },
   },
 })
