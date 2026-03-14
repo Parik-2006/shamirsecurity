@@ -599,7 +599,7 @@ const SERVICE_DOMAIN_MAP = {
   deathloop: 'bethesda.net',
 
   // ── 2K Games ──
-  2k: '2k.com',
+  '2k': '2k.com',
   nba2k: '2k.com',
   nba2k24: '2k.com',
   nba2k25: '2k.com',
