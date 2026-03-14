@@ -372,14 +372,15 @@ GOOGLE_REDIRECT_URI = 'https://shamirsecurity-709.onrender.com/api/google/callba
 
 
 # Allow Codespace frontend origin for CORS on /api/* endpoints
+    # Allow Codespace frontend origin for CORS on /api/* endpoints
 CORS(app, resources={r"/api/*": {"origins": [
     "https://shamirsecurity.onrender.com",
     "https://shamirsecurity-1.onrender.com",
     "https://shamirsecurity-1234.onrender.com",
-    "https://shamirsecurity-1-aclh.onrender.com"
+    "https://shamirsecurity-1-aclh.onrender.com",
+    "https://shamirsecurity-710.onrender.com",
+    "https://shamirsecurity-709.onrender.com"
 ]}}, supports_credentials=True)
-        "https://shamirsecurity-710.onrender.com",
-        "https://shamirsecurity-709.onrender.com",
 
 
 
