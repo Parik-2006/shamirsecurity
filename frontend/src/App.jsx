@@ -6,7 +6,7 @@ import UnlockWithShare from './UnlockWithShare';
 import './App.css';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_URL = "https://shamirsecurity-098.onrender.com";
+const API_URL = "https://shamirsecurity-709.onrender.com";
 
 if (typeof window !== 'undefined') {
   window.addEventListener('error', function(e) {

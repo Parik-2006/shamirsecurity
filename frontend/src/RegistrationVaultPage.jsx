@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ServiceLogo, VaultCyberBg } from './VaultShared';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-098.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-709.onrender.com';
 
 // ── Icons ──────────────────────────────────────────────────────────
 const LockIcon = () => (

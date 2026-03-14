@@ -22,9 +22,10 @@ CORS(app, resources={r"/api/*": {"origins": [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://shamirsecurity.onrender.com",
-    "https://shamirsecurity-1.onrender.com",
-    "https://shamirsecurity-1234.onrender.com",
-    "https://shamirsecurity-1-aclh.onrender.com"
+        "https://shamirsecurity-710.onrender.com",
+        "https://shamirsecurity-709.onrender.com",
+        "https://shamirsecurity-710.onrender.com",
+        "https://shamirsecurity-709.onrender.com",
 ]}}, supports_credentials=True)
 
 
@@ -356,8 +357,8 @@ app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 #   BACKEND_URL   = https://your-backend.onrender.com
 #   SUPABASE_URL  = your supabase project url
 #   SUPABASE_KEY  = your supabase anon key
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://congenial-journey-v6jg9xv764q4h75p-3002.app.github.dev')
-BACKEND_URL  = os.environ.get('BACKEND_URL', 'https://congenial-journey-v6jg9xv764q4h75p-8080.app.github.dev')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://shamirsecurity-710.onrender.com')
+BACKEND_URL  = os.environ.get('BACKEND_URL', 'https://shamirsecurity-709.onrender.com')
 
 SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://tacsrdvzgcsucparujcr.supabase.co')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhY3NyZHZ6Z2NzdWNwYXJ1amNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3NDE5NjYsImV4cCI6MjA4MjMxNzk2Nn0.bp5qZG28mODVoeSIEWoWF-tbwtmCIXM1GQ1JvM9XmpA')
@@ -367,7 +368,7 @@ GOOGLE_SCOPES = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'openid'
 ]
-GOOGLE_REDIRECT_URI = 'https://shamirsecurity-1tv2.onrender.com/api/google/callback'
+GOOGLE_REDIRECT_URI = 'https://shamirsecurity-709.onrender.com/api/google/callback'
 
 
 # Allow Codespace frontend origin for CORS on /api/* endpoints
@@ -377,6 +378,8 @@ CORS(app, resources={r"/api/*": {"origins": [
     "https://shamirsecurity-1234.onrender.com",
     "https://shamirsecurity-1-aclh.onrender.com"
 ]}}, supports_credentials=True)
+        "https://shamirsecurity-710.onrender.com",
+        "https://shamirsecurity-709.onrender.com",
 
 
 
