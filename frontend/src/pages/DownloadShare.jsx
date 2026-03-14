@@ -453,7 +453,7 @@ export default function DownloadShare() {
 
           {/* Error */}
           {error && (
-            <div className="sv-alert sv-alert-error" style={{ marginBottom: 20 }}>{error}</div>
+            <div className="sv-alert sv-alert-error" style={{ marginBottom: 20, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 120 }}>{error}</div>
           )}
 
           {/* Download CTA */}
