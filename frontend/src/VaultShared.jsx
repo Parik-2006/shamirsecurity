@@ -11,65 +11,400 @@ import React, { useState, useEffect, useRef } from 'react';
    ═══════════════════════════════════════════════════════════════════ */
 
 const SERVICE_DOMAIN_MAP = {
-  // Auth / Identity
+  // ── Google / Apple / Microsoft ──
   google: 'google.com', gmail: 'google.com', youtube: 'youtube.com',
-  microsoft: 'microsoft.com', outlook: 'microsoft.com', office: 'microsoft.com',
-  apple: 'apple.com', icloud: 'apple.com',
-  facebook: 'facebook.com', instagram: 'instagram.com',
+  googledrive: 'drive.google.com', googlemeet: 'meet.google.com',
+  googlephotos: 'photos.google.com', googleplay: 'play.google.com',
+  microsoft: 'microsoft.com', outlook: 'outlook.com', office: 'office.com',
+  office365: 'office.com', onedrive: 'onedrive.live.com', teams: 'microsoft.com',
+  xbox: 'xbox.com', msn: 'msn.com', bing: 'bing.com',
+  apple: 'apple.com', icloud: 'icloud.com', appstore: 'apple.com',
+  itunes: 'apple.com', facetime: 'apple.com', imessage: 'apple.com',
+
+  // ── Social Media ──
+  facebook: 'facebook.com', fb: 'facebook.com',
+  instagram: 'instagram.com', insta: 'instagram.com',
   twitter: 'twitter.com', x: 'x.com',
   linkedin: 'linkedin.com',
-  // Dev / Code
+  tiktok: 'tiktok.com',
+  snapchat: 'snapchat.com', snap: 'snapchat.com',
+  pinterest: 'pinterest.com',
+  reddit: 'reddit.com',
+  tumblr: 'tumblr.com',
+  mastodon: 'mastodon.social',
+  threads: 'threads.net',
+  bereal: 'bere.al',
+  clubhouse: 'clubhouse.com',
+  vk: 'vk.com',
+
+  // ── Messaging / Comms ──
+  whatsapp: 'whatsapp.com',
+  telegram: 'telegram.org',
+  signal: 'signal.org',
+  discord: 'discord.com',
+  slack: 'slack.com',
+  skype: 'skype.com',
+  viber: 'viber.com',
+  line: 'line.me',
+  wechat: 'wechat.com',
+  messenger: 'messenger.com',
+  zoom: 'zoom.us',
+  googlechat: 'chat.google.com',
+
+  // ── Dating Apps ──
+  tinder: 'tinder.com',
+  bumble: 'bumble.com',
+  hinge: 'hinge.co',
+  okcupid: 'okcupid.com',
+  match: 'match.com',
+  pof: 'pof.com',
+  plentyoffish: 'pof.com',
+  badoo: 'badoo.com',
+  grindr: 'grindr.com',
+  happn: 'happn.com',
+  coffeemeetsbagel: 'coffeemeetsbagel.com',
+  cmb: 'coffeemeetsbagel.com',
+  zoosk: 'zoosk.com',
+  eharmony: 'eharmony.com',
+  lovoo: 'lovoo.com',
+  tagged: 'tagged.com',
+  moco: 'mocospace.com',
+  skout: 'skout.com',
+  meetme: 'meetme.com',
+  her: 'weareher.com',
+
+  // ── Mobile / Battle Royale Games ──
+  freefire: 'ff.garena.com',
+  free_fire: 'ff.garena.com',
+  garena: 'garena.com',
+  pubg: 'pubg.com',
+  pubgmobile: 'pubgmobile.com',
+  pubgm: 'pubgmobile.com',
+  battlegrounds: 'pubg.com',
+  bgmi: 'pubgmobile.com',         // Battlegrounds Mobile India
+  codmobile: 'callofduty.com',
+  callofduty: 'callofduty.com',
+  cod: 'callofduty.com',
+  warzone: 'callofduty.com',
+  fortnite: 'fortnite.com',
+  apexlegends: 'ea.com',
+  apex: 'ea.com',
+  valorant: 'playvalorant.com',
+  csgo: 'store.steampowered.com',
+  cs2: 'store.steampowered.com',
+  counterstrike: 'store.steampowered.com',
+
+  // ── Major Game Platforms / Studios ──
+  steam: 'store.steampowered.com',
+  epicgames: 'epicgames.com',
+  epic: 'epicgames.com',
+  riotgames: 'riotgames.com',
+  riot: 'riotgames.com',
+  leagueoflegends: 'leagueoflegends.com',
+  lol: 'leagueoflegends.com',
+  ea: 'ea.com',
+  electronicarts: 'ea.com',
+  origin: 'ea.com',
+  eaplay: 'ea.com',
+  ubisoft: 'ubisoft.com',
+  rockstar: 'rockstargames.com',
+  rockstargames: 'rockstargames.com',
+  gta: 'rockstargames.com',
+  gta5: 'rockstargames.com',
+  gtaonline: 'rockstargames.com',
+  activision: 'activision.com',
+  blizzard: 'blizzard.com',
+  battlenet: 'battle.net',
+  battlenetapp: 'battle.net',
+  overwatch: 'playoverwatch.com',
+  hearthstone: 'blizzard.com',
+  wow: 'worldofwarcraft.com',
+  worldofwarcraft: 'worldofwarcraft.com',
+  minecraft: 'minecraft.net',
+  mojang: 'mojang.com',
+  roblox: 'roblox.com',
+  playstation: 'playstation.com',
+  ps4: 'playstation.com',
+  ps5: 'playstation.com',
+  psn: 'playstation.com',
+  nintendo: 'nintendo.com',
+  nintendoswitch: 'nintendo.com',
+  supercell: 'supercell.com',
+  clashofclans: 'supercell.com',
+  clashroyale: 'supercell.com',
+  brawlstars: 'supercell.com',
+  hayday: 'supercell.com',
+  mobilelegends: 'mobilelegends.com',
+  mlbb: 'mobilelegends.com',
+  mobilelegendsbb: 'mobilelegends.com',
+  arenaofvalor: 'arenaofvalor.com',
+  aov: 'arenaofvalor.com',
+  honor: 'honorofkings.com',
+  honorofkings: 'honorofkings.com',
+  lifeafter: 'lifeafter.game',
+  shadowfight: 'nekki.com',
+  shadowfight3: 'nekki.com',
+  asphalt: 'gameloft.com',
+  gameloft: 'gameloft.com',
+  wzm: 'callofduty.com',
+  standoff: 'axlebolt.com',
+  standoff2: 'axlebolt.com',
+  dfg: 'nexon.com',          // Dungeon Fighter / similar
+  nexon: 'nexon.com',
+  mihoyo: 'mihoyo.com',
+  hoyoverse: 'hoyoverse.com',
+  genshinimpact: 'genshin.hoyoverse.com',
+  genshin: 'genshin.hoyoverse.com',
+  honkaistarrail: 'hsr.hoyoverse.com',
+  honkai: 'hoyoverse.com',
+  zzzero: 'zenless.hoyoverse.com',
+  zenlesszonezeroo: 'zenless.hoyoverse.com',
+  zzz: 'zenless.hoyoverse.com',
+  disneyplus: 'disneyplus.com',
+  nijisanji: 'nijisanji.jp',
+  levelinfinite: 'levelinfinite.com',
+
+  // ── Game Distribution / Voice ──
+  gog: 'gog.com',
+  itch: 'itch.io',
+  itchio: 'itch.io',
+  gamepass: 'xbox.com',
+  microsoftgaming: 'xbox.com',
+
+  // ── Streaming / Video ──
+  netflix: 'netflix.com',
+  spotify: 'spotify.com',
+  disney: 'disneyplus.com',
+  hulu: 'hulu.com',
+  amazon: 'amazon.com',
+  prime: 'primevideo.com',
+  primevideo: 'primevideo.com',
+  twitch: 'twitch.tv',
+  vimeo: 'vimeo.com',
+  youtube: 'youtube.com',
+  youtubemusic: 'music.youtube.com',
+  appletv: 'tv.apple.com',
+  hbomax: 'max.com',
+  max: 'max.com',
+  peacock: 'peacocktv.com',
+  paramountplus: 'paramountplus.com',
+  paramount: 'paramountplus.com',
+  crunchyroll: 'crunchyroll.com',
+  funimation: 'funimation.com',
+  dazn: 'dazn.com',
+  mxplayer: 'mxplayer.in',
+  hotstar: 'hotstar.com',
+  jiocinema: 'jiocinema.com',
+  sonyliv: 'sonyliv.com',
+  zee5: 'zee5.com',
+  altbalaji: 'altbalaji.com',
+  erosnow: 'erosnow.com',
+  soundcloud: 'soundcloud.com',
+  deezer: 'deezer.com',
+  tidal: 'tidal.com',
+  pandora: 'pandora.com',
+  applemusic: 'apple.com',
+
+  // ── Food Delivery / Restaurants ──
+  swiggy: 'swiggy.com',
+  zomato: 'zomato.com',
+  ubereats: 'ubereats.com',
+  doordash: 'doordash.com',
+  grubhub: 'grubhub.com',
+  instacart: 'instacart.com',
+  postmates: 'postmates.com',
+  deliveroo: 'deliveroo.com',
+  justeat: 'just-eat.com',
+  talabat: 'talabat.com',
+  blinkit: 'blinkit.com',
+  zepto: 'zeptonow.com',
+  dunzo: 'dunzo.com',
+  dominos: 'dominos.com',
+  pizzahut: 'pizzahut.com',
+  mcdonalds: 'mcdonalds.com',
+  kfc: 'kfc.com',
+  burgerking: 'burgerking.com',
+  starbucks: 'starbucks.com',
+  subway: 'subway.com',
+
+  // ── E-Commerce / Shopping ──
+  ebay: 'ebay.com',
+  etsy: 'etsy.com',
+  shopify: 'shopify.com',
+  flipkart: 'flipkart.com',
+  meesho: 'meesho.com',
+  myntra: 'myntra.com',
+  ajio: 'ajio.com',
+  snapdeal: 'snapdeal.com',
+  nykaa: 'nykaa.com',
+  alibaba: 'alibaba.com',
+  aliexpress: 'aliexpress.com',
+  shein: 'shein.com',
+  temu: 'temu.com',
+  wish: 'wish.com',
+  lazada: 'lazada.com',
+  shopee: 'shopee.com',
+  noon: 'noon.com',
+  daraz: 'daraz.com',
+
+  // ── Finance / Payments / Crypto ──
+  paypal: 'paypal.com',
+  stripe: 'stripe.com',
+  coinbase: 'coinbase.com',
+  binance: 'binance.com',
+  robinhood: 'robinhood.com',
+  chase: 'chase.com',
+  wellsfargo: 'wellsfargo.com',
+  revolut: 'revolut.com',
+  wise: 'wise.com',
+  transferwise: 'wise.com',
+  venmo: 'venmo.com',
+  cashapp: 'cash.app',
+  zelle: 'zellepay.com',
+  gpay: 'pay.google.com',
+  googlepay: 'pay.google.com',
+  phonepe: 'phonepe.com',
+  paytm: 'paytm.com',
+  razorpay: 'razorpay.com',
+  upstox: 'upstox.com',
+  zerodha: 'zerodha.com',
+  kraken: 'kraken.com',
+  kucoin: 'kucoin.com',
+  bybit: 'bybit.com',
+  okx: 'okx.com',
+  metamask: 'metamask.io',
+  phantom: 'phantom.app',
+  ledger: 'ledger.com',
+  hdfc: 'hdfcbank.com',
+  icici: 'icicibank.com',
+  sbi: 'sbi.co.in',
+  axisbank: 'axisbank.com',
+  kotak: 'kotak.com',
+
+  // ── Dev / Code ──
   github: 'github.com', gitlab: 'gitlab.com', bitbucket: 'bitbucket.org',
   stackoverflow: 'stackoverflow.com', codepen: 'codepen.io',
   replit: 'replit.com', huggingface: 'huggingface.co',
   openai: 'openai.com', anthropic: 'anthropic.com',
-  // Streaming
-  netflix: 'netflix.com', spotify: 'spotify.com',
-  disney: 'disneyplus.com', hulu: 'hulu.com',
-  amazon: 'amazon.com', prime: 'amazon.com',
-  twitch: 'twitch.tv', vimeo: 'vimeo.com',
-  // Finance
-  paypal: 'paypal.com', stripe: 'stripe.com',
-  coinbase: 'coinbase.com', binance: 'binance.com',
-  robinhood: 'robinhood.com', chase: 'chase.com',
-  wellsfargo: 'wellsfargo.com', revolut: 'revolut.com',
-  // Productivity
-  notion: 'notion.so', slack: 'slack.com', discord: 'discord.com',
-  zoom: 'zoom.us', dropbox: 'dropbox.com', figma: 'figma.com',
+  chatgpt: 'chat.openai.com',
+  claude: 'claude.ai',
+  gemini: 'gemini.google.com',
+  copilot: 'copilot.microsoft.com',
+  cursor: 'cursor.sh',
+  vscode: 'code.visualstudio.com',
+  jetbrains: 'jetbrains.com',
+  postman: 'postman.com',
   jira: 'atlassian.com', confluence: 'atlassian.com', trello: 'trello.com',
-  asana: 'asana.com', airtable: 'airtable.com', monday: 'monday.com',
+  notion: 'notion.so',
+  airtable: 'airtable.com', monday: 'monday.com',
   clickup: 'clickup.com', linear: 'linear.app',
-  // Cloud / Infra
+  figma: 'figma.com', sketch: 'sketch.com',
+  canva: 'canva.com',
+  adobe: 'adobe.com',
+  photoshop: 'adobe.com', illustrator: 'adobe.com',
+
+  // ── Cloud / Infra ──
   aws: 'aws.amazon.com', azure: 'azure.microsoft.com',
   gcp: 'cloud.google.com', googlecloud: 'cloud.google.com',
   digitalocean: 'digitalocean.com', heroku: 'heroku.com',
   vercel: 'vercel.com', netlify: 'netlify.com',
   cloudflare: 'cloudflare.com', npm: 'npmjs.com',
   docker: 'docker.com', kubernetes: 'kubernetes.io',
-  // Shopping
-  ebay: 'ebay.com', etsy: 'etsy.com', shopify: 'shopify.com',
-  // Social / Comms
-  reddit: 'reddit.com', pinterest: 'pinterest.com',
-  tiktok: 'tiktok.com', snapchat: 'snapchat.com',
-  whatsapp: 'whatsapp.com', telegram: 'telegram.org',
-  signal: 'signal.org',
-  // Security
+  firebase: 'firebase.google.com',
+  supabase: 'supabase.com',
+
+  // ── Security / VPN ──
   protonmail: 'proton.me', proton: 'proton.me',
   lastpass: 'lastpass.com', bitwarden: 'bitwarden.com',
   dashlane: 'dashlane.com', nordpass: 'nordpass.com',
-  // Travel / Transport
+  nordvpn: 'nordvpn.com',
+  expressvpn: 'expressvpn.com',
+  surfshark: 'surfshark.com',
+
+  // ── Travel / Transport / Maps ──
   airbnb: 'airbnb.com', uber: 'uber.com', lyft: 'lyft.com',
   booking: 'booking.com', expedia: 'expedia.com',
+  ola: 'olacabs.com',
+  rapido: 'rapido.bike',
+  makemytrip: 'makemytrip.com',
+  goibibo: 'goibibo.com',
+  irctc: 'irctc.co.in',
+  googlemaps: 'maps.google.com',
+  waze: 'waze.com',
+
+  // ── Health / Fitness ──
+  strava: 'strava.com',
+  fitbit: 'fitbit.com',
+  myfitnesspal: 'myfitnesspal.com',
+  headspace: 'headspace.com',
+  calm: 'calm.com',
+  noom: 'noom.com',
+  healthifyme: 'healthifyme.com',
+  practo: 'practo.com',
+
+  // ── Education ──
+  udemy: 'udemy.com',
+  coursera: 'coursera.org',
+  skillshare: 'skillshare.com',
+  duolingo: 'duolingo.com',
+  byjus: 'byjus.com',
+  unacademy: 'unacademy.com',
+  khan: 'khanacademy.org',
+  khanacademy: 'khanacademy.org',
+  leetcode: 'leetcode.com',
+  hackerrank: 'hackerrank.com',
+
+  // ── Productivity / Storage ──
+  dropbox: 'dropbox.com',
+  evernote: 'evernote.com',
+  todoist: 'todoist.com',
+  obsidian: 'obsidian.md',
+  roamresearch: 'roamresearch.com',
+  asana: 'asana.com',
+
+  // ── Misc popular ──
+  amazon: 'amazon.com',
+  ebay: 'ebay.com',
+  wikipedia: 'wikipedia.org',
+  medium: 'medium.com',
+  substack: 'substack.com',
+  wordpress: 'wordpress.com',
+  wix: 'wix.com',
+  squarespace: 'squarespace.com',
 };
 
+/**
+ * Resolve a service name to a domain using:
+ * 1. Exact match in map
+ * 2. Partial prefix/contains match in map
+ * 3. Already looks like a domain
+ * 4. Smart guess: strip spaces/special chars → try as .com domain
+ */
 function resolveDomain(name) {
-  if (!name) return null;
+  if (!name || name.trim() === '') return null;
+
+  // Normalize: lowercase, remove spaces and special chars
   const key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (!key) return null;
+
+  // 1. Exact map match
   if (SERVICE_DOMAIN_MAP[key]) return SERVICE_DOMAIN_MAP[key];
+
+  // 2. Map contains match (key contains a known keyword OR vice-versa)
   for (const [k, d] of Object.entries(SERVICE_DOMAIN_MAP)) {
-    if (key.startsWith(k) || k.startsWith(key)) return d;
+    if (key === k) return d;
+    if (key.includes(k) && k.length >= 4) return d;
+    if (k.includes(key) && key.length >= 4) return d;
   }
-  if (/\.[a-z]{2,}$/.test(name.toLowerCase())) return name.toLowerCase();
+
+  // 3. Already a domain (has a dot + tld)
+  const trimmed = name.trim().toLowerCase();
+  if (/^[a-z0-9-]+\.[a-z]{2,}/.test(trimmed)) return trimmed;
+
+  // 4. Smart guess: if input is a recognisable word (≥3 chars), try word.com
+  //    This covers any service not in the map — Google Favicon API handles it gracefully
+  if (key.length >= 3) return `${key}.com`;
+
   return null;
 }
 
