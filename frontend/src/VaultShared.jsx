@@ -369,7 +369,6 @@ const SERVICE_DOMAIN_MAP = {
   horizon: 'playstation.com',
   uncharted: 'playstation.com',
   bloodborne: 'playstation.com',
-  ghosts: 'playstation.com',
 
   // ── Steam / PC Gaming ──
   steam: 'store.steampowered.com',
@@ -379,7 +378,6 @@ const SERVICE_DOMAIN_MAP = {
   itchio: 'itch.io',
   gamepass: 'xbox.com',
   microsoftgaming: 'xbox.com',
-  xbox: 'xbox.com',
   xboxone: 'xbox.com',
   xboxseries: 'xbox.com',
   xgp: 'xbox.com',
@@ -544,7 +542,6 @@ const SERVICE_DOMAIN_MAP = {
   avengers: 'square-enix.com',
   guardiansofgalaxy: 'square-enix.com',
   nierautomata: 'nier.square-enix-games.com',
-  nier: 'nier.square-enix-games.com',
   octopath: 'square-enix.com',
   octopathtraversler: 'square-enix.com',
   bravely: 'square-enix.com',
@@ -638,7 +635,6 @@ const SERVICE_DOMAIN_MAP = {
   riot: 'riotgames.com',
   tft: 'teamfighttactics.com',
   teamfighttactics: 'teamfighttactics.com',
-  legendsofruneterra: 'legendsofruneterra.com',
   lollegends: 'legendsofruneterra.com',
 
   // ── Fortnite / Epic ──
@@ -694,7 +690,6 @@ const SERVICE_DOMAIN_MAP = {
   nbalivemobile: 'ea.com',
   nbalive: 'ea.com',
   basketballstars: 'miniclip.com',
-  nfl: 'ea.com',
   soccerstars: 'miniclip.com',
   freekicksoccer: 'ea.com',
   ufc: 'ea.com',
@@ -724,7 +719,7 @@ const SERVICE_DOMAIN_MAP = {
   diamonds: 'king.com',
   papa: 'flipline.com',
   papas: 'flipline.com',
-  2048: '2048.io',
+  '2048': '2048.io',
   wordscapes: 'peoplefun.com',
   wordstacks: 'peoplefun.com',
   wordle: 'nytimes.com',
@@ -755,7 +750,7 @@ const SERVICE_DOMAIN_MAP = {
   carrompool: 'carrompool.app',
   poolstars: 'miniclip.com',
   minipool: 'miniclip.com',
-  8ballpool: 'miniclip.com',
+  '8ballpool': 'miniclip.com',
   miniclip: 'miniclip.com',
   bowlingking: 'bowlingking.com',
   golf: 'golf.com',
@@ -808,7 +803,6 @@ const SERVICE_DOMAIN_MAP = {
   mergegames: 'mergegames.com',
   mergemansion: 'metacore.com',
   metacore: 'metacore.com',
-  toon: 'toon.io',
 
   // ── Tower Defense ──
   bloonstd: 'ninjakiwi.com',
@@ -898,7 +892,6 @@ const SERVICE_DOMAIN_MAP = {
   guildwars2: 'guildwars2.com',
   gw2: 'guildwars2.com',
   ff11: 'finalfantasyxiv.com',
-  terraria: 'terraria.org',
   perpetuam: 'perpetuum-online.com',
   albion: 'albiononline.com',
   albiononline: 'albiononline.com',
@@ -970,7 +963,6 @@ const SERVICE_DOMAIN_MAP = {
   ygomaster: 'konami.com',
   yugiohmasterduel: 'konami.com',
   masterduel: 'konami.com',
-  gwent: 'playgwent.com',
   shadowverse: 'shadowverse.com',
   runeterra: 'legendsofruneterra.com',
   ptcg: 'pokemon.com',
@@ -978,7 +970,6 @@ const SERVICE_DOMAIN_MAP = {
   pokemontcg: 'pokemon.com',
   gwentcard: 'playgwent.com',
   solitaire: 'microsoftsolitary.com',
-  microsoft: 'microsoft.com',
   monopoly: 'monopoly.com',
   monopolygo: 'monopoly.com',
   clue: 'hasbro.com',
@@ -1001,26 +992,16 @@ const SERVICE_DOMAIN_MAP = {
   guitarherohero: 'guitarhero.com',
   rockband: 'harmonixmusic.com',
   audioshield: 'dysodesign.com',
-  justdance: 'ubisoft.com',
   superstarsmtown: 'dalcomsoft.com',
   superstar: 'dalcomsoft.com',
 
   // ── Niantic AR ──
   niantic: 'nianticlabs.com',
-  pokemongo: 'pokemongolive.com',
   ingress: 'ingress.com',
-  pikminbloom: 'nianticlabs.com',
   harrypotterwizardsunite: 'nianticlabs.com',
   transformersreality: 'nianticlabs.com',
-  nba: 'nianticlabs.com',
 
   // ── Game Distribution / Voice ──
-  gog: 'gog.com',
-  itch: 'itch.io',
-  itchio: 'itch.io',
-  gamepass: 'xbox.com',
-  microsoftgaming: 'xbox.com',
-  playnite: 'playnite.link',
   heroiclauncher: 'heroicgameslauncher.com',
   gamesplanet: 'gamesplanet.com',
   greenmangaming: 'greenmangaming.com',
@@ -1084,7 +1065,6 @@ const SERVICE_DOMAIN_MAP = {
   kfc: 'kfc.com',
   burgerking: 'burgerking.com',
   starbucks: 'starbucks.com',
-  subway: 'subway.com',
 
   // ── E-Commerce / Shopping ──
   ebay: 'ebay.com',
@@ -1222,8 +1202,6 @@ const SERVICE_DOMAIN_MAP = {
   asana: 'asana.com',
 
   // ── Misc popular ──
-  amazon: 'amazon.com',
-  ebay: 'ebay.com',
   wikipedia: 'wikipedia.org',
   medium: 'medium.com',
   substack: 'substack.com',
