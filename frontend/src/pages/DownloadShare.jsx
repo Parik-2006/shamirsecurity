@@ -56,7 +56,7 @@ function CheckCircleIcon({ size = 16 }) {
   );
 }
 
-/* ── Cyber Canvas Background ─────────────────────────────────────── */
+/* ── Ultra-Dark Cyber Canvas Background ─────────────────────────── */
 function CyberBackground() {
   const canvasRef = useRef(null);
 
@@ -73,150 +73,227 @@ function CyberBackground() {
     resize();
     window.addEventListener('resize', resize);
 
-    /* floating nodes */
-    const nodes = Array.from({ length: 38 }, () => ({
-      x: Math.random() * window.innerWidth,
+    /* ── Floating nodes ── */
+    const nodes = Array.from({ length: 55 }, () => ({
+      x:  Math.random() * window.innerWidth,
+      y:  Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.18,
+      vy: (Math.random() - 0.5) * 0.18,
+      r:  Math.random() * 1.8 + 0.4,
+      cyan: Math.random() < 0.25,
+    }));
+
+    /* ── Two alternating scan lines ── */
+    let scanY1 = 0;
+    let scanY2 = 0;
+
+    /* ── Drifting hex matrix rain ── */
+    const MATRIX_CHARS = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF';
+    const matrixCols = Math.floor(window.innerWidth / 22);
+    const matrixDrops = Array.from({ length: matrixCols }, () => ({
       y: Math.random() * window.innerHeight,
-      vx: (Math.random() - 0.5) * 0.22,
-      vy: (Math.random() - 0.5) * 0.22,
-      r: Math.random() * 1.6 + 0.5,
+      speed: Math.random() * 0.9 + 0.3,
+      opacity: Math.random() * 0.09 + 0.02,
+      char: MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)],
+      timer: 0,
+      interval: Math.floor(Math.random() * 25) + 10,
+      cyan: Math.random() < 0.2,
+      size: Math.floor(Math.random() * 4) + 9,
     }));
 
-    let scanY = 0;
-
-    /* drifting hex chars */
-    const CHARS = '0123456789ABCDEF01';
-    const drifters = Array.from({ length: 24 }, () => ({
-      x:        Math.random() * window.innerWidth,
-      y:        Math.random() * window.innerHeight,
-      vy:       Math.random() * 0.35 + 0.12,
-      char:     CHARS[Math.floor(Math.random() * CHARS.length)],
-      opacity:  Math.random() * 0.13 + 0.04,
-      size:     Math.floor(Math.random() * 4) + 9,
-      timer:    0,
-      interval: Math.floor(Math.random() * 80) + 35,
-      cyan:     Math.random() < 0.3,
-    }));
-
-    /* data pulse rings */
-    const pulses = [];
-    let pulseTimer = 0;
-
-    /* circuit traces — L-shaped paths with traveling dots */
+    /* ── Circuit traces with traveling dots ── */
     const buildTraces = () =>
-      Array.from({ length: Math.floor(window.innerWidth / 200) }, () => {
-        const x1 = Math.random() * window.innerWidth;
-        const y1 = Math.random() * window.innerHeight;
-        const x2 = x1 + (Math.random() - 0.5) * 320;
-        const y2 = y1 + (Math.random() - 0.5) * 220;
+      Array.from({ length: Math.max(8, Math.floor(w / 160)), }, () => {
+        const x1 = Math.random() * w;
+        const y1 = Math.random() * h;
+        const x2 = x1 + (Math.random() - 0.5) * 380;
+        const y2 = y1 + (Math.random() - 0.5) * 260;
         const cx = Math.random() < 0.5 ? x2 : x1;
         const cy = Math.random() < 0.5 ? y1 : y2;
         return {
           pts: [[x1,y1],[cx,cy],[x2,y2]],
-          alpha: Math.random() * 0.06 + 0.02,
-          cyan: Math.random() < 0.45,
-          dot: { t: Math.random(), speed: Math.random() * 0.003 + 0.001 },
+          alpha: Math.random() * 0.055 + 0.015,
+          cyan: Math.random() < 0.4,
+          dot: { t: Math.random(), speed: Math.random() * 0.0025 + 0.0008 },
         };
       });
     let traces = buildTraces();
-    let frame = 0;
 
+    /* ── Expanding pulse rings ── */
+    const pulses = [];
+    let pulseTimer = 0;
+
+    /* ── Corner vignette hexagons ── */
+    const hexRing = Array.from({ length: 6 }, (_, i) => ({
+      angle: (i / 6) * Math.PI * 2,
+      dist: 0.42,
+      pulse: Math.random() * Math.PI * 2,
+    }));
+
+    /* ── Data stream lines (vertical) ── */
+    const dataStreams = Array.from({ length: 6 }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      len: Math.random() * 120 + 40,
+      speed: Math.random() * 1.5 + 0.5,
+      opacity: Math.random() * 0.06 + 0.02,
+      cyan: Math.random() < 0.35,
+    }));
+
+    let frame = 0;
     const lerp = (a, b, t) => a + (b - a) * t;
 
     const draw = () => {
-      ctx.clearRect(0, 0, w, h);
+      /* Deep dark base — no clearRect, use fill with very low alpha for trails */
+      ctx.fillStyle = 'rgba(5,5,8,0.88)';
+      ctx.fillRect(0, 0, w, h);
       frame++;
 
-      /* dot grid */
-      ctx.fillStyle = 'rgba(255,215,80,0.05)';
-      const step = 36;
+      /* ── Dot grid background ── */
+      ctx.fillStyle = 'rgba(255,215,80,0.028)';
+      const step = 34;
       for (let x = 0; x < w; x += step)
         for (let y = 0; y < h; y += step) {
-          ctx.beginPath(); ctx.arc(x, y, 0.7, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(x, y, 0.6, 0, Math.PI * 2); ctx.fill();
         }
 
-      /* circuit traces */
-      traces.forEach(tr => {
-        const [[x1,y1],[cx,cy],[x2,y2]] = tr.pts;
-        const col = tr.cyan
-          ? `rgba(90,210,190,${tr.alpha})`
-          : `rgba(255,215,80,${tr.alpha})`;
-        ctx.strokeStyle = col; ctx.lineWidth = 0.6;
-        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(cx,cy); ctx.lineTo(x2,y2); ctx.stroke();
-        [[x1,y1],[cx,cy],[x2,y2]].forEach(([px,py]) => {
-          ctx.beginPath(); ctx.arc(px,py,1.5,0,Math.PI*2);
-          ctx.fillStyle = col; ctx.fill();
-        });
-        tr.dot.t = (tr.dot.t + tr.dot.speed) % 1;
-        const t = tr.dot.t;
-        const px = t < 0.5 ? lerp(x1,cx,t*2) : lerp(cx,x2,(t-0.5)*2);
-        const py = t < 0.5 ? lerp(y1,cy,t*2) : lerp(cy,y2,(t-0.5)*2);
-        ctx.beginPath(); ctx.arc(px,py,2,0,Math.PI*2);
-        ctx.fillStyle = tr.cyan ? 'rgba(90,210,190,0.6)' : 'rgba(255,215,80,0.6)';
-        ctx.fill();
+      /* ── Deep corner radial vignettes ── */
+      const corners = [[0,0],[w,0],[0,h],[w,h]];
+      corners.forEach(([cx, cy]) => {
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.45);
+        grad.addColorStop(0, 'rgba(0,0,0,0.55)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
       });
 
-      /* node connections */
+      /* ── Circuit traces ── */
+      traces.forEach(tr => {
+        const [[x1,y1],[cx2,cy],[x2,y2]] = tr.pts;
+        const col = tr.cyan
+          ? `rgba(60,200,180,${tr.alpha})`
+          : `rgba(255,215,80,${tr.alpha})`;
+        ctx.strokeStyle = col; ctx.lineWidth = 0.7;
+        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(cx2,cy); ctx.lineTo(x2,y2); ctx.stroke();
+
+        [[x1,y1],[cx2,cy],[x2,y2]].forEach(([px,py]) => {
+          ctx.beginPath(); ctx.arc(px, py, 1.8, 0, Math.PI*2);
+          ctx.fillStyle = col; ctx.fill();
+        });
+
+        tr.dot.t = (tr.dot.t + tr.dot.speed) % 1;
+        const t = tr.dot.t;
+        const px = t < 0.5 ? lerp(x1,cx2,t*2) : lerp(cx2,x2,(t-0.5)*2);
+        const py = t < 0.5 ? lerp(y1,cy,t*2) : lerp(cy,y2,(t-0.5)*2);
+        ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI*2);
+        ctx.fillStyle = tr.cyan ? 'rgba(60,200,180,0.75)' : 'rgba(255,215,80,0.75)';
+        ctx.fill();
+        /* glow around dot */
+        const glow = ctx.createRadialGradient(px,py,0,px,py,8);
+        glow.addColorStop(0, tr.cyan ? 'rgba(60,200,180,0.18)' : 'rgba(255,215,80,0.18)');
+        glow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath(); ctx.arc(px,py,8,0,Math.PI*2); ctx.fill();
+      });
+
+      /* ── Node connections ── */
       for (let i = 0; i < nodes.length; i++)
         for (let j = i + 1; j < nodes.length; j++) {
           const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
           const d = Math.sqrt(dx*dx + dy*dy);
-          if (d < 150) {
-            ctx.strokeStyle = `rgba(255,215,80,${(1-d/150)*0.08})`;
+          if (d < 140) {
+            const a = (1 - d/140) * (nodes[i].cyan || nodes[j].cyan ? 0.11 : 0.07);
+            ctx.strokeStyle = nodes[i].cyan ? `rgba(60,200,180,${a})` : `rgba(255,215,80,${a})`;
             ctx.lineWidth = 0.5;
             ctx.beginPath(); ctx.moveTo(nodes[i].x,nodes[i].y); ctx.lineTo(nodes[j].x,nodes[j].y); ctx.stroke();
           }
         }
 
-      /* nodes */
+      /* ── Nodes ── */
       nodes.forEach(n => {
-        ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
-        ctx.fillStyle = 'rgba(255,215,80,0.18)'; ctx.fill();
+        const col = n.cyan ? 'rgba(60,200,180,0.22)' : 'rgba(255,215,80,0.18)';
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+        ctx.fillStyle = col; ctx.fill();
         n.x += n.vx; n.y += n.vy;
         if (n.x < 0 || n.x > w) n.vx *= -1;
         if (n.y < 0 || n.y > h) n.vy *= -1;
       });
 
-      /* scan line */
-      scanY = (scanY + 0.45) % h;
-      const sg = ctx.createLinearGradient(0, scanY-55, 0, scanY+55);
-      sg.addColorStop(0,   'rgba(255,215,80,0)');
-      sg.addColorStop(0.5, 'rgba(255,215,80,0.035)');
-      sg.addColorStop(1,   'rgba(255,215,80,0)');
-      ctx.fillStyle = sg; ctx.fillRect(0, scanY-55, w, 110);
-      ctx.strokeStyle = 'rgba(255,215,80,0.055)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(0,scanY); ctx.lineTo(w,scanY); ctx.stroke();
+      /* ── Dual scan lines (gold + cyan) ── */
+      scanY1 = (scanY1 + 0.38) % h;
+      scanY2 = (scanY2 + 0.22) % h;
+      [[scanY1,'rgba(255,215,80,'],[scanY2,'rgba(60,200,180,']].forEach(([sy, base]) => {
+        const sg = ctx.createLinearGradient(0, sy-70, 0, sy+70);
+        sg.addColorStop(0,   base + '0)');
+        sg.addColorStop(0.5, base + '0.028)');
+        sg.addColorStop(1,   base + '0)');
+        ctx.fillStyle = sg; ctx.fillRect(0, sy-70, w, 140);
+        ctx.strokeStyle = base + '0.05)'; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.moveTo(0,sy); ctx.lineTo(w,sy); ctx.stroke();
+      });
 
-      /* pulse rings */
+      /* ── Vertical data stream lines ── */
+      dataStreams.forEach(ds => {
+        const col = ds.cyan ? 'rgba(60,200,180,' : 'rgba(255,215,80,';
+        const g = ctx.createLinearGradient(ds.x, ds.y, ds.x, ds.y + ds.len);
+        g.addColorStop(0, col+'0)');
+        g.addColorStop(0.5, col+(ds.opacity)+')');
+        g.addColorStop(1, col+'0)');
+        ctx.strokeStyle = col + ds.opacity + ')'; ctx.lineWidth = 0.5;
+        ctx.beginPath(); ctx.moveTo(ds.x, ds.y); ctx.lineTo(ds.x, ds.y + ds.len); ctx.stroke();
+        ds.y += ds.speed;
+        if (ds.y > h + 160) { ds.y = -160; ds.x = Math.random() * w; }
+      });
+
+      /* ── Pulse rings from random nodes ── */
       pulseTimer++;
-      if (pulseTimer % 120 === 0) {
+      if (pulseTimer % 90 === 0) {
         const n = nodes[Math.floor(Math.random() * nodes.length)];
-        pulses.push({ x:n.x, y:n.y, r:0, maxR:85, alpha:0.28 });
+        pulses.push({ x:n.x, y:n.y, r:0, maxR:110, alpha:0.32, cyan: n.cyan });
       }
       for (let i = pulses.length-1; i >= 0; i--) {
         const p = pulses[i];
-        p.r += 1.1; p.alpha = 0.28*(1-p.r/p.maxR);
-        ctx.strokeStyle = `rgba(255,215,80,${p.alpha})`; ctx.lineWidth = 0.8;
-        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.stroke();
-        if (p.r >= p.maxR) pulses.splice(i,1);
+        p.r += 1.3; p.alpha = 0.32 * (1 - p.r/p.maxR);
+        const col = p.cyan ? `rgba(60,200,180,${p.alpha})` : `rgba(255,215,80,${p.alpha})`;
+        ctx.strokeStyle = col; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.stroke();
+        if (p.r >= p.maxR) pulses.splice(i, 1);
       }
 
-      /* drifting hex chars */
-      drifters.forEach(d => {
+      /* ── Matrix rain ── */
+      matrixDrops.forEach((d, i) => {
         d.timer++;
-        if (d.timer >= d.interval) { d.char = CHARS[Math.floor(Math.random()*CHARS.length)]; d.timer = 0; }
+        if (d.timer >= d.interval) {
+          d.char = MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)];
+          d.timer = 0;
+        }
         ctx.font = `${d.size}px "JetBrains Mono", monospace`;
-        ctx.fillStyle = d.cyan ? `rgba(100,220,200,${d.opacity})` : `rgba(255,215,80,${d.opacity})`;
-        ctx.fillText(d.char, d.x, d.y);
-        d.y += d.vy;
-        if (d.y > h+20) { d.y = -20; d.x = Math.random()*w; }
+        ctx.fillStyle = d.cyan
+          ? `rgba(60,200,180,${d.opacity})`
+          : `rgba(255,215,80,${d.opacity})`;
+        ctx.fillText(d.char, i * 22, d.y);
+        d.y += d.speed;
+        if (d.y > h + 20) { d.y = -20; }
       });
 
-      if (frame % 1800 === 0) traces = buildTraces();
+      /* ── Center glow behind cards ── */
+      const cx = w / 2, cy = h / 2;
+      const centerGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w,h) * 0.45);
+      centerGlow.addColorStop(0, 'rgba(255,215,80,0.025)');
+      centerGlow.addColorStop(0.5, 'rgba(20,10,50,0.0)');
+      centerGlow.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = centerGlow;
+      ctx.fillRect(0, 0, w, h);
+
+      if (frame % 1400 === 0) traces = buildTraces();
       animId = requestAnimationFrame(draw);
     };
 
+    /* Initialize scan lines at different heights */
+    scanY1 = h * 0.3;
+    scanY2 = h * 0.7;
     draw();
+
     return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
   }, []);
 
@@ -229,50 +306,63 @@ function CyberBackground() {
   );
 }
 
-/* ── Decorative rings centered behind the two cards ─────────────── */
+/* ── Decorative Rings centered behind two cards ──────────────────── */
 function CenterRings() {
   return (
     <div style={{
       position: 'fixed',
       top: '50%', left: '50%',
       transform: 'translate(-50%, -50%)',
-      width: 'min(900px, 95vw)',
-      height: 'min(600px, 80vh)',
+      width: 'min(1000px, 96vw)',
+      height: 'min(640px, 82vh)',
       zIndex: 1,
       pointerEvents: 'none',
     }}>
+      {/* Outer slow ring */}
       <motion.div
         animate={{ rotate: 360 }}
-        transition={{ duration: 80, repeat: Infinity, ease: 'linear' }}
+        transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
         style={{
           position: 'absolute', inset: 0,
-          borderRadius: '40%',
-          border: '1px solid rgba(255,215,80,0.05)',
+          borderRadius: '38%',
+          border: '1px solid rgba(255,215,80,0.04)',
         }}
       />
+      {/* Inner counter ring - cyan */}
       <motion.div
         animate={{ rotate: -360 }}
-        transition={{ duration: 55, repeat: Infinity, ease: 'linear' }}
+        transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
         style={{
-          position: 'absolute', inset: '8%',
-          borderRadius: '38%',
-          border: '1px dashed rgba(100,210,195,0.04)',
+          position: 'absolute', inset: '6%',
+          borderRadius: '36%',
+          border: '1px dashed rgba(60,200,180,0.05)',
         }}
       />
+      {/* Innermost glow */}
       <div style={{
-        position: 'absolute', inset: '28%',
+        position: 'absolute', inset: '25%',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,215,80,0.03) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(255,215,80,0.025) 0%, transparent 70%)',
       }} />
+      {/* Four corner tick marks */}
+      {[0,90,180,270].map(deg => (
+        <div key={deg} style={{
+          position: 'absolute',
+          top: '50%', left: '50%',
+          width: 14, height: 1.5,
+          background: 'rgba(255,215,80,0.14)',
+          borderRadius: 1,
+          transformOrigin: '0 50%',
+          transform: `rotate(${deg}deg) translateX(340px) translateY(-50%)`,
+        }} />
+      ))}
     </div>
   );
 }
 
 /* ── Main Component ──────────────────────────────────────────────── */
 export default function DownloadShare() {
-  /* ── ALL ORIGINAL LOGIC PRESERVED EXACTLY ── */
   const [downloading, setDownloading] = useState(false);
-  const [downloaded, setDownloaded]   = useState(false);
   const navigate  = useNavigate();
   const location  = useLocation();
   const params    = new URLSearchParams(location.search);
@@ -315,15 +405,13 @@ export default function DownloadShare() {
   /* ── UI ────────────────────────────────────────────────────────── */
   return (
     <div style={{
-      position: 'relative',
-      minHeight: '100vh',
-      width: '100%',
+      position: 'fixed',
+      inset: 0,
       background: 'var(--bg-base)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'hidden',
-      padding: '32px 20px',
     }}>
 
       {/* Layer 0 — animated canvas */}
@@ -332,32 +420,34 @@ export default function DownloadShare() {
       {/* Layer 1 — decorative rings */}
       <CenterRings />
 
-      {/* Layer 2 — two-column card grid */}
-      <div style={{
-        position: 'relative',
-        zIndex: 10,
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: 24,
-        width: '100%',
-        maxWidth: 960,
-        alignItems: 'stretch',
-      }}
+      {/* Layer 2 — centered two-column card grid */}
+      <div
         className="download-grid"
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 24,
+          width: 'min(960px, calc(100vw - 48px))',
+          alignItems: 'stretch',
+          margin: '0 auto',
+        }}
       >
 
         {/* ── LEFT CARD: Download Recovery Share ── */}
         <motion.div
-          initial={{ opacity: 0, x: -24, scale: 0.97 }}
+          initial={{ opacity: 0, x: -28, scale: 0.96 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           style={{
-            background: 'rgba(19,22,27,0.86)',
-            border: '1px solid rgba(255,215,80,0.15)',
-            borderRadius: 20,
+            background: 'rgba(13,15,18,0.92)',
+            border: '1px solid rgba(255,215,80,0.16)',
+            borderRadius: 22,
             padding: '40px 36px',
-            backdropFilter: 'blur(24px)',
-            boxShadow: '0 8px 56px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,215,80,0.04) inset',
+            backdropFilter: 'blur(28px)',
+            WebkitBackdropFilter: 'blur(28px)',
+            boxShadow: '0 8px 64px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,215,80,0.04) inset, 0 0 40px rgba(255,215,80,0.03)',
             display: 'flex',
             flexDirection: 'column',
           }}
@@ -365,21 +455,21 @@ export default function DownloadShare() {
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
             <motion.div
-              initial={{ scale: 0.75, opacity: 0 }}
+              initial={{ scale: 0.7, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.12, type: 'spring', stiffness: 220, damping: 18 }}
+              transition={{ delay: 0.14, type: 'spring', stiffness: 200, damping: 16 }}
               style={{
-                width: 64, height: 64,
+                width: 68, height: 68,
                 borderRadius: '50%',
-                background: 'rgba(255,215,80,0.09)',
-                border: '1px solid rgba(255,215,80,0.28)',
+                background: 'rgba(255,215,80,0.07)',
+                border: '1px solid rgba(255,215,80,0.3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 margin: '0 auto 18px',
                 color: 'var(--gold)',
-                boxShadow: '0 0 28px rgba(255,215,80,0.12)',
+                boxShadow: '0 0 36px rgba(255,215,80,0.14), 0 0 80px rgba(255,215,80,0.05)',
               }}
             >
-              <ShieldIcon size={28} />
+              <ShieldIcon size={30} />
             </motion.div>
 
             <h2 style={{
@@ -401,8 +491,8 @@ export default function DownloadShare() {
 
           {/* Warning box */}
           <div style={{
-            background: 'rgba(255,215,80,0.055)',
-            border: '1px solid rgba(255,215,80,0.2)',
+            background: 'rgba(255,215,80,0.045)',
+            border: '1px solid rgba(255,215,80,0.18)',
             borderRadius: 'var(--radius-lg)',
             padding: '16px 18px',
             marginBottom: 20,
@@ -436,15 +526,15 @@ export default function DownloadShare() {
             ].map((txt, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: -8 }}
+                initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.28 + i * 0.08 }}
+                transition={{ delay: 0.28 + i * 0.09 }}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.8rem', color: 'var(--text-secondary)' }}
               >
                 <div style={{
                   width: 5, height: 5, borderRadius: '50%',
                   background: 'var(--gold)', flexShrink: 0,
-                  opacity: 0.55, boxShadow: '0 0 4px rgba(255,215,80,0.4)',
+                  opacity: 0.6, boxShadow: '0 0 5px rgba(255,215,80,0.45)',
                 }} />
                 {txt}
               </motion.div>
@@ -458,11 +548,11 @@ export default function DownloadShare() {
 
           {/* Download CTA */}
           <div style={{ marginTop: 'auto' }}>
-            {!error && !downloaded && localShareData && (
+            {!error && localShareData && (
               <motion.button
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45 }}
+                transition={{ delay: 0.46 }}
                 className="sv-btn sv-btn-primary sv-btn-full"
                 onClick={handleDownload}
                 disabled={downloading}
@@ -480,7 +570,7 @@ export default function DownloadShare() {
             }}>
               <div style={{
                 width: 5, height: 5, borderRadius: '50%',
-                background: 'var(--green)', boxShadow: '0 0 5px rgba(74,222,128,0.55)',
+                background: 'var(--green)', boxShadow: '0 0 6px rgba(74,222,128,0.6)',
               }} />
               <span style={{
                 fontSize: '0.62rem', color: 'var(--text-muted)',
@@ -494,16 +584,17 @@ export default function DownloadShare() {
 
         {/* ── RIGHT CARD: Google Drive Share Info ── */}
         <motion.div
-          initial={{ opacity: 0, x: 24, scale: 0.97 }}
+          initial={{ opacity: 0, x: 28, scale: 0.96 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.55, delay: 0.09, ease: [0.22, 1, 0.36, 1] }}
           style={{
-            background: 'rgba(16,26,28,0.88)',
-            border: '1px solid rgba(90,210,190,0.18)',
-            borderRadius: 20,
+            background: 'rgba(8,18,20,0.93)',
+            border: '1px solid rgba(60,200,180,0.18)',
+            borderRadius: 22,
             padding: '40px 36px',
-            backdropFilter: 'blur(24px)',
-            boxShadow: '0 8px 56px rgba(0,0,0,0.55), 0 0 0 1px rgba(90,210,190,0.04) inset',
+            backdropFilter: 'blur(28px)',
+            WebkitBackdropFilter: 'blur(28px)',
+            boxShadow: '0 8px 64px rgba(0,0,0,0.75), 0 0 0 1px rgba(60,200,180,0.04) inset, 0 0 40px rgba(60,200,180,0.04)',
             display: 'flex',
             flexDirection: 'column',
           }}
@@ -511,17 +602,17 @@ export default function DownloadShare() {
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
             <motion.div
-              initial={{ scale: 0.75, opacity: 0 }}
+              initial={{ scale: 0.7, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 220, damping: 18 }}
+              transition={{ delay: 0.22, type: 'spring', stiffness: 200, damping: 16 }}
               style={{
-                width: 64, height: 64,
+                width: 68, height: 68,
                 borderRadius: '50%',
-                background: 'rgba(90,210,190,0.08)',
-                border: '1px solid rgba(90,210,190,0.25)',
+                background: 'rgba(60,200,180,0.07)',
+                border: '1px solid rgba(60,200,180,0.26)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 margin: '0 auto 18px',
-                boxShadow: '0 0 28px rgba(90,210,190,0.1)',
+                boxShadow: '0 0 36px rgba(60,200,180,0.13), 0 0 80px rgba(60,200,180,0.05)',
               }}
             >
               <DriveIcon size={30} />
@@ -540,11 +631,11 @@ export default function DownloadShare() {
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 5,
               padding: '4px 10px', borderRadius: 99,
-              background: 'rgba(90,210,190,0.1)',
-              border: '1px solid rgba(90,210,190,0.22)',
+              background: 'rgba(60,200,180,0.09)',
+              border: '1px solid rgba(60,200,180,0.22)',
               fontSize: '0.68rem', fontWeight: 600,
               letterSpacing: '0.08em', textTransform: 'uppercase',
-              color: 'rgba(90,210,190,0.9)',
+              color: 'rgba(60,200,180,0.9)',
             }}>
               Share 1 of 3
             </span>
@@ -552,17 +643,17 @@ export default function DownloadShare() {
 
           {/* Info box */}
           <div style={{
-            background: 'rgba(90,210,190,0.055)',
-            border: '1px solid rgba(90,210,190,0.18)',
+            background: 'rgba(60,200,180,0.045)',
+            border: '1px solid rgba(60,200,180,0.16)',
             borderRadius: 'var(--radius-lg)',
             padding: '16px 18px',
             marginBottom: 20,
           }}>
-            <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgba(90,210,190,0.9)', marginBottom: 7 }}>
+            <p style={{ fontSize: '0.82rem', fontWeight: 600, color: 'rgba(60,200,180,0.9)', marginBottom: 7 }}>
               Automatically saved to your Drive
             </p>
             <p style={{ fontSize: '0.79rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
-              During Google OAuth registration, <strong style={{ color: 'rgba(90,210,190,0.8)' }}>Share 1</strong> was
+              During Google OAuth registration, <strong style={{ color: 'rgba(60,200,180,0.8)' }}>Share 1</strong> was
               automatically stored in your Google Drive. This is your cloud cryptographic fragment —
               it is combined with your local share and the server share to reconstruct the vault key.
             </p>
@@ -578,13 +669,13 @@ export default function DownloadShare() {
             ].map((item, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: 8 }}
+                initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.35 + i * 0.07 }}
+                transition={{ delay: 0.36 + i * 0.08 }}
                 style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: '0.8rem' }}
               >
                 <span style={{
-                  color: item.done ? 'rgba(90,210,190,0.8)' : 'rgba(255,215,80,0.55)',
+                  color: item.done ? 'rgba(60,200,180,0.8)' : 'rgba(255,215,80,0.55)',
                   flexShrink: 0, marginTop: 1,
                 }}>
                   {item.done
@@ -604,29 +695,31 @@ export default function DownloadShare() {
               href="https://drive.google.com"
               target="_blank"
               rel="noopener noreferrer"
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55 }}
+              transition={{ delay: 0.56 }}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 gap: 10, height: 52, width: '100%',
-                background: 'rgba(90,210,190,0.1)',
-                border: '1px solid rgba(90,210,190,0.3)',
+                background: 'rgba(60,200,180,0.08)',
+                border: '1px solid rgba(60,200,180,0.28)',
                 borderRadius: 'var(--radius-md)',
-                color: 'rgba(90,210,190,0.9)',
+                color: 'rgba(60,200,180,0.9)',
                 fontFamily: 'var(--font-display)',
                 fontSize: '0.9rem', fontWeight: 600,
                 textDecoration: 'none', cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                boxShadow: '0 0 16px rgba(90,210,190,0.06)',
+                boxShadow: '0 0 16px rgba(60,200,180,0.05)',
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(90,210,190,0.18)';
-                e.currentTarget.style.boxShadow  = '0 0 24px rgba(90,210,190,0.14)';
+                e.currentTarget.style.background = 'rgba(60,200,180,0.16)';
+                e.currentTarget.style.boxShadow  = '0 0 28px rgba(60,200,180,0.15)';
+                e.currentTarget.style.borderColor = 'rgba(60,200,180,0.45)';
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(90,210,190,0.1)';
-                e.currentTarget.style.boxShadow  = '0 0 16px rgba(90,210,190,0.06)';
+                e.currentTarget.style.background = 'rgba(60,200,180,0.08)';
+                e.currentTarget.style.boxShadow  = '0 0 16px rgba(60,200,180,0.05)';
+                e.currentTarget.style.borderColor = 'rgba(60,200,180,0.28)';
               }}
             >
               <DriveIcon size={20} />
@@ -640,8 +733,8 @@ export default function DownloadShare() {
             }}>
               <div style={{
                 width: 5, height: 5, borderRadius: '50%',
-                background: 'rgba(90,210,190,0.8)',
-                boxShadow: '0 0 5px rgba(90,210,190,0.5)',
+                background: 'rgba(60,200,180,0.8)',
+                boxShadow: '0 0 6px rgba(60,200,180,0.55)',
               }} />
               <span style={{
                 fontSize: '0.62rem', color: 'var(--text-muted)',
@@ -656,8 +749,15 @@ export default function DownloadShare() {
 
       {/* Responsive: collapse to single column on mobile */}
       <style>{`
+        .download-grid {
+          box-sizing: border-box;
+        }
         @media (max-width: 720px) {
-          .download-grid { grid-template-columns: 1fr !important; }
+          .download-grid {
+            grid-template-columns: 1fr !important;
+            max-height: calc(100vh - 32px);
+            overflow-y: auto;
+          }
         }
       `}</style>
     </div>

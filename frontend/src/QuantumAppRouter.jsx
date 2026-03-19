@@ -14,9 +14,9 @@ import About from './pages/about';
 
 function Layout({ children }) {
   const location = useLocation();
-  const isLogin = location.pathname === '/';
+  const noSidebar = location.pathname === '/' || location.pathname === '/download-share';
 
-  const containerStyle = isLogin
+  const containerStyle = noSidebar
     ? { minHeight: '100vh', position: 'relative', zIndex: 1 }
     : { marginLeft: 120, minHeight: '100vh', position: 'relative', zIndex: 1 };
 
