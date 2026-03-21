@@ -1,12 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 
 export default function About({ onClose }) {
-  const navigate = useNavigate();
-  // Popup/modal style, concise info, clickable text
   const handleClose = () => {
-    navigate('/login');
+    if (onClose) onClose();
   };
   const handleMail = () => {
     window.open('https://mail.google.com/mail/?view=cm&fs=1&to=parikshithbb.cs25@rvce.edu.in', '_blank');

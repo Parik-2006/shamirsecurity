@@ -4,6 +4,8 @@ import VaultPage from './VaultPage';
 import RegistrationVaultPage from './RegistrationVaultPage';
 import UnlockWithShare from './UnlockWithShare';
 import Documentation from './pages/documentation';
+import About from './pages/about';
+import Verification from './pages/verification';
 import './App.css';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -673,11 +675,10 @@ function App() {
   };
 
   const handleNavigate = (target) => {
+    // target arrives as lowercase: 'documentation', 'verification', 'about'
+    setPage(target);
     if (target === 'about') {
-      setPage('about');
       try { sessionStorage.setItem('about_seen', '1'); } catch { }
-    } else {
-      setPage(target);
     }
   };
 
@@ -889,7 +890,6 @@ function App() {
           key="documentation"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.35 }}
-          style={{ position: 'relative', zIndex: 5 }}
         >
           <Documentation onBack={() => setPage('login')} />
         </motion.div>
@@ -899,75 +899,21 @@ function App() {
       {page === 'verification' && (
         <motion.div
           key="verification"
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.35 }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }} transition={{ duration: 0.3 }}
         >
-          <div style={{ minHeight: '100vh', background: 'var(--bg-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-            <div style={{ maxWidth: 560, width: '100%' }}>
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} style={{ marginBottom: 32, textAlign: 'center' }}>
-                <button
-                  onClick={() => setPage('login')}
-                  style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: '0.83rem', fontFamily: 'var(--font-mono)', marginBottom: 24, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                >
-                  ← Back
-                </button>
-                <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem,4vw,2.4rem)', fontWeight: 800, color: 'var(--gold)', marginBottom: 12 }}>Verification</h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: 440, margin: '0 auto' }}>
-                  Verify your cryptographic shares and vault integrity
-                </p>
-              </motion.div>
-              {[
-                { title: 'Share Integrity', desc: 'Verify all 3 shares (Google Drive, Supabase, Local) are present and uncorrupted. Each share is validated against its HMAC signature.', accent: 'var(--gold)' },
-                { title: 'Key Reconstruction Test', desc: 'Perform a dry-run key reconstruction using 2-of-3 shares without revealing the master key. Confirms threshold scheme is intact.', accent: '#3ecf8e' },
-                { title: 'Vault Hash Check', desc: 'Compare the stored vault hash against a freshly computed hash of your encrypted credential store. Detects any tampering.', accent: '#5b8dee' },
-              ].map((card, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.1 }}
-                  style={{ background: 'rgba(19,22,27,0.82)', border: `1px solid ${card.accent}22`, borderRadius: 16, padding: '24px 28px', marginBottom: 16, backdropFilter: 'blur(16px)', position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${card.accent}55, transparent)` }} />
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, color: card.accent, marginBottom: 8 }}>{card.title}</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: 1.7 }}>{card.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+          <Verification />
         </motion.div>
       )}
 
       {/* ── About page ── */}
-      {(page === 'about' || showAbout && page === 'login' && false) && (
+      {page === 'about' && (
         <motion.div
           key="about"
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.35 }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }} transition={{ duration: 0.3 }}
         >
-          <div style={{ minHeight: '100vh', background: 'var(--bg-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-            <div style={{ maxWidth: 600, width: '100%' }}>
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} style={{ marginBottom: 32, textAlign: 'center' }}>
-                <button
-                  onClick={() => setPage('login')}
-                  style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: '0.83rem', fontFamily: 'var(--font-mono)', marginBottom: 24, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                >
-                  ← Back
-                </button>
-                <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem,4vw,2.4rem)', fontWeight: 800, color: 'var(--gold)', marginBottom: 12 }}>About Shamir Vault</h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: 480, margin: '0 auto', lineHeight: 1.7 }}>
-                  A zero-knowledge password manager using Shamir Secret Sharing to distribute trust across three independent storage layers — no single point of failure.
-                </p>
-              </motion.div>
-              {[
-                { title: '🔐 How It Works', accent: 'var(--gold)', body: 'Your master key is mathematically split into 3 shares using Shamir\'s (2,3)-threshold scheme. Any 2 of 3 shares can reconstruct the key — but 1 alone reveals nothing. Shares are stored on Google Drive, Supabase, and your local device.' },
-                { title: '🛡️ Security Model', accent: '#3ecf8e', body: 'AES-256-GCM encrypts your credentials. SHA-512 validates share integrity. PBKDF2 derives your master key from your password. The server never sees your plaintext credentials or master key.' },
-                { title: '🌐 Architecture', accent: '#5b8dee', body: 'Google OAuth handles Share 1 (cloud). Supabase stores Share 2 (server). Your local device holds Share 3. Vault unlock requires any 2 of these — protecting against cloud breaches, server compromises, and device loss independently.' },
-              ].map((card, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.1 }}
-                  style={{ background: 'rgba(19,22,27,0.82)', border: `1px solid ${card.accent}22`, borderRadius: 16, padding: '24px 28px', marginBottom: 16, backdropFilter: 'blur(16px)', position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${card.accent}55, transparent)` }} />
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, color: card.accent, marginBottom: 8 }}>{card.title}</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: 1.7 }}>{card.body}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+          <About onClose={() => setPage('login')} />
         </motion.div>
       )}
 
