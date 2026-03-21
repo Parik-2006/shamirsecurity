@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import VaultPage from './VaultPage';
 import RegistrationVaultPage from './RegistrationVaultPage';
@@ -16,7 +16,7 @@ if (typeof window !== 'undefined') {
   });
 }
 
-/* ── Icons ─────────────────────────────────────────────────── */
+/* ── Lock Icon ─────────────────────────────────────────────── */
 function LockIcon({ size = 24, color = 'currentColor' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -27,550 +27,470 @@ function LockIcon({ size = 24, color = 'currentColor' }) {
   );
 }
 
-/* ════════════════════════════════════════════════════════════
-   INTERACTIVE 3D OBJECTS
-   Pure CSS 3D transforms — zero WebGL, zero extra deps.
-   Each object:
-   • Floats with a slow bobbing animation
-   • Reacts to mouse hover / touch with velocity-based launch
-   • Settles back to original position via spring physics
-   ════════════════════════════════════════════════════════════ */
-
-function use3DObject(initialPos) {
-  const [pos, setPos] = useState(initialPos);
-  const [vel, setVel] = useState({ x: 0, y: 0 });
-  const [rotExtra, setRotExtra] = useState({ x: 0, y: 0, z: 0 });
-  const [flying, setFlying] = useState(false);
-  const animRef = useRef(null);
-
-  const launch = useCallback((pushX, pushY) => {
-    setFlying(true);
-    setVel({ x: pushX, y: pushY });
-    setRotExtra({ x: (Math.random() - 0.5) * 60, y: (Math.random() - 0.5) * 60, z: (Math.random() - 0.5) * 90 });
-  }, []);
-
-  useEffect(() => {
-    if (!flying) return;
-
-    let vx = vel.x, vy = vel.y;
-    let cx = pos.x, cy = pos.y;
-    const tx = initialPos.x, ty = initialPos.y;
-
-    const step = () => {
-      // Spring back
-      const ax = (tx - cx) * 0.06;
-      const ay = (ty - cy) * 0.06;
-      vx = (vx + ax) * 0.88;
-      vy = (vy + ay) * 0.88;
-      cx += vx;
-      cy += vy;
-
-      const dist = Math.sqrt((cx - tx) ** 2 + (cy - ty) ** 2);
-      const speed = Math.sqrt(vx ** 2 + vy ** 2);
-
-      setPos({ x: cx, y: cy });
-      setRotExtra(r => ({
-        x: r.x * 0.92,
-        y: r.y * 0.92,
-        z: r.z * 0.92,
-      }));
-
-      if (dist < 0.5 && speed < 0.1) {
-        setPos(initialPos);
-        setRotExtra({ x: 0, y: 0, z: 0 });
-        setFlying(false);
-        return;
-      }
-      animRef.current = requestAnimationFrame(step);
-    };
-    animRef.current = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animRef.current);
-  }, [flying]);
-
-  return { pos, rotExtra, launch };
-}
-
-/* ── 3D Shield ──────────────────────────────────────────────── */
-function Shield3D({ style }) {
-  const init = { x: 0, y: 0 };
-  const { pos, rotExtra, launch } = use3DObject(init);
-  const [hovered, setHovered] = useState(false);
-
-  const handleInteract = (e) => {
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const dx = (clientX - cx) / rect.width;
-    const dy = (clientY - cy) / rect.height;
-    launch(dx * 18, dy * 18);
-  };
-
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={handleInteract}
-      onTouchStart={handleInteract}
-      style={{
-        ...style,
-        transform: `translate(${pos.x}px, ${pos.y}px)`,
-        cursor: 'pointer',
-        userSelect: 'none',
-      }}
-    >
-      <motion.div
-        animate={{ y: [0, -10, 0], rotateY: hovered ? [0, 20, -20, 0] : 0 }}
-        transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }, rotateY: { duration: 0.6 } }}
-        style={{
-          transformStyle: 'preserve-3d',
-          transform: `rotateX(${rotExtra.x}deg) rotateY(${rotExtra.y}deg) rotateZ(${rotExtra.z}deg)`,
-          transition: 'transform 0.05s linear',
-          filter: hovered ? 'drop-shadow(0 0 16px rgba(255,215,80,0.7))' : 'drop-shadow(0 0 8px rgba(255,215,80,0.3))',
-        }}
-      >
-        {/* Shield body */}
-        <svg width="56" height="64" viewBox="0 0 56 64" fill="none">
-          <defs>
-            <linearGradient id="shieldGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="rgba(255,215,80,0.9)" />
-              <stop offset="100%" stopColor="rgba(255,180,0,0.6)" />
-            </linearGradient>
-            <linearGradient id="shieldFace" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(255,215,80,0.15)" />
-              <stop offset="100%" stopColor="rgba(255,215,80,0.04)" />
-            </linearGradient>
-          </defs>
-          {/* 3D left face */}
-          <path d="M4 10 L28 4 L28 58 Q4 46 4 32Z" fill="rgba(255,180,0,0.2)" stroke="rgba(255,215,80,0.5)" strokeWidth="0.5" />
-          {/* 3D right face */}
-          <path d="M52 10 L28 4 L28 58 Q52 46 52 32Z" fill="rgba(255,215,80,0.12)" stroke="rgba(255,215,80,0.4)" strokeWidth="0.5" />
-          {/* Front face */}
-          <path d="M28 4 L50 12 L50 30 Q50 50 28 58 Q6 50 6 30 L6 12Z" fill="url(#shieldFace)" stroke="url(#shieldGrad)" strokeWidth="1.2" />
-          {/* Inner glow check */}
-          <path d="M19 30 L25 36 L37 23" stroke="rgba(255,215,80,0.8)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          {/* Shine */}
-          <path d="M15 14 Q28 10 41 14" stroke="rgba(255,255,255,0.2)" strokeWidth="1" fill="none" />
-        </svg>
-      </motion.div>
-    </div>
-  );
-}
-
-/* ── 3D Key ─────────────────────────────────────────────────── */
-function Key3D({ style }) {
-  const init = { x: 0, y: 0 };
-  const { pos, rotExtra, launch } = use3DObject(init);
-  const [hovered, setHovered] = useState(false);
-
-  const handleInteract = (e) => {
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const dx = (clientX - (rect.left + rect.width / 2)) / rect.width;
-    const dy = (clientY - (rect.top + rect.height / 2)) / rect.height;
-    launch(dx * 22, dy * 22);
-  };
-
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={handleInteract}
-      onTouchStart={handleInteract}
-      style={{ ...style, transform: `translate(${pos.x}px, ${pos.y}px)`, cursor: 'pointer', userSelect: 'none' }}
-    >
-      <motion.div
-        animate={{ rotate: hovered ? [0, -15, 15, 0] : [0, 5, -5, 0], y: [0, -8, 0] }}
-        transition={{ rotate: { duration: 0.5 }, y: { duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 } }}
-        style={{
-          transformStyle: 'preserve-3d',
-          transform: `rotateX(${rotExtra.x}deg) rotateY(${rotExtra.y}deg) rotateZ(${rotExtra.z}deg)`,
-          filter: hovered ? 'drop-shadow(0 0 14px rgba(90,210,190,0.8))' : 'drop-shadow(0 0 6px rgba(90,210,190,0.3))',
-        }}
-      >
-        <svg width="64" height="40" viewBox="0 0 64 40" fill="none">
-          <defs>
-            <linearGradient id="keyGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="rgba(90,210,190,0.95)" />
-              <stop offset="100%" stopColor="rgba(40,160,140,0.7)" />
-            </linearGradient>
-          </defs>
-          {/* Key ring 3D */}
-          <ellipse cx="16" cy="20" rx="13" ry="13" stroke="url(#keyGrad)" strokeWidth="4" fill="rgba(90,210,190,0.08)" />
-          <ellipse cx="16" cy="20" rx="7" ry="7" stroke="rgba(90,210,190,0.4)" strokeWidth="1.5" fill="rgba(90,210,190,0.06)" />
-          {/* Key shaft */}
-          <rect x="28" y="17" width="32" height="6" rx="3" fill="url(#keyGrad)" opacity="0.85" />
-          {/* Teeth */}
-          <rect x="42" y="23" width="4" height="5" rx="1" fill="rgba(90,210,190,0.9)" />
-          <rect x="50" y="23" width="4" height="8" rx="1" fill="rgba(90,210,190,0.9)" />
-          <rect x="57" y="23" width="4" height="4" rx="1" fill="rgba(90,210,190,0.9)" />
-          {/* Shine */}
-          <line x1="30" y1="19" x2="55" y2="19" stroke="rgba(255,255,255,0.25)" strokeWidth="1" />
-        </svg>
-      </motion.div>
-    </div>
-  );
-}
-
-/* ── 3D Lock ─────────────────────────────────────────────────── */
-function Lock3D({ style }) {
-  const init = { x: 0, y: 0 };
-  const { pos, rotExtra, launch } = use3DObject(init);
-  const [hovered, setHovered] = useState(false);
-  const [unlocked, setUnlocked] = useState(false);
-
-  const handleInteract = (e) => {
-    e.stopPropagation();
-    setUnlocked(u => !u);
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const dx = (clientX - (rect.left + rect.width / 2)) / rect.width;
-    const dy = (clientY - (rect.top + rect.height / 2)) / rect.height;
-    launch(dx * 20, dy * 20);
-    setTimeout(() => setUnlocked(false), 2000);
-  };
-
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={handleInteract}
-      onTouchStart={handleInteract}
-      style={{ ...style, transform: `translate(${pos.x}px, ${pos.y}px)`, cursor: 'pointer', userSelect: 'none' }}
-    >
-      <motion.div
-        animate={{ y: [0, -12, 0], rotateZ: hovered ? [0, -8, 8, 0] : 0 }}
-        transition={{ y: { duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }, rotateZ: { duration: 0.5 } }}
-        style={{
-          transformStyle: 'preserve-3d',
-          transform: `rotateX(${rotExtra.x}deg) rotateY(${rotExtra.y}deg) rotateZ(${rotExtra.z}deg)`,
-          filter: unlocked
-            ? 'drop-shadow(0 0 18px rgba(62,207,142,0.9))'
-            : hovered
-              ? 'drop-shadow(0 0 14px rgba(255,215,80,0.7))'
-              : 'drop-shadow(0 0 6px rgba(255,215,80,0.25))',
-        }}
-      >
-        <svg width="44" height="56" viewBox="0 0 44 56" fill="none">
-          <defs>
-            <linearGradient id="lockGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor={unlocked ? 'rgba(62,207,142,0.95)' : 'rgba(255,215,80,0.95)'} />
-              <stop offset="100%" stopColor={unlocked ? 'rgba(30,160,100,0.7)' : 'rgba(200,160,0,0.7)'} />
-            </linearGradient>
-            <linearGradient id="lockBody" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor={unlocked ? 'rgba(62,207,142,0.18)' : 'rgba(255,215,80,0.18)'} />
-              <stop offset="100%" stopColor="rgba(0,0,0,0.05)" />
-            </linearGradient>
-          </defs>
-          {/* Shackle */}
-          <motion.path
-            d={unlocked ? "M12 24 L12 14 Q12 4 22 4 Q32 4 32 14 L32 18" : "M12 24 L12 14 Q12 4 22 4 Q32 4 32 14 L32 24"}
-            stroke="url(#lockGrad)" strokeWidth="3.5" strokeLinecap="round" fill="none"
-            animate={{ d: unlocked ? "M12 24 L12 14 Q12 4 22 4 Q32 4 32 14 L32 18" : "M12 24 L12 14 Q12 4 22 4 Q32 4 32 14 L32 24" }}
-            transition={{ duration: 0.3 }}
-          />
-          {/* Body */}
-          <rect x="4" y="24" width="36" height="28" rx="5" fill="url(#lockBody)" stroke="url(#lockGrad)" strokeWidth="1.5" />
-          {/* 3D side face */}
-          <path d="M40 24 L44 27 L44 52 L40 52Z" fill={unlocked ? 'rgba(62,207,142,0.15)' : 'rgba(255,215,80,0.12)'} />
-          <path d="M4 52 L0 49 L0 24 L4 24Z" fill={unlocked ? 'rgba(62,207,142,0.1)' : 'rgba(255,215,80,0.08)'} />
-          {/* Keyhole */}
-          <circle cx="22" cy="36" r="4.5" fill={unlocked ? 'rgba(62,207,142,0.6)' : 'rgba(255,215,80,0.5)'} />
-          <rect x="20" y="38" width="4" height="7" rx="2" fill={unlocked ? 'rgba(62,207,142,0.6)' : 'rgba(255,215,80,0.5)'} />
-          {/* Shine */}
-          <rect x="8" y="27" width="16" height="3" rx="1.5" fill="rgba(255,255,255,0.12)" />
-        </svg>
-      </motion.div>
-    </div>
-  );
-}
-
-/* ── 3D CPU Chip ─────────────────────────────────────────────── */
-function Chip3D({ style }) {
-  const init = { x: 0, y: 0 };
-  const { pos, rotExtra, launch } = use3DObject(init);
-  const [hovered, setHovered] = useState(false);
-  const [active, setActive] = useState(false);
-
-  const handleInteract = (e) => {
-    e.stopPropagation();
-    setActive(true);
-    setTimeout(() => setActive(false), 1200);
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const dx = (clientX - (rect.left + rect.width / 2)) / rect.width;
-    const dy = (clientY - (rect.top + rect.height / 2)) / rect.height;
-    launch(dx * 16, dy * 16);
-  };
-
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={handleInteract}
-      onTouchStart={handleInteract}
-      style={{ ...style, transform: `translate(${pos.x}px, ${pos.y}px)`, cursor: 'pointer', userSelect: 'none' }}
-    >
-      <motion.div
-        animate={{ rotateY: hovered ? [0, 25, -25, 0] : [0, 8, -8, 0], y: [0, -6, 0] }}
-        transition={{ rotateY: { duration: 0.7 }, y: { duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.4 } }}
-        style={{
-          transformStyle: 'preserve-3d',
-          transform: `rotateX(${rotExtra.x + (hovered ? 15 : 0)}deg) rotateY(${rotExtra.y}deg) rotateZ(${rotExtra.z}deg)`,
-          filter: active
-            ? 'drop-shadow(0 0 20px rgba(91,141,238,0.95))'
-            : hovered
-              ? 'drop-shadow(0 0 12px rgba(91,141,238,0.7))'
-              : 'drop-shadow(0 0 5px rgba(91,141,238,0.3))',
-        }}
-      >
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-          <defs>
-            <linearGradient id="chipGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="rgba(91,141,238,0.9)" />
-              <stop offset="100%" stopColor="rgba(50,80,180,0.7)" />
-            </linearGradient>
-            <linearGradient id="chipFace" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="rgba(91,141,238,0.2)" />
-              <stop offset="100%" stopColor="rgba(91,141,238,0.06)" />
-            </linearGradient>
-          </defs>
-          {/* 3D top face offset */}
-          <rect x="10" y="6" width="40" height="40" rx="4" fill="rgba(91,141,238,0.12)" stroke="rgba(91,141,238,0.3)" strokeWidth="0.5" />
-          {/* Main body */}
-          <rect x="14" y="10" width="34" height="34" rx="4" fill="url(#chipFace)" stroke="url(#chipGrad)" strokeWidth="1.5" />
-          {/* Inner circuit grid */}
-          {active && [18, 22, 26, 30, 34, 38].map(x =>
-            [14, 18, 22, 26, 30, 34, 38].map(y => (
-              <circle key={x + '-' + y} cx={x} cy={y + 10} r="0.8" fill="rgba(91,141,238,0.7)" />
-            ))
-          )}
-          {/* Center processor */}
-          <rect x="22" y="22" width="18" height="16" rx="2" fill="rgba(91,141,238,0.25)" stroke="rgba(91,141,238,0.6)" strokeWidth="1" />
-          <rect x="25" y="25" width="12" height="10" rx="1" fill={active ? 'rgba(91,141,238,0.7)' : 'rgba(91,141,238,0.35)'} />
-          {/* Pins top */}
-          {[19, 24, 29, 34, 39].map(x => <rect key={'t' + x} x={x} y="7" width="2" height="4" rx="1" fill="rgba(91,141,238,0.7)" />)}
-          {/* Pins bottom */}
-          {[19, 24, 29, 34, 39].map(x => <rect key={'b' + x} x={x} y="49" width="2" height="4" rx="1" fill="rgba(91,141,238,0.7)" />)}
-          {/* Pins left */}
-          {[18, 23, 28, 33, 38].map(y => <rect key={'l' + y} x="7" y={y} width="4" height="2" rx="1" fill="rgba(91,141,238,0.7)" />)}
-          {/* Pins right */}
-          {[18, 23, 28, 33, 38].map(y => <rect key={'r' + y} x="49" y={y} width="4" height="2" rx="1" fill="rgba(91,141,238,0.7)" />)}
-          {/* Shine */}
-          <path d="M16 12 Q30 10 44 12" stroke="rgba(255,255,255,0.2)" strokeWidth="1" fill="none" />
-        </svg>
-      </motion.div>
-    </div>
-  );
-}
-
-/* ── 3D DNA / Binary Helix ───────────────────────────────────── */
-function Helix3D({ style }) {
-  const init = { x: 0, y: 0 };
-  const { pos, rotExtra, launch } = use3DObject(init);
-  const [hovered, setHovered] = useState(false);
-
-  const handleInteract = (e) => {
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const dx = (clientX - (rect.left + rect.width / 2)) / rect.width;
-    const dy = (clientY - (rect.top + rect.height / 2)) / rect.height;
-    launch(dx * 20, dy * 20);
-  };
-
-  // Build helix rungs
-  const rungs = Array.from({ length: 8 }, (_, i) => {
-    const t = i / 7;
-    const phase = t * Math.PI * 2;
-    const x1 = 10 + Math.cos(phase) * 12;
-    const x2 = 10 + Math.cos(phase + Math.PI) * 12;
-    const y = 6 + i * 10;
-    const gold = i % 2 === 0;
-    return { x1, x2, y, gold };
-  });
-
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={handleInteract}
-      onTouchStart={handleInteract}
-      style={{ ...style, transform: `translate(${pos.x}px, ${pos.y}px)`, cursor: 'pointer', userSelect: 'none' }}
-    >
-      <motion.div
-        animate={{ rotateY: [0, 360], y: [0, -9, 0] }}
-        transition={{ rotateY: { duration: 6, repeat: Infinity, ease: 'linear' }, y: { duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 2 } }}
-        style={{
-          transformStyle: 'preserve-3d',
-          transform: `rotateX(${rotExtra.x}deg) rotateZ(${rotExtra.z}deg)`,
-          filter: hovered ? 'drop-shadow(0 0 14px rgba(232,121,164,0.7))' : 'drop-shadow(0 0 6px rgba(232,121,164,0.25))',
-        }}
-      >
-        <svg width="44" height="90" viewBox="0 0 22 90" fill="none">
-          {/* Strands */}
-          <path
-            d={`M ${Array.from({ length: 20 }, (_, i) => { const t = i / 19; const ph = t * Math.PI * 2; return `${10 + Math.cos(ph) * 10} ${4 + t * 82}` }).join(' L ')}`}
-            stroke="rgba(232,121,164,0.6)" strokeWidth="1.5" fill="none"
-          />
-          <path
-            d={`M ${Array.from({ length: 20 }, (_, i) => { const t = i / 19; const ph = t * Math.PI * 2 + Math.PI; return `${10 + Math.cos(ph) * 10} ${4 + t * 82}` }).join(' L ')}`}
-            stroke="rgba(255,215,80,0.6)" strokeWidth="1.5" fill="none"
-          />
-          {/* Rungs */}
-          {rungs.map((r, i) => (
-            <g key={i}>
-              <line x1={r.x1} y1={r.y} x2={r.x2} y2={r.y}
-                stroke={r.gold ? 'rgba(255,215,80,0.7)' : 'rgba(232,121,164,0.7)'}
-                strokeWidth="1.2" />
-              <circle cx={r.x1} cy={r.y} r="2.2" fill={r.gold ? 'rgba(255,215,80,0.9)' : 'rgba(232,121,164,0.9)'} />
-              <circle cx={r.x2} cy={r.y} r="2.2" fill={r.gold ? 'rgba(255,215,80,0.6)' : 'rgba(232,121,164,0.6)'} />
-            </g>
-          ))}
-        </svg>
-      </motion.div>
-    </div>
-  );
-}
-
-/* ── 3D Floating Binary Cube ─────────────────────────────────── */
-function BinaryCube({ style }) {
-  const init = { x: 0, y: 0 };
-  const { pos, rotExtra, launch } = use3DObject(init);
-  const [hovered, setHovered] = useState(false);
-
-  const handleInteract = (e) => {
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const dx = (clientX - (rect.left + rect.width / 2)) / rect.width;
-    const dy = (clientY - (rect.top + rect.height / 2)) / rect.height;
-    launch(dx * 24, dy * 24);
-  };
-
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={handleInteract}
-      onTouchStart={handleInteract}
-      style={{ ...style, transform: `translate(${pos.x}px, ${pos.y}px)`, cursor: 'pointer', userSelect: 'none' }}
-    >
-      <motion.div
-        animate={{ rotateX: [15, 25, 15], rotateY: [0, 360], y: [0, -8, 0] }}
-        transition={{
-          rotateY: { duration: 8, repeat: Infinity, ease: 'linear' },
-          rotateX: { duration: 5, repeat: Infinity, ease: 'easeInOut' },
-          y: { duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 },
-        }}
-        style={{
-          transformStyle: 'preserve-3d',
-          width: 46, height: 46,
-          transform: `rotateX(${15 + rotExtra.x}deg) rotateY(${rotExtra.y}deg) rotateZ(${rotExtra.z}deg)`,
-          filter: hovered ? 'drop-shadow(0 0 16px rgba(167,139,250,0.8))' : 'drop-shadow(0 0 7px rgba(167,139,250,0.3))',
-        }}
-      >
-        {/* Cube faces using CSS 3D */}
-        {[
-          { transform: 'rotateY(0deg)   translateZ(23px)', face: 'front' },
-          { transform: 'rotateY(180deg) translateZ(23px)', face: 'back' },
-          { transform: 'rotateY(90deg)  translateZ(23px)', face: 'right' },
-          { transform: 'rotateY(-90deg) translateZ(23px)', face: 'left' },
-          { transform: 'rotateX(90deg)  translateZ(23px)', face: 'top' },
-          { transform: 'rotateX(-90deg) translateZ(23px)', face: 'bot' },
-        ].map(({ transform, face }) => (
-          <div key={face} style={{
-            position: 'absolute',
-            width: 46, height: 46,
-            transform,
-            background: face === 'front'
-              ? 'rgba(167,139,250,0.18)'
-              : 'rgba(167,139,250,0.08)',
-            border: '1px solid rgba(167,139,250,0.45)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 7,
-            fontFamily: '"JetBrains Mono", monospace',
-            color: 'rgba(167,139,250,0.9)',
-            letterSpacing: '0.05em',
-            overflow: 'hidden',
-          }}>
-            {face === 'front' ? '10110\n01001\n11010' : face === 'top' ? 'ENC' : face === 'right' ? '256' : ''}
-          </div>
-        ))}
-      </motion.div>
-    </div>
-  );
-}
-
-/* ── Cyber Canvas Background ────────────────────────────────── */
-function CyberBackground() {
+/* ════════════════════════════════════════════════════════════════
+   LOGIN PAGE BACKGROUND — MULTI-LAYER CANVAS
+   6 simultaneous visual systems:
+   1. Particle field  — drifting gold/cyan nodes with connection lines
+   2. Matrix rain     — falling columns of crypto characters
+   3. Radar sweep     — rotating scan from off-center
+   4. Orbital rings   — 4 concentric rings rotating at different speeds
+   5. Circuit traces  — L-shaped PCB paths with traveling signal dots
+   6. Pulse bursts    — expanding rings that bloom and fade
+   All mouse-reactive: nodes are repelled by cursor position
+   ════════════════════════════════════════════════════════════════ */
+function LoginBackground() {
   const canvasRef = useRef(null);
+  const mouseRef = useRef({ x: -9999, y: -9999 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let animId, w, h;
+    let animId, w, h, frame = 0;
 
-    const resize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
+    const resize = () => {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    };
     resize();
     window.addEventListener('resize', resize);
 
-    const NODE_COUNT = 42;
-    const nodes = Array.from({ length: NODE_COUNT }, () => ({
-      x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
-      vx: (Math.random() - 0.5) * 0.28, vy: (Math.random() - 0.5) * 0.28, r: Math.random() * 1.8 + 0.6,
-    }));
-    let scanY = 0;
-    const CHARS = '0123456789ABCDEF01';
-    const drifters = Array.from({ length: 18 }, () => ({
-      x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
-      vy: Math.random() * 0.35 + 0.12, char: CHARS[Math.floor(Math.random() * CHARS.length)],
-      opacity: Math.random() * 0.14 + 0.04, size: Math.floor(Math.random() * 4) + 9,
-      timer: 0, interval: Math.floor(Math.random() * 80) + 35, cyan: Math.random() < 0.25,
-    }));
-    const pulses = []; let pulseTimer = 0;
+    const onMove = e => {
+      mouseRef.current = { x: e.clientX, y: e.clientY };
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', e => {
+      if (e.touches[0]) mouseRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }, { passive: true });
 
+    /* ── 1. PARTICLE FIELD ── */
+    const PARTICLE_COUNT = 55;
+    const particles = Array.from({ length: PARTICLE_COUNT }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.35,
+      vy: (Math.random() - 0.5) * 0.35,
+      r: Math.random() * 2 + 0.8,
+      cyan: Math.random() < 0.3,
+    }));
+
+    /* ── 2. MATRIX RAIN ── */
+    const RAIN_CHARS = 'ABCDEF0123456789アイウエオカキクケコ░▒▓SHA';
+    const COL_W = 18;
+    const colCount = Math.ceil(window.innerWidth / COL_W);
+    const rainCols = Array.from({ length: colCount }, () => ({
+      y: Math.random() * -window.innerHeight,
+      speed: Math.random() * 0.9 + 0.3,
+      len: Math.floor(Math.random() * 14) + 4,
+      active: Math.random() < 0.22,
+      dormant: Math.floor(Math.random() * 500) + 80,
+      chars: Array.from({ length: 18 }, () => RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)]),
+      mutT: 0,
+      mutRate: Math.floor(Math.random() * 8) + 4,
+      cyan: Math.random() < 0.25,
+      size: Math.random() < 0.12 ? 11 : 9,
+    }));
+
+    /* ── 3. RADAR SWEEP ── */
+    let radarAngle = 0;
+    // Radar origin — offset from center so it doesn't sit behind the form
+    const radarOX = () => w * 0.72;
+    const radarOY = () => h * 0.5;
+    const RADAR_R = () => Math.min(w, h) * 0.38;
+
+    /* ── 4. CIRCUIT TRACES ── */
+    const buildTraces = () => Array.from({ length: Math.max(6, Math.floor(w / 180)) }, () => {
+      const x1 = Math.random() * w;
+      const y1 = Math.random() * h;
+      const x2 = x1 + (Math.random() - 0.5) * 360;
+      const y2 = y1 + (Math.random() - 0.5) * 260;
+      const cx = Math.random() < 0.5 ? x2 : x1;
+      const cy = Math.random() < 0.5 ? y1 : y2;
+      return {
+        pts: [[x1, y1], [cx, cy], [x2, y2]],
+        alpha: Math.random() * 0.07 + 0.025,
+        cyan: Math.random() < 0.4,
+        dot: { t: Math.random(), speed: Math.random() * 0.004 + 0.0015 },
+      };
+    });
+    let traces = buildTraces();
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    /* ── 5. PULSE BURSTS ── */
+    const pulses = [];
+    let pulseTimer = 0;
+
+    /* ── 6. ORBITING RINGS (drawn on canvas) ── */
+    // Four rings at different radii, rotating at different speeds
+    const orbits = [
+      { r: () => Math.min(w, h) * 0.44, speed: 0.0008, dash: [18, 8], alpha: 0.055, cyan: false },
+      { r: () => Math.min(w, h) * 0.34, speed: -0.0013, dash: [8, 14], alpha: 0.06, cyan: true },
+      { r: () => Math.min(w, h) * 0.24, speed: 0.002, dash: [4, 20], alpha: 0.07, cyan: false },
+      { r: () => Math.min(w, h) * 0.15, speed: -0.003, dash: [12, 6], alpha: 0.08, cyan: true },
+    ];
+    const orbitAngles = orbits.map(() => Math.random() * Math.PI * 2);
+
+    /* ── DRAW LOOP ── */
     const draw = () => {
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = 'rgba(255,215,80,0.045)';
-      for (let x = 0; x < w; x += 36) for (let y = 0; y < h; y += 36) {
-        ctx.beginPath(); ctx.arc(x, y, 0.7, 0, Math.PI * 2); ctx.fill();
-      }
-      for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
-        const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
-        const d = Math.sqrt(dx * dx + dy * dy);
-        if (d < 150) { ctx.strokeStyle = `rgba(255,215,80,${(1 - d / 150) * 0.08})`; ctx.lineWidth = 0.55; ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.stroke(); }
-      }
-      nodes.forEach(n => {
-        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,215,80,0.18)'; ctx.fill();
-        n.x += n.vx; n.y += n.vy; if (n.x < 0 || n.x > w) n.vx *= -1; if (n.y < 0 || n.y > h) n.vy *= -1;
+      frame++;
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
+
+      /* ── Background radial gradient ── */
+      const bgGrad = ctx.createRadialGradient(w * 0.5, h * 0.5, 0, w * 0.5, h * 0.5, Math.max(w, h) * 0.7);
+      bgGrad.addColorStop(0, 'rgba(255,215,80,0.025)');
+      bgGrad.addColorStop(0.5, 'rgba(0,0,0,0)');
+      bgGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      /* ── 1a. Dot grid ── */
+      ctx.fillStyle = 'rgba(255,215,80,0.04)';
+      for (let x = 0; x < w; x += 38)
+        for (let y = 0; y < h; y += 38) {
+          ctx.beginPath(); ctx.arc(x, y, 0.65, 0, Math.PI * 2); ctx.fill();
+        }
+
+      /* ── 6. Orbiting rings (behind everything) ── */
+      const oCX = w * 0.5, oCY = h * 0.5;
+      orbits.forEach((orb, i) => {
+        orbitAngles[i] += orb.speed;
+        const r = orb.r();
+        const color = orb.cyan ? `rgba(90,210,190,${orb.alpha})` : `rgba(255,215,80,${orb.alpha})`;
+        ctx.save();
+        ctx.translate(oCX, oCY);
+        ctx.rotate(orbitAngles[i]);
+        ctx.setLineDash(orb.dash);
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = orb.cyan ? 0.7 : 0.9;
+        ctx.stroke();
+        ctx.setLineDash([]);
+        // Tick marks at 12 positions on each ring
+        for (let t = 0; t < 12; t++) {
+          const ang = (t / 12) * Math.PI * 2;
+          const t0 = (t % 3 === 0) ? 5 : 2;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(ang) * (r - t0), Math.sin(ang) * (r - t0));
+          ctx.lineTo(Math.cos(ang) * (r + t0), Math.sin(ang) * (r + t0));
+          ctx.strokeStyle = color;
+          ctx.lineWidth = (t % 3 === 0) ? 1 : 0.5;
+          ctx.stroke();
+        }
+        ctx.restore();
       });
-      scanY = (scanY + 0.45) % h;
-      const sg = ctx.createLinearGradient(0, scanY - 55, 0, scanY + 55);
-      sg.addColorStop(0, 'rgba(255,215,80,0)'); sg.addColorStop(0.5, 'rgba(255,215,80,0.035)'); sg.addColorStop(1, 'rgba(255,215,80,0)');
-      ctx.fillStyle = sg; ctx.fillRect(0, scanY - 55, w, 110);
-      pulseTimer++; if (pulseTimer % 120 === 0) { const n = nodes[Math.floor(Math.random() * nodes.length)]; pulses.push({ x: n.x, y: n.y, r: 0, maxR: 80, alpha: 0.28 }); }
-      for (let i = pulses.length - 1; i >= 0; i--) { const p = pulses[i]; p.r += 1.1; p.alpha = 0.28 * (1 - p.r / p.maxR); ctx.strokeStyle = `rgba(255,215,80,${p.alpha})`; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.stroke(); if (p.r >= p.maxR) pulses.splice(i, 1); }
-      drifters.forEach(d => { d.timer++; if (d.timer >= d.interval) { d.char = CHARS[Math.floor(Math.random() * CHARS.length)]; d.timer = 0; } ctx.font = `${d.size}px "JetBrains Mono",monospace`; ctx.fillStyle = d.cyan ? `rgba(100,220,200,${d.opacity})` : `rgba(255,215,80,${d.opacity})`; ctx.fillText(d.char, d.x, d.y); d.y += d.vy; if (d.y > h + 20) { d.y = -20; d.x = Math.random() * w; } });
+
+      /* ── 5. Circuit traces ── */
+      traces.forEach(tr => {
+        const [[x1, y1], [cx, cy], [x2, y2]] = tr.pts;
+        const col = tr.cyan ? `rgba(90,210,190,${tr.alpha})` : `rgba(255,215,80,${tr.alpha})`;
+        ctx.strokeStyle = col; ctx.lineWidth = 0.65;
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(cx, cy); ctx.lineTo(x2, y2); ctx.stroke();
+        [[x1, y1], [cx, cy], [x2, y2]].forEach(([px, py]) => {
+          ctx.beginPath(); ctx.arc(px, py, 1.8, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill();
+        });
+        tr.dot.t = (tr.dot.t + tr.dot.speed) % 1;
+        const t = tr.dot.t;
+        const px = t < 0.5 ? lerp(x1, cx, t * 2) : lerp(cx, x2, (t - 0.5) * 2);
+        const py = t < 0.5 ? lerp(y1, cy, t * 2) : lerp(cy, y2, (t - 0.5) * 2);
+        ctx.beginPath(); ctx.arc(px, py, 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = tr.cyan ? 'rgba(90,210,190,0.75)' : 'rgba(255,215,80,0.7)'; ctx.fill();
+      });
+
+      /* ── 2. Matrix rain ── */
+      rainCols.forEach((col, ci) => {
+        if (!col.active) { col.dormant--; if (col.dormant <= 0) { col.active = true; col.y = -col.len * COL_W; } return; }
+        col.mutT++;
+        if (col.mutT >= col.mutRate) {
+          col.chars[Math.floor(Math.random() * col.chars.length)] = RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)];
+          col.mutT = 0;
+        }
+        ctx.font = `${col.size}px "JetBrains Mono", monospace`;
+        for (let i = 0; i < col.len; i++) {
+          const py = col.y - i * COL_W;
+          if (py < -20 || py > h + 20) continue;
+          const frac = i / col.len;
+          const a = i === 0 ? 0.55 : (1 - frac) * 0.12 + 0.015;
+          ctx.fillStyle = col.cyan
+            ? (i === 0 ? `rgba(130,240,220,${a})` : `rgba(90,210,190,${a})`)
+            : (i === 0 ? `rgba(255,235,120,${a})` : `rgba(255,215,80,${a})`);
+          ctx.fillText(col.chars[i % col.chars.length], ci * COL_W + 3, py);
+        }
+        col.y += col.speed;
+        if (col.y > h + col.len * COL_W) {
+          col.y = 0; col.active = Math.random() < 0.38;
+          col.dormant = Math.floor(Math.random() * 420) + 60;
+          col.speed = Math.random() * 0.9 + 0.3;
+          col.len = Math.floor(Math.random() * 14) + 4;
+        }
+      });
+
+      /* ── 1b. Particle connections ── */
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < 140) {
+            ctx.strokeStyle = `rgba(255,215,80,${(1 - d / 140) * 0.1})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+          }
+        }
+      }
+
+      /* ── 1c. Particles ── */
+      particles.forEach(p => {
+        // Mouse repulsion
+        const dx = p.x - mx, dy = p.y - my;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 100) {
+          const force = (100 - d) / 100 * 0.4;
+          p.vx += (dx / d) * force;
+          p.vy += (dy / d) * force;
+        }
+        // Speed cap + friction
+        const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        if (spd > 1.8) { p.vx *= 1.8 / spd; p.vy *= 1.8 / spd; }
+        p.vx *= 0.995; p.vy *= 0.995;
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+        if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+
+        // Draw node
+        const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+        glow.addColorStop(0, p.cyan ? 'rgba(90,210,190,0.35)' : 'rgba(255,215,80,0.35)');
+        glow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2); ctx.fillStyle = glow; ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.cyan ? 'rgba(90,210,190,0.8)' : 'rgba(255,215,80,0.75)'; ctx.fill();
+      });
+
+      /* ── 4. Pulse bursts ── */
+      pulseTimer++;
+      if (pulseTimer % 100 === 0) {
+        // Spawn from a random particle
+        const p = particles[Math.floor(Math.random() * particles.length)];
+        pulses.push({ x: p.x, y: p.y, r: 0, maxR: 100, alpha: 0.4, cyan: p.cyan });
+      }
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const p = pulses[i];
+        p.r += 1.3; p.alpha = 0.4 * (1 - p.r / p.maxR);
+        // Double ring per burst
+        [0, 8].forEach(offset => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r + offset, 0, Math.PI * 2);
+          ctx.strokeStyle = p.cyan ? `rgba(90,210,190,${p.alpha * (offset ? 0.35 : 1)})` : `rgba(255,215,80,${p.alpha * (offset ? 0.35 : 1)})`;
+          ctx.lineWidth = offset ? 0.4 : 0.9;
+          ctx.stroke();
+        });
+        if (p.r >= p.maxR) pulses.splice(i, 1);
+      }
+
+      /* ── 3. Radar sweep ── */
+      radarAngle = (radarAngle + 0.012) % (Math.PI * 2);
+      const rox = radarOX(), roy = radarOY(), rr = RADAR_R();
+      const sweepLen = rr * 1.4;
+
+      // Sweep fan
+      for (let da = 0; da < Math.PI / 6; da += 0.018) {
+        const ang = radarAngle - da;
+        const alpha = (1 - da / (Math.PI / 6)) * 0.055;
+        ctx.beginPath();
+        ctx.moveTo(rox, roy);
+        ctx.lineTo(rox + Math.cos(ang) * sweepLen, roy + Math.sin(ang) * sweepLen);
+        ctx.strokeStyle = `rgba(255,215,80,${alpha})`;
+        ctx.lineWidth = 2.5; ctx.stroke();
+      }
+      // Leading edge line
+      ctx.beginPath();
+      ctx.moveTo(rox, roy);
+      ctx.lineTo(rox + Math.cos(radarAngle) * sweepLen, roy + Math.sin(radarAngle) * sweepLen);
+      ctx.strokeStyle = 'rgba(255,215,80,0.2)'; ctx.lineWidth = 1.2; ctx.stroke();
+
+      // Radar rings
+      [1.0, 0.66, 0.33].forEach((frac, i) => {
+        ctx.beginPath();
+        ctx.arc(rox, roy, rr * frac, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255,215,80,${0.04 + i * 0.01})`;
+        ctx.lineWidth = 0.6; ctx.stroke();
+      });
+
+      // Cross-hairs
+      ctx.strokeStyle = 'rgba(255,215,80,0.06)'; ctx.lineWidth = 0.5;
+      ctx.beginPath(); ctx.moveTo(rox - rr, roy); ctx.lineTo(rox + rr, roy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rox, roy - rr); ctx.lineTo(rox, roy + rr); ctx.stroke();
+
+      // Radar blips — small lit dots that decay
+      if (frame % 90 === 0) {
+        const ba = Math.random() * Math.PI * 2;
+        const br = Math.random() * rr;
+        pulses.push({
+          x: rox + Math.cos(ba) * br, y: roy + Math.sin(ba) * br,
+          r: 0, maxR: 22, alpha: 0.6, cyan: false
+        });
+      }
+
+      // Radar origin dot
+      ctx.beginPath(); ctx.arc(rox, roy, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,215,80,0.55)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(rox, roy, 8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,215,80,0.07)'; ctx.fill();
+
+      /* Rebuild traces occasionally */
+      if (frame % 2400 === 0) traces = buildTraces();
+
       animId = requestAnimationFrame(draw);
     };
+
     draw();
-    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', onMove);
+    };
   }, []);
 
-  return <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }} />;
+  return (
+    <canvas ref={canvasRef} style={{
+      position: 'fixed', inset: 0,
+      width: '100%', height: '100%',
+      pointerEvents: 'none', zIndex: 0,
+    }} />
+  );
 }
 
-/* ── Top-Right Nav ──────────────────────────────────────────── */
+/* ── Ambient CSS glow layers (pure DOM — no canvas) ────────────── */
+function AmbientGlow() {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'none', overflow: 'hidden' }}>
+      {/* Top-left gold bloom */}
+      <motion.div
+        animate={{ opacity: [0.5, 0.8, 0.5], scale: [1, 1.08, 1] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute', top: '-10%', left: '-8%',
+          width: '50vw', height: '50vw',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,215,80,0.055) 0%, transparent 65%)',
+        }}
+      />
+      {/* Bottom-right cyan bloom */}
+      <motion.div
+        animate={{ opacity: [0.4, 0.7, 0.4], scale: [1, 1.06, 1] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+        style={{
+          position: 'absolute', bottom: '-12%', right: '-10%',
+          width: '55vw', height: '55vw',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(90,210,190,0.04) 0%, transparent 65%)',
+        }}
+      />
+      {/* Center subtle pulse behind the form */}
+      <motion.div
+        animate={{ opacity: [0.2, 0.45, 0.2], scale: [0.95, 1.05, 0.95] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+        style={{
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(-50%,-50%)',
+          width: 'min(640px,80vw)', height: 'min(640px,80vw)',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,215,80,0.03) 0%, transparent 70%)',
+        }}
+      />
+    </div>
+  );
+}
+
+/* ── Floating crypto tags ──────────────────────────────────────── */
+function CryptoTags() {
+  const tags = [
+    { text: 'AES-256-GCM', x: '5%', y: '14%', delay: 0, cyan: false },
+    { text: 'SHA-512', x: '76%', y: '10%', delay: 0.5, cyan: true },
+    { text: 'HMAC ✓', x: '3%', y: '58%', delay: 1.0, cyan: true },
+    { text: 'RSA-4096', x: '80%', y: '62%', delay: 1.5, cyan: false },
+    { text: 'TLS 1.3', x: '82%', y: '32%', delay: 2.0, cyan: true },
+    { text: 'PBKDF2', x: '4%', y: '34%', delay: 2.5, cyan: false },
+    { text: 'Shamir SSS', x: '72%', y: '84%', delay: 0.8, cyan: false },
+    { text: 'E2E Encrypted', x: '3%', y: '80%', delay: 1.8, cyan: true },
+    { text: 'secp256k1', x: '40%', y: '6%', delay: 1.2, cyan: false },
+    { text: 'ChaCha20', x: '42%', y: '92%', delay: 0.3, cyan: true },
+  ];
+
+  return (
+    <>
+      {tags.map((tag, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={{ opacity: [0, 0.55, 0.35, 0.55], y: [0, -5, 0], scale: 1 }}
+          transition={{
+            opacity: { duration: 4, repeat: Infinity, delay: tag.delay, ease: 'easeInOut' },
+            y: { duration: 4 + i * 0.3, repeat: Infinity, delay: tag.delay, ease: 'easeInOut' },
+            scale: { duration: 0.5, delay: tag.delay },
+          }}
+          style={{
+            position: 'fixed', left: tag.x, top: tag.y, zIndex: 2,
+            pointerEvents: 'none',
+            display: 'flex', alignItems: 'center', gap: 5,
+            padding: '4px 9px',
+            background: 'rgba(8,11,14,0.75)',
+            border: `1px solid ${tag.cyan ? 'rgba(90,210,190,0.22)' : 'rgba(255,215,80,0.18)'}`,
+            borderRadius: 6,
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <div style={{
+            width: 4, height: 4, borderRadius: '50%', flexShrink: 0,
+            background: tag.cyan ? 'rgba(90,210,190,0.85)' : 'rgba(255,215,80,0.85)',
+            boxShadow: tag.cyan ? '0 0 5px rgba(90,210,190,0.7)' : '0 0 5px rgba(255,215,80,0.7)',
+          }} />
+          <span style={{
+            fontFamily: '"JetBrains Mono", monospace',
+            fontSize: '0.6rem', letterSpacing: '0.07em',
+            color: tag.cyan ? 'rgba(90,210,190,0.85)' : 'rgba(255,215,80,0.8)',
+          }}>
+            {tag.text}
+          </span>
+        </motion.div>
+      ))}
+    </>
+  );
+}
+
+/* ── Vertical scanning lines ───────────────────────────────────── */
+function ScanLines() {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'none', overflow: 'hidden' }}>
+      {/* Horizontal scan sweep */}
+      <motion.div
+        animate={{ y: ['-5%', '105%'] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'linear', repeatDelay: 2 }}
+        style={{
+          position: 'absolute', left: 0, right: 0,
+          height: 2,
+          background: 'linear-gradient(90deg, transparent 0%, rgba(255,215,80,0.08) 20%, rgba(255,215,80,0.18) 50%, rgba(255,215,80,0.08) 80%, transparent 100%)',
+          boxShadow: '0 0 12px rgba(255,215,80,0.15)',
+        }}
+      />
+      {/* Vertical scan — right side */}
+      <motion.div
+        animate={{ x: ['105%', '-5%'] }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'linear', delay: 3, repeatDelay: 4 }}
+        style={{
+          position: 'absolute', top: 0, bottom: 0,
+          width: 1,
+          background: 'linear-gradient(180deg, transparent 0%, rgba(90,210,190,0.12) 30%, rgba(90,210,190,0.25) 50%, rgba(90,210,190,0.12) 70%, transparent 100%)',
+          boxShadow: '0 0 10px rgba(90,210,190,0.12)',
+        }}
+      />
+    </div>
+  );
+}
+
+/* ── Top-Right Nav ─────────────────────────────────────────────── */
 function TopNav({ onNavigate }) {
   return (
     <motion.nav
@@ -586,9 +506,27 @@ function TopNav({ onNavigate }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 + i * 0.07 }}
           onClick={() => onNavigate && onNavigate(label.toLowerCase())}
-          style={{ background: 'rgba(13,15,18,0.7)', border: '1px solid rgba(255,215,80,0.14)', color: 'rgba(255,215,80,0.65)', fontFamily: 'var(--font-display)', fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.06em', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', backdropFilter: 'blur(12px)', transition: 'all 0.18s ease' }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,215,80,0.35)'; e.currentTarget.style.color = 'rgba(255,215,80,1)'; e.currentTarget.style.background = 'rgba(255,215,80,0.07)'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,215,80,0.14)'; e.currentTarget.style.color = 'rgba(255,215,80,0.65)'; e.currentTarget.style.background = 'rgba(13,15,18,0.7)'; }}
+          style={{
+            background: 'rgba(13,15,18,0.75)',
+            border: '1px solid rgba(255,215,80,0.14)',
+            color: 'rgba(255,215,80,0.65)',
+            fontFamily: 'var(--font-display)',
+            fontSize: '0.72rem', fontWeight: 600,
+            letterSpacing: '0.06em', padding: '7px 14px',
+            borderRadius: 8, cursor: 'pointer',
+            backdropFilter: 'blur(12px)',
+            transition: 'all 0.18s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = 'rgba(255,215,80,0.38)';
+            e.currentTarget.style.color = 'rgba(255,215,80,1)';
+            e.currentTarget.style.background = 'rgba(255,215,80,0.07)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = 'rgba(255,215,80,0.14)';
+            e.currentTarget.style.color = 'rgba(255,215,80,0.65)';
+            e.currentTarget.style.background = 'rgba(13,15,18,0.75)';
+          }}
         >
           {label}
         </motion.button>
@@ -597,36 +535,39 @@ function TopNav({ onNavigate }) {
   );
 }
 
-/* ── Decorative rotating rings ──────────────────────────────── */
-function GlassGridPanel() {
-  return (
-    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 'min(520px,90vw)', height: 'min(520px,90vw)', zIndex: 1, pointerEvents: 'none' }}>
-      <motion.div animate={{ rotate: 360 }} transition={{ duration: 60, repeat: Infinity, ease: 'linear' }} style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1px solid rgba(255,215,80,0.07)' }} />
-      <motion.div animate={{ rotate: -360 }} transition={{ duration: 40, repeat: Infinity, ease: 'linear' }} style={{ position: 'absolute', inset: '12%', borderRadius: '50%', border: '1px dashed rgba(255,215,80,0.05)' }} />
-      <div style={{ position: 'absolute', inset: '32%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,215,80,0.04) 0%, transparent 70%)' }} />
-    </div>
-  );
-}
-
-/* ── Auth Success Page ──────────────────────────────────────── */
+/* ── Auth Success Page ─────────────────────────────────────────── */
 export function AuthSuccessPage() {
   const params = new URLSearchParams(window.location.search);
   const error = params.get('error');
   const regComplete = params.get('reg_complete');
-  const message = error ? decodeURIComponent(error.replace(/\+/g, ' ')) : regComplete ? 'Registration complete! You may now download your share.' : '';
+  const message = error
+    ? decodeURIComponent(error.replace(/\+/g, ' '))
+    : regComplete ? 'Registration complete! You may now download your share.' : '';
   return (
     <div className="sv-page">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} className="sv-card" style={{ maxWidth: 480, width: '100%', padding: '48px 40px', textAlign: 'center' }}>
-        <div style={{ marginBottom: 24 }}><LockIcon size={40} color={error ? 'var(--red)' : 'var(--gold)'} /></div>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', marginBottom: 12 }}>Registration Status</h2>
-        <p style={{ color: error ? 'var(--red)' : 'var(--gold)', marginBottom: 28, fontSize: '0.9rem' }}>{message}</p>
-        <button className="sv-btn sv-btn-primary" onClick={() => window.location.href = '/'}>Go to Home</button>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
+        className="sv-card"
+        style={{ maxWidth: 480, width: '100%', padding: '48px 40px', textAlign: 'center' }}
+      >
+        <div style={{ marginBottom: 24 }}>
+          <LockIcon size={40} color={error ? 'var(--red)' : 'var(--gold)'} />
+        </div>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', marginBottom: 12 }}>
+          Registration Status
+        </h2>
+        <p style={{ color: error ? 'var(--red)' : 'var(--gold)', marginBottom: 28, fontSize: '0.9rem' }}>
+          {message}
+        </p>
+        <button className="sv-btn sv-btn-primary" onClick={() => window.location.href = '/'}>
+          Go to Home
+        </button>
       </motion.div>
     </div>
   );
 }
 
-/* ── Main App ───────────────────────────────────────────────── */
+/* ── Main App ──────────────────────────────────────────────────── */
 function App() {
   const location = useLocation();
 
@@ -677,9 +618,16 @@ function App() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
       let res;
-      try { res = await fetch(`${API_URL}/api/register/init`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }), signal: controller.signal }); }
-      catch (err) { if (err.name === 'AbortError') { setError('Vault creation timed out. Please try again.'); } else { setError('Network error: ' + err.message); } setLoading(false); return; }
-      finally { clearTimeout(timeoutId); }
+      try {
+        res = await fetch(`${API_URL}/api/register/init`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }), signal: controller.signal,
+        });
+      } catch (err) {
+        if (err.name === 'AbortError') { setError('Vault creation timed out. Please try again.'); }
+        else { setError('Network error: ' + err.message); }
+        setLoading(false); return;
+      } finally { clearTimeout(timeoutId); }
       if (!res) { setError('No response received from backend.'); setLoading(false); return; }
       const contentType = res.headers.get('Content-Type');
       let raw = ''; let data = null;
@@ -701,7 +649,8 @@ function App() {
 
   const handleUnlockWithShare = (goldenKey, username) => {
     localStorage.setItem('vaultUser', username); localStorage.setItem('goldenKey', goldenKey);
-    setVaultPage(true); setCredentialsReady(true); setUnlockStep('login'); setPendingUnlock({ username: '', password: '' });
+    setVaultPage(true); setCredentialsReady(true);
+    setUnlockStep('login'); setPendingUnlock({ username: '', password: '' });
   };
 
   const handleUnlockVault = async () => {
@@ -730,10 +679,15 @@ function App() {
   }
   if (vaultPage && credentialsReady && localStorage.getItem('justRegistered') !== 'true') {
     vaultUser = localStorage.getItem('vaultUser'); goldenKey = localStorage.getItem('goldenKey');
-    return <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => { setVaultPage(false); setPage('login'); localStorage.removeItem('vaultUser'); localStorage.removeItem('goldenKey'); }} />;
+    return (
+      <VaultPage username={vaultUser} goldenKey={goldenKey} onLogout={() => {
+        setVaultPage(false); setPage('login');
+        localStorage.removeItem('vaultUser'); localStorage.removeItem('goldenKey');
+      }} />
+    );
   }
 
-  /* ── Login Page ─────────────────────────────────────────── */
+  /* ── Login Page UI ─────────────────────────────────────────── */
   return (
     <AnimatePresence mode="wait">
 
@@ -742,66 +696,72 @@ function App() {
           key="login-centered"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
-          style={{ position: 'relative', minHeight: '100vh', width: '100%', background: 'var(--bg-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
+          style={{
+            position: 'relative', minHeight: '100vh', width: '100%',
+            background: 'var(--bg-base)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden',
+          }}
         >
-          {/* Layer 0: canvas bg */}
-          <CyberBackground />
+          {/* Layer 0: Rich canvas background */}
+          <LoginBackground />
 
-          {/* Layer 1: decorative rings */}
-          <GlassGridPanel />
+          {/* Layer 1: Ambient CSS glows */}
+          <AmbientGlow />
 
-          {/* Layer 2: 3D floating objects — scattered around the login card */}
-          <div style={{ position: 'fixed', inset: 0, zIndex: 2, pointerEvents: 'none' }}>
+          {/* Layer 2: Floating crypto tags */}
+          <CryptoTags />
 
-            {/* Shield — top-left area */}
-            <div style={{ position: 'absolute', top: '12%', left: '8%', pointerEvents: 'all' }}>
-              <Shield3D style={{ display: 'inline-block' }} />
-            </div>
+          {/* Layer 3: Moving scan lines */}
+          <ScanLines />
 
-            {/* Key — top-right area */}
-            <div style={{ position: 'absolute', top: '18%', right: '10%', pointerEvents: 'all' }}>
-              <Key3D style={{ display: 'inline-block' }} />
-            </div>
-
-            {/* Lock — bottom-left area */}
-            <div style={{ position: 'absolute', bottom: '22%', left: '6%', pointerEvents: 'all' }}>
-              <Lock3D style={{ display: 'inline-block' }} />
-            </div>
-
-            {/* CPU Chip — bottom-right area */}
-            <div style={{ position: 'absolute', bottom: '15%', right: '7%', pointerEvents: 'all' }}>
-              <Chip3D style={{ display: 'inline-block' }} />
-            </div>
-
-            {/* DNA/Binary Helix — far left center */}
-            <div style={{ position: 'absolute', top: '42%', left: '3%', transform: 'translateY(-50%)', pointerEvents: 'all' }}>
-              <Helix3D style={{ display: 'inline-block' }} />
-            </div>
-
-            {/* Binary Cube — far right center */}
-            <div style={{ position: 'absolute', top: '38%', right: '4%', transform: 'translateY(-50%)', pointerEvents: 'all' }}>
-              <BinaryCube style={{ display: 'inline-block' }} />
-            </div>
-
-          </div>
-
-          {/* Layer 3: nav */}
+          {/* Layer 4: Top-right nav */}
           <TopNav onNavigate={handleNavigate} />
 
-          {/* Layer 4: login form */}
+          {/* Layer 5: Login form — centered */}
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.18, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 400, padding: '0 20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            style={{
+              position: 'relative', zIndex: 10,
+              width: '100%', maxWidth: 400, padding: '0 20px',
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+            }}
           >
             {/* Brand */}
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} style={{ textAlign: 'center', marginBottom: 32 }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(255,215,80,0.08)', border: '1px solid rgba(255,215,80,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', boxShadow: '0 0 32px rgba(255,215,80,0.1)' }}>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              style={{ textAlign: 'center', marginBottom: 32 }}
+            >
+              <motion.div
+                animate={{ boxShadow: ['0 0 16px rgba(255,215,80,0.1)', '0 0 36px rgba(255,215,80,0.22)', '0 0 16px rgba(255,215,80,0.1)'] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                  width: 56, height: 56, borderRadius: 16,
+                  background: 'rgba(255,215,80,0.08)',
+                  border: '1px solid rgba(255,215,80,0.22)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 18px',
+                }}
+              >
                 <LockIcon size={26} color="var(--gold)" />
-              </div>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '2rem', color: 'var(--gold)', letterSpacing: '0.03em', margin: 0, lineHeight: 1.1 }}>Shamir Vault</h1>
-              <p style={{ marginTop: 8, color: 'var(--text-muted)', fontSize: '0.7rem', letterSpacing: '0.13em', textTransform: 'uppercase' }}>Secure Multi-Key Secret Management</p>
+              </motion.div>
+              <h1 style={{
+                fontFamily: 'var(--font-display)', fontWeight: 800,
+                fontSize: '2rem', color: 'var(--gold)',
+                letterSpacing: '0.03em', margin: 0, lineHeight: 1.1,
+              }}>
+                Shamir Vault
+              </h1>
+              <p style={{
+                marginTop: 8, color: 'var(--text-muted)',
+                fontSize: '0.7rem', letterSpacing: '0.13em', textTransform: 'uppercase',
+              }}>
+                Secure Multi-Key Secret Management
+              </p>
             </motion.div>
 
             {/* Glass card */}
@@ -809,32 +769,77 @@ function App() {
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.32, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              style={{ width: '100%', background: 'rgba(19,22,27,0.85)', border: '1px solid rgba(255,215,80,0.13)', borderRadius: 20, padding: '32px 28px 28px', backdropFilter: 'blur(20px)', boxShadow: '0 8px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,215,80,0.04) inset' }}
+              style={{
+                width: '100%',
+                background: 'rgba(13,16,20,0.88)',
+                border: '1px solid rgba(255,215,80,0.14)',
+                borderRadius: 20,
+                padding: '32px 28px 28px',
+                backdropFilter: 'blur(24px)',
+                boxShadow: '0 12px 56px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,215,80,0.05) inset',
+                position: 'relative', overflow: 'hidden',
+              }}
             >
+              {/* Card top accent */}
+              <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: 1,
+                background: 'linear-gradient(90deg, transparent, rgba(255,215,80,0.4), transparent)',
+              }} />
+
               <div style={{ marginBottom: 16 }}>
                 <label className="sv-label">Username</label>
-                <input className="sv-input" type="text" id="login-username" name="username" placeholder="your_username" autoComplete="username" value={username} onChange={e => setUsername(e.target.value)} onKeyDown={e => e.key === 'Enter' && document.getElementById('login-password')?.focus()} />
+                <input
+                  className="sv-input" type="text" id="login-username"
+                  name="username" placeholder="your_username" autoComplete="username"
+                  value={username} onChange={e => setUsername(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && document.getElementById('login-password')?.focus()}
+                />
               </div>
 
               <div style={{ marginBottom: 24 }}>
                 <label className="sv-label">Master Password</label>
-                <input className="sv-input" type="password" id="login-password" name="password" placeholder="••••••••••••" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleCreateVault()} />
+                <input
+                  className="sv-input" type="password" id="login-password"
+                  name="password" placeholder="••••••••••••" autoComplete="current-password"
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleCreateVault()}
+                />
               </div>
 
               <AnimatePresence>
-                {error && (<motion.div key="err" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden', marginBottom: 14 }}><div className="sv-alert sv-alert-error">{error}</div></motion.div>)}
-                {success && (<motion.div key="ok" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden', marginBottom: 14 }}><div className="sv-alert sv-alert-success">{success}</div></motion.div>)}
+                {error && (
+                  <motion.div key="err" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden', marginBottom: 14 }}>
+                    <div className="sv-alert sv-alert-error">{error}</div>
+                  </motion.div>
+                )}
+                {success && (
+                  <motion.div key="ok" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden', marginBottom: 14 }}>
+                    <div className="sv-alert sv-alert-success">{success}</div>
+                  </motion.div>
+                )}
               </AnimatePresence>
 
-              <button className="sv-btn sv-btn-primary sv-btn-full" onClick={handleCreateVault} disabled={loading} style={{ height: 48, marginBottom: 10 }}>
+              <motion.button
+                whileHover={{ scale: 1.02, boxShadow: '0 4px 24px rgba(255,215,80,0.3)' }}
+                whileTap={{ scale: 0.98 }}
+                className="sv-btn sv-btn-primary sv-btn-full"
+                onClick={handleCreateVault} disabled={loading}
+                style={{ height: 48, marginBottom: 10 }}
+              >
                 {loading && <span className="sv-spinner" />}
                 Create New Vault
-              </button>
+              </motion.button>
 
-              <button className="sv-btn sv-btn-secondary sv-btn-full" onClick={handleUnlockLogin} disabled={loading} style={{ height: 48 }}>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="sv-btn sv-btn-secondary sv-btn-full"
+                onClick={handleUnlockLogin} disabled={loading}
+                style={{ height: 48 }}
+              >
                 {loading && <span className="sv-spinner" style={{ borderTopColor: 'var(--text-secondary)' }} />}
                 Unlock Vault
-              </button>
+              </motion.button>
 
               <p style={{ marginTop: 20, color: 'var(--text-muted)', fontSize: '0.68rem', textAlign: 'center', lineHeight: 1.65 }}>
                 Vault creation requires Google OAuth for multi-share key distribution.
@@ -842,9 +847,18 @@ function App() {
             </motion.div>
 
             {/* Status row */}
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 18 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', boxShadow: '0 0 6px rgba(74,222,128,0.6)' }} />
-              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>End-to-end encrypted · Shamir (2-of-3)</span>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 18 }}
+            >
+              <motion.div
+                animate={{ opacity: [1, 0.4, 1], boxShadow: ['0 0 6px rgba(74,222,128,0.6)', '0 0 12px rgba(74,222,128,0.9)', '0 0 6px rgba(74,222,128,0.6)'] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }}
+              />
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                End-to-end encrypted · Shamir (2-of-3)
+              </span>
             </motion.div>
           </motion.div>
         </motion.div>
@@ -852,7 +866,11 @@ function App() {
 
       {page === 'login' && unlockStep === 'uploadShare' && (
         <motion.div key="unlock-share" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-          <UnlockWithShare username={pendingUnlock.username} password={pendingUnlock.password} onUnlock={handleUnlockWithShare} onBack={() => { setUnlockStep('login'); setPendingUnlock({ username: '', password: '', }); }} />
+          <UnlockWithShare
+            username={pendingUnlock.username} password={pendingUnlock.password}
+            onUnlock={handleUnlockWithShare}
+            onBack={() => { setUnlockStep('login'); setPendingUnlock({ username: '', password: '', }); }}
+          />
         </motion.div>
       )}
 
