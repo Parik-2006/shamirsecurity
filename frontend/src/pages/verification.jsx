@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+
 
 function GlowingCog() {
   return (
@@ -11,8 +11,7 @@ function GlowingCog() {
   );
 }
 
-export default function Verification() {
-  const navigate = useNavigate();
+export default function Verification({ onBack }) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -22,7 +21,7 @@ export default function Verification() {
       style={{ minHeight: '100vh', minWidth: '100vw', width: '100%', background: '#0a192f', position: 'absolute', top: 0, left: 0, zIndex: 0, overflow: 'hidden' }}
     >
       <button
-        onClick={() => navigate('/')}
+        onClick={() => onBack && onBack()}
         style={{ position: 'fixed', top: 24, left: 24, zIndex: 20, background: '#151A21', color: '#00fff7', border: '2px solid #00fff7', borderRadius: 12, fontWeight: 700, fontSize: 18, padding: '10px 24px', boxShadow: '0 2px 16px #00fff755', cursor: 'pointer', outline: 'none', transition: 'all 0.18s cubic-bezier(.4,2,.6,1)' }}
       >
         ← Back
