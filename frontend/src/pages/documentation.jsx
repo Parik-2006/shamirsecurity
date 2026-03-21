@@ -30,7 +30,7 @@ export default function Documentation() {
     {
       title: 'Project Vision',
       accent: palette.gold,
-      body: 'Shamir Secret Sharing is a cryptographic scheme that splits your master password into multiple pieces. Only when a threshold of shares are combined can the vault be reconstructed — ensuring no single server, device, or compromise exposes your secrets.',
+      body: 'Shamir Secret Sharing is a cryptographic scheme that splits a 127-bit sequence into three pieces. Your master password is then used specifically for encrypting and decrypting your local_share.enc. Only when a threshold of shares are combined can the vault be reconstructed — ensuring no single server, device, or compromise exposes your secrets.',
     },
     {
       title: 'Share Architecture',
