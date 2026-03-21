@@ -22,10 +22,7 @@ function Section({ children, delay = 0, style }) {
   );
 }
 
-import { useNavigate } from 'react-router-dom';
-
-export default function Documentation() {
-  const navigate = useNavigate();
+export default function Documentation({ onBack }) {
   const cards = [
     {
       title: 'Project Vision',
@@ -71,7 +68,7 @@ export default function Documentation() {
           style={{ marginBottom: 48, textAlign: 'center' }}
         >
           <button
-            onClick={() => navigate('/')}
+            onClick={() => onBack && onBack()}
             style={{
               position: 'fixed',
               top: 32,
