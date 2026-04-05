@@ -1,98 +1,164 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-// cleaned up
-
 
 const palette = {
-  bg: '#0a192f',
-  grid: 'rgba(0,255,247,0.07)',
-  cyan: '#00fff7',
-  green: '#00ff85',
-  yellow: '#ffe600',
-  text: '#eaf6fb',
-  card: 'rgba(10,25,47,0.92)',
+  bg: '#0d0f12',
+  gold: '#ffd750',
+  green: '#4ade80',
+  text: '#e8eaf0',
+  muted: '#8a909e',
 };
 
-const gridBg = {
-  background: `repeating-linear-gradient(0deg, ${palette.grid} 0px, ${palette.grid} 1px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, ${palette.grid} 0px, ${palette.grid} 1px, transparent 1px, transparent 40px)`,
-  backgroundColor: palette.bg,
-  minHeight: '100vh',
-  minWidth: '100vw',
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  zIndex: 0,
-  width: '100%',
-  height: '100%',
-};
-
-function AnimatedGrid({ position, color, size = 2 }) {
-  // ...existing code...
+function Section({ children, delay = 0, style }) {
   return (
-    <Canvas style={{ position: 'absolute', ...position, width: 180, height: 180, pointerEvents: 'none', zIndex: 2 }} camera={{ position: [0, 0, 6], fov: 50 }}>
-      <ambientLight intensity={0.6} />
-      <pointLight position={[5, 5, 5]} intensity={0.8} color={color} />
-      <mesh rotation={[Math.PI / 4, Math.PI / 4, 0]}>
-        <torusKnotGeometry args={[0.7 * size, 0.18 * size, 80, 8]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} metalness={0.6} roughness={0.3} wireframe />
-      </mesh>
-      <OrbitControls enablePan={false} enableZoom={false} enableRotate={false} />
-    </Canvas>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.4 }}
+      style={style}
+    >
+      {children}
+    </motion.div>
   );
 }
 
 export default function Documentation({ onBack }) {
-  if (typeof onBack !== 'function') {
-    return <div style={{ color: 'red', padding: 40 }}>Error: Missing navigation handler.</div>;
-  }
+  const cards = [
+    {
+      title: 'Project Vision',
+      accent: palette.gold,
+      body: 'Shamir Secret Sharing is a cryptographic scheme that splits a 127-bit sequence into three pieces. Your master password is then used specifically for encrypting and decrypting your local_share.enc. Only when a threshold of shares are combined can the vault be reconstructed — ensuring no single server, device, or compromise exposes your secrets.',
+    },
+    {
+      title: 'Share Architecture',
+      accent: palette.green,
+      items: [
+        { label: 'Share 1', desc: 'Google Drive — user-controlled cloud storage' },
+        { label: 'Share 2', desc: 'Supabase — secure managed backend' },
+        { label: 'Share 3', desc: 'Local Encrypted File — device storage' },
+      ],
+    },
+    {
+      title: 'Centralized (Legacy)',
+      accent: '#f87171',
+      items: [
+        { label: 'Single point of failure:', desc: 'one breach exposes everything' },
+        { label: 'All secrets stored:', desc: 'in one centralised location' },
+        { label: 'Trust concentrated:', desc: 'in a single provider' },
+      ],
+    },
+    {
+      title: 'Decentralized (Our Approach)',
+      accent: palette.gold,
+      items: [
+        { label: 'Distributed trust:', desc: 'one compromised share reveals nothing' },
+        { label: 'Independent layers:', desc: 'cloud, server, and local' },
+        { label: 'Quantum-resilient:', desc: 'by design' },
+      ],
+    },
+  ];
+
   return (
-    <div style={{ minHeight: '100vh', minWidth: '100vw', width: '100%', position: 'relative', overflow: 'hidden', background: palette.bg }}>
-      {/* Background grid, always at the back */}
-      <div style={{ ...gridBg, zIndex: 0 }} />
-      {/* <FloatingShapes zIndex={1} /> removed: not defined */}
-      <AnimatedGrid position={{ top: 40, left: 40 }} color={palette.cyan} />
-      <AnimatedGrid position={{ top: 40, right: 40 }} color={palette.yellow} />
-      <AnimatedGrid position={{ bottom: 40, left: 40 }} color={palette.green} />
-      <AnimatedGrid position={{ bottom: 40, right: 40 }} color={palette.cyan} />
-      <button onClick={onBack} style={{ position: 'fixed', top: 32, left: 32, zIndex: 20, background: 'linear-gradient(145deg, #151A21 60%, #23272f 100%)', color: palette.cyan, border: `2.5px solid #00fff7`, borderRadius: 14, fontWeight: 800, fontSize: 18, padding: '12px 28px', boxShadow: '4px 4px 16px #0a192f99, -4px -4px 16px #23272f55, 0 2px 8px #00fff733', cursor: 'pointer', outline: 'none', transition: 'all 0.18s cubic-bezier(.4,2,.6,1)', textShadow: '0 2px 8px #00fff744', letterSpacing: 0.7, minWidth: 0, minHeight: 0, lineHeight: 1.2, display: 'flex', alignItems: 'center', gap: 0, perspective: 400, transformStyle: 'preserve-3d' }}>⟵ Back</button>
-        <button className="cyber-btn" onClick={onBack} style={{ position: 'fixed', top: 32, left: 32, zIndex: 20, minWidth: 0, minHeight: 0, lineHeight: 1.2, display: 'flex', alignItems: 'center', gap: 0, perspective: 400, transformStyle: 'preserve-3d' }}>⟵ Back</button>
-      <div style={{ position: 'relative', zIndex: 10, maxWidth: 1100, margin: '0 auto', padding: '64px 24px 32px 24px' }}>
-        <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: 'anticipate' }} style={{ color: palette.cyan, fontSize: 38, fontWeight: 800, letterSpacing: 1.5, marginBottom: 32, textAlign: 'center', textShadow: '0 2px 24px #00fff755' }}>
-          <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: 'anticipate' }} className="cyber-glow" style={{ color: palette.cyan, fontSize: 38, fontWeight: 800, letterSpacing: 1.5, marginBottom: 32, textAlign: 'center' }}>
-           Documentation
-        </motion.h1>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 36, marginBottom: 48 }}>
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ background: palette.card, borderRadius: 18, padding: 32, boxShadow: '0 4px 32px #0a192f55', border: `1.5px solid ${palette.cyan}33` }}>
-            <h2 style={{ color: palette.green, fontWeight: 700, fontSize: 22, marginBottom: 12 }}>Project Vision</h2>
-            <p style={{ color: palette.text, fontSize: 17, lineHeight: 1.7 }}>
-              <b>Shamir Secret Sharing</b> is a cryptographic approach that splits your master password into multiple pieces (shares). Only when enough shares are combined can the vault be unlocked. This means no single server or device ever holds the full secret, making your data quantum-resilient and future-proof.
-            </p>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} style={{ background: palette.card, borderRadius: 18, padding: 32, boxShadow: '0 4px 32px #0a192f55', border: `1.5px solid ${palette.green}33` }}>
-            <h2 style={{ color: palette.cyan, fontWeight: 700, fontSize: 22, marginBottom: 12 }}>Architecture</h2>
-            <ul style={{ color: palette.text, fontSize: 17, lineHeight: 1.7, paddingLeft: 18 }}>
-              <li><b>Share 1:</b> Google Drive (user-controlled cloud)</li>
-              <li><b>Share 2:</b> Supabase (secure managed backend)</li>
-              <li><b>Share 3:</b> Local Encrypted Storage (browser/device)</li>
-            </ul>
-            <p style={{ color: palette.yellow, fontWeight: 600, marginTop: 18 }}>No single point of compromise.</p>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} style={{ background: palette.card, borderRadius: 18, padding: 32, boxShadow: '0 4px 32px #0a192f55', border: `1.5px solid ${palette.cyan}33` }}>
-            <h2 style={{ color: palette.yellow, fontWeight: 700, fontSize: 20, marginBottom: 12 }}>Centralized</h2>
-            <ul style={{ color: palette.text, fontSize: 16, lineHeight: 1.7, paddingLeft: 18 }}>
-              <li><b>Single Point of Failure:</b> One hack exposes everything.</li>
-              <li>All secrets stored in one place.</li>
-              <li>Trust is concentrated.</li>
-            </ul>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} style={{ background: palette.card, borderRadius: 18, padding: 32, boxShadow: '0 4px 32px #0a192f55', border: `1.5px solid ${palette.green}33` }}>
-            <h2 style={{ color: palette.cyan, fontWeight: 700, fontSize: 20, marginBottom: 12 }}>Decentralized (Our Project)</h2>
-            <ul style={{ color: palette.text, fontSize: 16, lineHeight: 1.7, paddingLeft: 18 }}>
-              <li><b>Distributed Trust:</b> Even if one part is hacked, the master password remains safe.</li>
-              <li>Secrets split across independent locations.</li>
-              <li>Quantum-resilient by design.</li>
-            </ul>
-          </motion.div>
+    <div style={{ minHeight: '100vh', background: palette.bg, padding: '64px 24px' }}>
+      <div style={{ maxWidth: 960, margin: '0 auto' }}>
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ marginBottom: 48, textAlign: 'center' }}
+        >
+          <button
+            onClick={() => onBack && onBack()}
+            style={{
+              position: 'fixed',
+              top: 32,
+              left: 32,
+              zIndex: 20,
+              background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: palette.muted,
+              padding: '8px 16px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: '0.83rem',
+              fontFamily: 'var(--font-mono)',
+              marginBottom: 24,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: '0 2px 16px #FFD66B55',
+            }}
+          >
+            ← Back
+          </button>
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
+            fontWeight: 800,
+            color: palette.gold,
+            marginBottom: 12,
+          }}>
+            Documentation
+          </h1>
+          <p style={{ color: palette.muted, fontSize: '0.9rem', maxWidth: 480, margin: '0 auto' }}>
+            How Shamir Vault distributes trust across cryptographic shares
+          </p>
+        </motion.div>
+
+        {/* Cards Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))',
+          gap: 20,
+        }}>
+          {cards.map((card, i) => (
+            <Section key={card.title} delay={0.1 + i * 0.08}>
+              <div style={{
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-dim)',
+                borderTop: `2px solid ${card.accent}`,
+                borderRadius: 'var(--radius-xl)',
+                padding: '28px 28px',
+                height: '100%',
+              }}>
+                <h2 style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '1.05rem',
+                  fontWeight: 700,
+                  color: card.accent,
+                  marginBottom: 16,
+                }}>
+                  {card.title}
+                </h2>
+                {card.body && (
+                  <p style={{ color: palette.muted, fontSize: '0.875rem', lineHeight: 1.7 }}>
+                    {card.body}
+                  </p>
+                )}
+                {card.items && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {card.items.map((item, j) => (
+                      <div key={j} style={{
+                        display: 'flex',
+                        gap: 10,
+                        padding: '10px 14px',
+                        background: 'var(--bg-elevated)',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--border-subtle)',
+                      }}>
+                        <span style={{ color: card.accent, fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                          {item.label}
+                        </span>
+                        <span style={{ color: palette.muted, fontSize: '0.8rem' }}>
+                          {item.desc}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Section>
+          ))}
         </div>
       </div>
     </div>

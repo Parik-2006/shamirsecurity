@@ -11,6 +11,7 @@ import RegistrationVaultPage from './RegistrationVaultPage';
 import Documentation from './pages/documentation';
 import Verification from './pages/verification';
 import DownloadShare from './pages/DownloadShare';
+import About from './pages/about';
 // Duplicate import removed
 
 function AnimatedGridBG() {
@@ -29,9 +30,9 @@ function AnimatedGridBG() {
 
 function Layout({ children }) {
   const location = useLocation();
-  const isLogin = location.pathname === '/';
+  const noSidebar = location.pathname === '/' || location.pathname === '/download-share';
 
-  const containerStyle = isLogin
+  const containerStyle = noSidebar
     ? { minHeight: '100vh', position: 'relative', zIndex: 1 }
     : { marginLeft: 120, minHeight: '100vh', position: 'relative', zIndex: 1 };
 
@@ -54,9 +55,10 @@ export default function QuantumAppRouter({ username, goldenKey, onLogout }) {
 
         <Route path="/" element={<App />} />
 
-        <Route path="/documentation" element={<Documentation />} />
 
+        <Route path="/documentation" element={<Documentation />} />
         <Route path="/verification" element={<Verification />} />
+        <Route path="/about" element={<About />} />
 
         <Route path="/auth-success" element={<AuthSuccessPage />} />
 

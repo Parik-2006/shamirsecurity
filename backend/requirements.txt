@@ -5,4 +5,6 @@ cryptography
 google-api-python-client
 google-auth-oauthlib
 supabase
-gunicorn
+pyotp
+PyJWT
+httpx
