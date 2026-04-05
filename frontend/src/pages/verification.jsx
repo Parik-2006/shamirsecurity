@@ -1,411 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-098.onrender.com';
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
-const QRIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-    <rect x="3" y="14" width="7" height="7"/>
-    <path d="M14 14h.01M14 17h.01M17 14h.01M17 17h3M20 14v3"/>
-  </svg>
-);
-const CheckIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"/>
-  </svg>
-);
-const PhoneIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
-  </svg>
-);
-const ShieldIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-  </svg>
-);
-const CopyIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-  </svg>
-);
-
-// ─── QR Code via Google Chart API ────────────────────────────────────────────
-function QRCodeDisplay({ uri }) {
-  const encoded = encodeURIComponent(uri);
-  const src = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encoded}&choe=UTF-8`;
+function GlowingCog() {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4 }}
-      style={{
-        width: 200, height: 200, margin: '0 auto 20px',
-        borderRadius: 12, overflow: 'hidden',
-        border: '2px solid rgba(255,215,80,0.25)',
-        boxShadow: '0 0 24px rgba(255,215,80,0.1)',
-        background: '#fff',
-      }}
-    >
-      <img src={src} alt="TOTP QR Code" style={{ width: '100%', height: '100%' }} />
-    </motion.div>
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#00fff7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="24" cy="24" r="18" stroke="#00fff7" strokeWidth="2.5" fill="none" />
+      <path d="M24 6v6M24 36v6M6 24h6M36 24h6M13.5 13.5l4.2 4.2M30.3 30.3l4.2 4.2M13.5 34.5l4.2-4.2M30.3 17.7l4.2-4.2" />
+    </svg>
   );
 }
 
-// ─── TOTP Digit Input ─────────────────────────────────────────────────────────
-function TOTPInput({ value, onChange, onSubmit, loading }) {
-  const refs   = React.useRef([]);
-  const digits = (value + '      ').slice(0, 6).split('');
-
-  const handleKey = (idx, e) => {
-    if (e.key === 'Backspace') {
-      if (digits[idx].trim() !== '') {
-        const arr = value.padEnd(6, ' ').split('');
-        arr[idx] = ' ';
-        onChange(arr.join('').trim());
-      } else if (idx > 0) refs.current[idx - 1]?.focus();
-      return;
-    }
-    if (e.key === 'Enter' && value.length === 6) { onSubmit?.(); return; }
-    if (!/^[0-9]$/.test(e.key)) return;
-    const arr = value.padEnd(6, ' ').split('');
-    arr[idx] = e.key;
-    onChange(arr.join('').trim());
-    if (idx < 5) refs.current[idx + 1]?.focus();
-  };
-
-  return (
-    <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-      {Array.from({ length: 6 }).map((_, i) => (
-        <input
-          key={i}
-          ref={el => refs.current[i] = el}
-          type="text"
-          inputMode="numeric"
-          maxLength={1}
-          value={digits[i].trim()}
-          onChange={() => {}}
-          onKeyDown={e => handleKey(i, e)}
-          onFocus={e => e.target.select()}
-          style={{
-            width: 44, height: 52, textAlign: 'center',
-            fontSize: 22, fontWeight: 700, fontFamily: 'monospace',
-            background: 'rgba(13,16,20,0.9)',
-            border: `1.5px solid ${value[i] ? 'rgba(255,215,80,0.7)' : 'rgba(255,215,80,0.18)'}`,
-            borderRadius: 10, color: 'var(--gold)',
-            outline: 'none', caretColor: 'transparent',
-            transition: 'border-color 0.2s',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-// ─── Main Verification Component ──────────────────────────────────────────────
 export default function Verification({ onBack }) {
-  const [step,           setStep]           = useState('enter-username'); // enter-username | setup | verify | done
-  const [username,       setUsername]       = useState('');
-  const [totpSecret,     setTotpSecret]     = useState('');
-  const [provisioningUri, setProvisioningUri] = useState('');
-  const [totpCode,       setTotpCode]       = useState('');
-  const [loading,        setLoading]        = useState(false);
-  const [error,          setError]          = useState('');
-  const [copied,         setCopied]         = useState(false);
-
-  const handleSetup = async () => {
-    if (!username.trim()) { setError('Please enter your username.'); return; }
-    setError(''); setLoading(true);
-    try {
-      const res  = await fetch(`${API_URL}/api/totp/setup`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim() }),
-      });
-      const data = await res.json();
-      if (data.status === 'success') {
-        setTotpSecret(data.secret);
-        setProvisioningUri(data.provisioning_uri);
-        setStep('setup');
-      } else {
-        setError(data.message || 'TOTP setup failed.');
-      }
-    } catch { setError('Network error. Please try again.'); }
-    finally { setLoading(false); }
-  };
-
-  const handleVerify = async () => {
-    if (totpCode.length !== 6) { setError('Please enter the 6-digit code.'); return; }
-    setError(''); setLoading(true);
-    try {
-      const res  = await fetch(`${API_URL}/api/totp/verify`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), code: totpCode }),
-      });
-      const data = await res.json();
-      if (data.valid) {
-        setStep('done');
-      } else {
-        setError(data.message || 'Invalid code. Please try again.');
-        setTotpCode('');
-      }
-    } catch { setError('Network error. Please try again.'); }
-    finally { setLoading(false); }
-  };
-
-  const copySecret = () => {
-    navigator.clipboard.writeText(totpSecret).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.97 }}
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 1.03 }}
-      transition={{ duration: 0.4, ease: 'anticipate' }}
-      style={{
-        minHeight: '100vh', minWidth: '100vw', width: '100%',
-        background: 'var(--bg-base)', position: 'absolute',
-        top: 0, left: 0, zIndex: 0, overflow: 'hidden',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
+      exit={{ opacity: 0, scale: 1.05 }}
+      transition={{ duration: 0.7, ease: 'anticipate' }}
+      style={{ minHeight: '100vh', minWidth: '100vw', width: '100%', background: '#0a192f', position: 'absolute', top: 0, left: 0, zIndex: 0, overflow: 'hidden' }}
     >
-      {/* Ambient glow */}
-      <div style={{
-        position: 'fixed', top: '-20%', left: '40%',
-        width: '60vw', height: '60vw', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(90,210,190,0.04) 0%, transparent 65%)',
-        pointerEvents: 'none', zIndex: 0,
-      }} />
-
       <button
-        onClick={onBack}
-        style={{
-          position: 'fixed', top: 24, left: 24, zIndex: 20,
-          background: 'rgba(13,16,20,0.9)', color: 'var(--gold)',
-          border: '1px solid rgba(255,215,80,0.25)', borderRadius: 10,
-          fontWeight: 600, fontSize: 14, padding: '10px 20px',
-          boxShadow: '0 2px 16px rgba(0,0,0,0.4)', cursor: 'pointer',
-          backdropFilter: 'blur(12px)',
-        }}
+        onClick={() => onBack && onBack()}
+        style={{ position: 'fixed', top: 24, left: 24, zIndex: 20, background: '#151A21', color: '#00fff7', border: '2px solid #00fff7', borderRadius: 12, fontWeight: 700, fontSize: 18, padding: '10px 24px', boxShadow: '0 2px 16px #00fff755', cursor: 'pointer', outline: 'none', transition: 'all 0.18s cubic-bezier(.4,2,.6,1)' }}
       >
         ← Back
       </button>
-
-      <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: 480, padding: '0 24px' }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <motion.div
-            animate={{ boxShadow: ['0 0 16px rgba(90,210,190,0.1)', '0 0 36px rgba(90,210,190,0.25)', '0 0 16px rgba(90,210,190,0.1)'] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            style={{
-              width: 64, height: 64, borderRadius: 18,
-              background: 'rgba(90,210,190,0.08)',
-              border: '1px solid rgba(90,210,190,0.25)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 18px', color: '#5ad2be',
-            }}
-          >
-            <ShieldIcon />
-          </motion.div>
-          <h1 style={{
-            fontFamily: 'var(--font-display)', fontWeight: 800,
-            fontSize: '1.8rem', color: '#5ad2be', letterSpacing: '0.03em', margin: 0,
-          }}>
-            TOTP Setup
-          </h1>
-          <p style={{ marginTop: 8, color: 'var(--text-muted)', fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            Google Authenticator · ShamirVault
-          </p>
-        </div>
-
-        <div className="sv-card" style={{ padding: '32px 28px', position: 'relative', overflow: 'hidden' }}>
-          {/* Accent line */}
-          <div style={{
-            position: 'absolute', top: 0, left: 0, right: 0, height: 2,
-            background: 'linear-gradient(90deg, transparent, rgba(90,210,190,0.5), transparent)',
-          }} />
-
-          <AnimatePresence mode="wait">
-            {/* Step 1: Enter Username */}
-            {step === 'enter-username' && (
-              <motion.div key="username" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 24, lineHeight: 1.65 }}>
-                  Set up Google Authenticator for your vault. Scan the QR code with the app to generate time-based one-time passwords (TOTP) for extra security.
-                </p>
-                <label className="sv-label">Username</label>
-                <input
-                  className="sv-input"
-                  type="text"
-                  placeholder="your_username"
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSetup()}
-                  style={{ marginBottom: 20 }}
-                />
-                <motion.button
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  className="sv-btn sv-btn-primary sv-btn-full"
-                  onClick={handleSetup}
-                  disabled={loading}
-                  style={{ background: 'linear-gradient(135deg, #5ad2be, #26a89a)', borderColor: '#5ad2be' }}
-                >
-                  {loading ? <span className="sv-spinner" style={{ borderTopColor: '#0d0f12' }} /> : <QRIcon />}
-                  {loading ? 'Generating Secret…' : 'Generate QR Code'}
-                </motion.button>
-              </motion.div>
-            )}
-
-            {/* Step 2: Show QR + secret */}
-            {step === 'setup' && (
-              <motion.div key="setup" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 20, textAlign: 'center', lineHeight: 1.6 }}>
-                  Scan this QR code with <strong style={{ color: 'var(--gold)' }}>Google Authenticator</strong> (or any TOTP app).
-                </p>
-
-                {provisioningUri && <QRCodeDisplay uri={provisioningUri} />}
-
-                <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>Can't scan? Enter manually:</p>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    justifyContent: 'center', flexWrap: 'wrap',
-                  }}>
-                    <code style={{
-                      background: 'rgba(13,16,20,0.9)', padding: '6px 12px',
-                      borderRadius: 6, border: '1px solid rgba(255,215,80,0.2)',
-                      fontSize: 12, color: 'var(--gold)', letterSpacing: '0.15em',
-                      fontFamily: 'monospace',
-                    }}>{totpSecret}</code>
-                    <button
-                      onClick={copySecret}
-                      style={{
-                        background: 'transparent', border: '1px solid rgba(255,215,80,0.2)',
-                        borderRadius: 6, padding: '6px 10px', cursor: 'pointer',
-                        color: copied ? 'var(--success)' : 'var(--text-muted)',
-                        transition: 'all 0.2s',
-                      }}
-                    >
-                      {copied ? <CheckIcon /> : <CopyIcon />}
-                    </button>
-                  </div>
-                </div>
-
-                <motion.button
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  className="sv-btn sv-btn-primary sv-btn-full"
-                  onClick={() => { setStep('verify'); setTotpCode(''); }}
-                  style={{ background: 'linear-gradient(135deg, #5ad2be, #26a89a)', borderColor: '#5ad2be' }}
-                >
-                  <PhoneIcon />
-                  I've Added It — Verify Now
-                </motion.button>
-              </motion.div>
-            )}
-
-            {/* Step 3: Verify TOTP */}
-            {step === 'verify' && (
-              <motion.div key="verify" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
-                <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                  <div style={{ color: '#5ad2be', display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-                    <PhoneIcon />
-                  </div>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 4 }}>
-                    Open Google Authenticator and enter the 6-digit code shown for <strong>ShamirVault</strong>.
-                  </p>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 11 }}>Code refreshes every 30 seconds</p>
-                </div>
-
-                <div style={{ marginBottom: 24 }}>
-                  <TOTPInput
-                    value={totpCode}
-                    onChange={setTotpCode}
-                    onSubmit={handleVerify}
-                    loading={loading}
-                  />
-                </div>
-
-                <motion.button
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  className="sv-btn sv-btn-primary sv-btn-full"
-                  onClick={handleVerify}
-                  disabled={loading || totpCode.length < 6}
-                  style={{ background: 'linear-gradient(135deg, #5ad2be, #26a89a)', borderColor: '#5ad2be' }}
-                >
-                  {loading ? <span className="sv-spinner" style={{ borderTopColor: '#0d0f12' }} /> : null}
-                  {loading ? 'Verifying…' : 'Confirm TOTP Code'}
-                </motion.button>
-
-                <button
-                  onClick={() => setStep('setup')}
-                  style={{ width: '100%', marginTop: 12, background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}
-                >
-                  ← Back to QR code
-                </button>
-              </motion.div>
-            )}
-
-            {/* Step 4: Done */}
-            {step === 'done' && (
-              <motion.div key="done" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '16px 0' }}>
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1], boxShadow: ['0 0 0 rgba(62,207,142,0)', '0 0 32px rgba(62,207,142,0.3)', '0 0 0 rgba(62,207,142,0)'] }}
-                  transition={{ duration: 1.2, repeat: 2 }}
-                  style={{
-                    width: 72, height: 72, borderRadius: '50%',
-                    background: 'rgba(62,207,142,0.12)', border: '2.5px solid var(--success)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    margin: '0 auto 20px', color: 'var(--success)',
-                  }}
-                >
-                  <div style={{ transform: 'scale(1.4)' }}><CheckIcon /></div>
-                </motion.div>
-                <h3 style={{ color: 'var(--success)', fontFamily: 'var(--font-display)', fontSize: 22, marginBottom: 8 }}>
-                  TOTP Configured!
-                </h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.65, marginBottom: 24 }}>
-                  Google Authenticator is now linked to your vault.
-                  You'll need this code every time you unlock.
-                </p>
-                <div style={{
-                  padding: '12px 16px', borderRadius: 8,
-                  background: 'rgba(90,210,190,0.07)', border: '1px solid rgba(90,210,190,0.2)',
-                  fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.65, marginBottom: 24,
-                }}>
-                  ✓ Your unlock flow now requires: <strong style={{ color: '#5ad2be' }}>local share</strong> + <strong style={{ color: '#5ad2be' }}>password</strong> + <strong style={{ color: '#5ad2be' }}>TOTP</strong>
-                </div>
-                <motion.button
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  className="sv-btn sv-btn-primary sv-btn-full"
-                  onClick={onBack}
-                >
-                  Return to Vault
-                </motion.button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Error */}
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                className="sv-alert sv-alert-error"
-                style={{ marginTop: 16 }}
-              >
-                <span>⚠</span><span>{error}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <p style={{ textAlign: 'center', marginTop: 16, color: 'var(--text-muted)', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-          TOTP (RFC 6238) · 30-second window · SHA-1 HMAC
-        </p>
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 3, ease: 'linear' }} style={{ filter: 'drop-shadow(0 0 32px #00fff7cc)' }}>
+          <GlowingCog />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          style={{ color: '#00fff7', fontWeight: 700, fontSize: 22, marginTop: 32, textShadow: '0 2px 24px #00fff755', letterSpacing: 1.2, textAlign: 'center' }}
+        >
+          Verification is under development.<br />Please check back soon!
+        </motion.div>
       </div>
     </motion.div>
   );
