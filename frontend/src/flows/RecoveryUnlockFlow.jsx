@@ -66,6 +66,9 @@ export default function RecoveryUnlockFlow({ username, onUnlock, onBack }) {
       setRecoveryId(rId);
       if (rUser) setRecoveryUser(decodeURIComponent(rUser));
       setInfo('Identity verified ✓ — Enter your TOTP code for recovery.');
+      
+      // Clean up URL so user isn't stuck with query params
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
@@ -83,7 +86,7 @@ export default function RecoveryUnlockFlow({ username, onUnlock, onBack }) {
         localStorage.setItem('recovery_user', recoveryUser);
         window.location.href = data.auth_url;
       } else { setError(data.message || 'Recovery initiation failed.'); }
-    } catch { setError('Network error initiation recovery.'); }
+    } catch { setError('Network error initiating recovery.'); }
     finally { setLoading(false); }
   };
 
