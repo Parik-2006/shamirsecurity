@@ -158,7 +158,7 @@ function TOTPInput({ value, onChange, onSubmit, loading }) {
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────
-export default function UnlockWithShare({ username, password, onUnlock, onBack }) {
+export default function UnlockWithShare({ username, password, onUnlock, onBack, onGoToSetupMFA }) {
   // Mode: 'normal' or 'recovery'
   const [mode,      setMode]      = useState('normal');
   // Unlock steps: 0=upload, 1=totp, 2=success
@@ -521,7 +521,11 @@ export default function UnlockWithShare({ username, password, onUnlock, onBack }
                   <PhoneIcon />
                 </div>
                 <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 6 }}>
-                  Open <strong style={{ color: 'var(--gold)' }}>Google Authenticator</strong> and enter the 6-digit code for <strong>ShamirVault</strong>.
+                  Open <span 
+                    onClick={onGoToSetupMFA}
+                    style={{ color: 'var(--gold)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                    title="Click here to set up your Authenticator if you haven't yet"
+                  >Google Authenticator</span> and enter the 6-digit code for <strong>ShamirVault</strong>.
                 </p>
                 <p style={{ color: 'var(--text-muted)', fontSize: 11, marginBottom: 20 }}>Code refreshes every 30 seconds</p>
 

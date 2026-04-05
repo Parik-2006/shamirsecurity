@@ -884,6 +884,7 @@ function App() {
             username={pendingUnlock.username} password={pendingUnlock.password}
             onUnlock={handleUnlockWithShare}
             onBack={() => { setUnlockStep('login'); setPendingUnlock({ username: '', password: '', }); }}
+            onGoToSetupMFA={() => setPage('setup-mfa')}
           />
         </motion.div>
       )}
