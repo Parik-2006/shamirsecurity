@@ -139,6 +139,17 @@ export default function NormalUnlockFlow({ username, password, onUnlock, onBack,
                 {info && <div className="sv-alert sv-alert-success" style={{ marginBottom: 20 }}>{info}</div>}
                 
                 <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                  <div style={{ 
+                    padding: '14px', background: 'rgba(255,215,80,0.05)', border: '1px solid rgba(255,215,80,0.25)', 
+                    borderRadius: '12px', marginBottom: '24px', fontSize: '13px', color: 'var(--text-secondary)', 
+                    textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: '12px' 
+                  }}>
+                    <span style={{ fontSize: '18px', lineHeight: 1 }}>⚠</span>
+                    <div style={{ lineHeight: 1.5 }}>
+                      You must install the <strong style={{ color: 'var(--gold)' }}>Google Authenticator app</strong> on your phone (iOS/Android) to get this code. <span style={{ color: 'var(--text-muted)' }}>If you lose access to your app, you will need to use the Recovery flow.</span>
+                    </div>
+                  </div>
+
                   <p style={{ color: 'var(--text-secondary)', fontSize: 15, marginBottom: 20 }}>Enter your <span style={{ color: 'var(--gold)', fontWeight: 700 }}>Google Authenticator</span> code</p>
                   <TOTPInput value={totpCode} onChange={setTotpCode} onSubmit={handleUnlockComplete} loading={loading} />
                 </div>
