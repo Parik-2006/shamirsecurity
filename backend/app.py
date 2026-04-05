@@ -32,14 +32,11 @@ from googleapiclient.http import MediaIoBaseUpload
 # ---------------------------------------------------------------------------
 # App & CORS
 # ---------------------------------------------------------------------------
-app = Flask(__name__)
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
-JWT_SECRET = os.environ.get('JWT_SECRET', secrets.token_hex(32))  # sign session tokens
-
 # ---------------------------------------------------------------------------
 # Configuration (Dynamic Defaults)
 # ---------------------------------------------------------------------------
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://shamirsecurity.onrender.com').rstrip('/')
+# FINAL PRODUCTION URLS:
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://shamirsecurity-1-aclh.onrender.com').rstrip('/')
 BACKEND_URL  = os.environ.get('BACKEND_URL', 'https://shamirsecurity-098.onrender.com').rstrip('/')
 
 CORS(app, resources={r"/api/*": {"origins": [
@@ -50,6 +47,7 @@ CORS(app, resources={r"/api/*": {"origins": [
     FRONTEND_URL,
     BACKEND_URL,
     "https://shamirsecurity.onrender.com",
+    "https://shamirsecurity-1-aclh.onrender.com",
     "https://shamirsecurity-098.onrender.com",
 ]}}, supports_credentials=True)
 

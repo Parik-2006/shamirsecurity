@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-098.onrender.com';
+const API_URL = "https://shamirsecurity-098.onrender.com";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const QRIcon = () => (

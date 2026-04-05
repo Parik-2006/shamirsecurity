@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-098.onrender.com';
+const API_URL = "https://shamirsecurity-098.onrender.com";
 
 // ─── Icons ─────────────────────────────────────────────────────────────────
 const ArrowLeftIcon = () => (
