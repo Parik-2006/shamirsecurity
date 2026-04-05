@@ -853,12 +853,7 @@ function App() {
           <RecoveryUnlockFlow
             username={username}
             onUnlock={(goldenKey, user) => {
-              // Same handler as normal unlock — stores creds and shows vault
-              localStorage.setItem('vaultUser', user);
-              localStorage.setItem('goldenKey', goldenKey);
-              setVaultPage(true);
-              setCredentialsReady(true);
-              setPage('login');
+              handleUnlockWithShare(goldenKey, user);
             }}
             onBack={() => setPage('login')}
           />
