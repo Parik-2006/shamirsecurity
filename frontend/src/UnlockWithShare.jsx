@@ -104,52 +104,92 @@ function StepBar({ step, mode }) {
   );
 }
 
-// ─── TOTP Input Component ────────────────────────────────────────────────────
+// ─── TOTP Digit Input (Automated & Robust) ───────────────────────────────────
 function TOTPInput({ value, onChange, onSubmit, loading }) {
-  const inputRefs = useRef([]);
-  const digits    = (value + '      ').slice(0, 6).split('');
+  const refs = React.useRef([]);
+  
+  const code = (value || '').padEnd(6, ' ');
+  const digits = code.split('').slice(0, 6);
 
-  const handleKey = (idx, e) => {
-    if (e.key === 'Backspace') {
-      if (digits[idx] !== ' ') {
-        const next = digits.map((d, i) => i === idx ? ' ' : d).join('').trimEnd();
-        onChange(next.trim());
-      } else if (idx > 0) {
-        inputRefs.current[idx - 1]?.focus();
-      }
-      return;
+  // Auto-submit when exactly 6 digits are entered
+  React.useEffect(() => {
+    if (value.length === 6 && !loading) {
+      onSubmit();
     }
-    if (e.key === 'Enter' && value.length === 6) { onSubmit(); return; }
-    if (!/^[0-9]$/.test(e.key)) return;
-    const arr = value.padEnd(6, ' ').split('');
-    arr[idx] = e.key;
-    const next = arr.join('').trim();
-    onChange(next);
-    if (idx < 5) inputRefs.current[idx + 1]?.focus();
+  }, [value, loading, onSubmit]);
+
+  // Focus the first empty input on mount
+  React.useEffect(() => {
+    if (value === '') refs.current[0]?.focus();
+  }, []);
+
+  const handleChange = (idx, e) => {
+    const char = e.target.value.slice(-1);
+    if (!/^[0-9]$/.test(char) && char !== '') return;
+    
+    const newCodeArr = code.split('');
+    newCodeArr[idx] = char || ' ';
+    const newVal = newCodeArr.join('').trimEnd();
+    onChange(newVal);
+
+    if (char && idx < 5) {
+      refs.current[idx + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (idx, e) => {
+    if (e.key === 'Backspace') {
+      if (!digits[idx] || digits[idx] === ' ') {
+        if (idx > 0) {
+          refs.current[idx - 1]?.focus();
+          const newCodeArr = code.split('');
+          newCodeArr[idx - 1] = ' ';
+          onChange(newCodeArr.join('').trimEnd());
+        }
+      } else {
+        const newCodeArr = code.split('');
+        newCodeArr[idx] = ' ';
+        onChange(newCodeArr.join('').trimEnd());
+      }
+    } else if (e.key === 'ArrowLeft' && idx > 0) {
+      refs.current[idx - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && idx < 5) {
+      refs.current[idx + 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const data = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+    if (data) {
+      onChange(data);
+      refs.current[Math.min(data.length, 5)]?.focus();
+    }
   };
 
   return (
-    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 24 }}>
-      {Array.from({ length: 6 }).map((_, i) => (
-        <motion.input
+    <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 32 }} onPaste={handlePaste}>
+      {digits.map((digit, i) => (
+        <input
           key={i}
-          ref={el => inputRefs.current[i] = el}
+          ref={el => refs.current[i] = el}
           type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           maxLength={1}
-          value={digits[i].trim()}
-          onChange={() => {}}
-          onKeyDown={e => handleKey(i, e)}
+          value={digit === ' ' ? '' : digit}
+          onChange={e => handleChange(i, e)}
+          onKeyDown={e => handleKeyDown(i, e)}
           onFocus={e => e.target.select()}
-          animate={{ borderColor: value[i] ? 'rgba(255,215,80,0.7)' : 'rgba(255,215,80,0.18)' }}
+          disabled={loading}
           style={{
-            width: 44, height: 52, textAlign: 'center',
-            fontSize: 22, fontWeight: 700, fontFamily: 'monospace',
+            width: 48, height: 58, textAlign: 'center',
+            fontSize: 24, fontWeight: 700, fontFamily: 'monospace',
             background: 'rgba(13,16,20,0.9)',
-            border: '1.5px solid rgba(255,215,80,0.18)',
-            borderRadius: 10, color: 'var(--gold)',
-            outline: 'none', caretColor: 'transparent',
-            transition: 'border-color 0.2s',
+            border: `1.5px solid ${digit !== ' ' ? 'rgba(255,215,80,0.7)' : 'rgba(255,215,80,0.18)'}`,
+            borderRadius: 12, color: 'var(--gold)',
+            outline: 'none', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: digit !== ' ' ? '0 0 16px rgba(255,215,80,0.1)' : 'none',
           }}
         />
       ))}
@@ -532,17 +572,26 @@ export default function UnlockWithShare({
             {/* ═══════════ NORMAL UNLOCK — Step 1: TOTP ═══════════════════ */}
             {mode === 'normal' && step === 1 && (
               <motion.div key="totp-normal" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ textAlign: 'center' }}>
-                <div style={{ color: 'var(--gold)', display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-                  <PhoneIcon />
+                {/* Instructions focusing on the "yellow thing" */}
+                <div style={{ marginBottom: 32 }}>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: 16, marginBottom: 12, lineHeight: 1.5 }}>
+                    Open <span 
+                      onClick={onGoToSetupMFA}
+                      style={{ 
+                        color: 'var(--gold)', 
+                        fontWeight: 700, 
+                        cursor: 'pointer', 
+                        textDecoration: 'underline',
+                        textDecorationThickness: '2px',
+                        textUnderlineOffset: '4px'
+                      }}
+                      title="Setup Google Authenticator"
+                    >Google Authenticator</span>
+                  </p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 14, fontWeight: 500 }}>
+                    Enter your code for <strong style={{ color: '#fff' }}>ShamirVault</strong>
+                  </p>
                 </div>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 6 }}>
-                  Open <span 
-                    onClick={onGoToSetupMFA}
-                    style={{ color: 'var(--gold)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
-                    title="Click here to set up your Authenticator if you haven't yet"
-                  >Google Authenticator</span> and enter the 6-digit code for <strong>ShamirVault</strong>.
-                </p>
-                <p style={{ color: 'var(--text-muted)', fontSize: 11, marginBottom: 20 }}>Code refreshes every 30 seconds</p>
 
                 <TOTPInput
                   value={totpCode}
@@ -551,20 +600,19 @@ export default function UnlockWithShare({
                   loading={loading}
                 />
 
-                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 20, fontStyle: 'italic' }}>
-                  Don't have your app set up? Click the yellow <strong style={{color: 'var(--gold)'}}>Google Authenticator</strong> link above.
-                </p>
-
-                <motion.button
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  className="sv-btn sv-btn-primary sv-btn-full"
-                  onClick={handleUnlockComplete}
-                  disabled={loading || totpCode.length < 6}
-                  style={{ fontSize: 14, padding: '14px 24px' }}
-                >
-                  {loading ? <span className="sv-spinner" style={{ borderTopColor: '#0d0f12' }} /> : null}
-                  {loading ? 'Verifying TOTP…' : 'Verify & Open Vault'}
-                </motion.button>
+                {/* Automation info */}
+                <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {loading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--gold)' }}>
+                      <span className="sv-spinner" style={{ width: 16, height: 16, borderTopColor: 'transparent' }} />
+                      <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.05em' }}>VERIFYING & OPENING VAULT...</span>
+                    </div>
+                  ) : (
+                    <p style={{ color: 'var(--text-muted)', fontSize: 11, fontStyle: 'italic', opacity: 0.7 }}>
+                      Vault will open automatically once 6 digits are entered.
+                    </p>
+                  )}
+                </div>
               </motion.div>
             )}
 
