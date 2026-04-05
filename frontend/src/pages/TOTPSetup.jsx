@@ -169,7 +169,7 @@ function TOTPInput({ value, onChange, onSubmit, loading }) {
 }
 
 // ─── Main TOTP Setup Component ──────────────────────────────────────────────
-export default function TOTPSetup({ onBack, onComplete, sessionToken, initialStep }) {
+export default function TOTPSetup({ onBack, onComplete, sessionToken, initialStep, loggedUserName }) {
   const [step,           setStep]           = useState(initialStep || 'enter-username'); // enter-username | setup | verify | done
   const [username,       setUsername]       = useState('');
   const [totpSecret,     setTotpSecret]     = useState('');
@@ -186,6 +186,13 @@ export default function TOTPSetup({ onBack, onComplete, sessionToken, initialSte
 
   const handleSetup = async () => {
     if (!username.trim()) { setError('Please enter your username.'); return; }
+    
+    // Validation: Ensure the username matches the session
+    if (loggedUserName && username.trim().toLowerCase() !== loggedUserName.trim().toLowerCase()) {
+      setError(`Username must match the one you logged in with: "${loggedUserName}"`);
+      return;
+    }
+
     setError(''); setLoading(true);
     try {
       const res  = await fetch(`${API_URL}/api/totp/setup`, {
@@ -310,19 +317,30 @@ export default function TOTPSetup({ onBack, onComplete, sessionToken, initialSte
             {/* Step 1: Enter Username */}
             {step === 'enter-username' && (
               <motion.div key="username" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 24, lineHeight: 1.65 }}>
-                  Add an extra layer of security to your vault. Scan the code with <strong style={{color: 'var(--gold)'}}>Google Authenticator</strong> to enable Multi-Factor Authentication.
+                <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 16, lineHeight: 1.6, opacity: 0.9 }}>
+                  Add an extra layer of security to your vault. Scan the code with <strong style={{color:'var(--gold)'}}>Google Authenticator</strong> to enable Multi-Factor Authentication.
                 </p>
-                <label className="sv-label">Username</label>
-                <input
-                  className="sv-input"
-                  type="text"
-                  placeholder="your_username"
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSetup()}
-                  style={{ marginBottom: 20 }}
-                />
+                
+                <div style={{ 
+                  marginBottom: 20, padding: 12, borderRadius: 8, 
+                  background: 'rgba(255,215,80,0.05)', border: '1px solid rgba(255,215,80,0.15)' 
+                }}>
+                  <p style={{ color: 'var(--gold)', fontSize: 11, fontWeight: 600, letterSpacing: '0.05em' }}>
+                    ⚠️ IMPORTANT: Enter the EXACT same username you used for your vault.
+                  </p>
+                </div>
+
+                <div style={{ marginBottom: 20 }}>
+                  <label className="sv-label">Username</label>
+                  <input
+                    className="sv-input"
+                    type="text"
+                    placeholder="your_username"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleSetup()}
+                  />
+                </div>
                 <motion.button
                   whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   className="sv-btn sv-btn-primary sv-btn-full"
