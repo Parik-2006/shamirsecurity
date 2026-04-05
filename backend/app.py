@@ -36,23 +36,23 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
 JWT_SECRET = os.environ.get('JWT_SECRET', secrets.token_hex(32))  # sign session tokens
 
+# ---------------------------------------------------------------------------
+# Configuration (Dynamic Defaults)
+# ---------------------------------------------------------------------------
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://shamirsecurity.onrender.com').rstrip('/')
+BACKEND_URL  = os.environ.get('BACKEND_URL', 'https://shamirsecurity-098.onrender.com').rstrip('/')
+
 CORS(app, resources={r"/api/*": {"origins": [
     "*",
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:3000",
+    FRONTEND_URL,
+    BACKEND_URL,
     "https://shamirsecurity.onrender.com",
-    "https://shamirsecurity-1.onrender.com",
-    "https://shamirsecurity-1234.onrender.com",
-    "https://shamirsecurity-1-aclh.onrender.com",
     "https://shamirsecurity-098.onrender.com",
 ]}}, supports_credentials=True)
 
-# ---------------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------------
-FRONTEND_URL  = os.environ.get('FRONTEND_URL',  'https://congenial-journey-v6jg9xv764q4h75p-3002.app.github.dev')
-BACKEND_URL   = os.environ.get('BACKEND_URL',   'https://congenial-journey-v6jg9xv764q4h75p-8080.app.github.dev')
 SUPABASE_URL  = os.environ.get('SUPABASE_URL',  'https://tacsrdvzgcsucparujcr.supabase.co')
 SUPABASE_KEY  = os.environ.get('SUPABASE_KEY',  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhY3NyZHZ6Z2NzdWNwYXJ1amNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3NDE5NjYsImV4cCI6MjA4MjMxNzk2Nn0.bp5qZG28mODVoeSIEWoWF-tbwtmCIXM1GQ1JvM9XmpA')
 
@@ -62,9 +62,9 @@ GOOGLE_SCOPES = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'openid',
 ]
-BACK_URL = os.environ.get('BACKEND_URL', 'https://shamirsecurity-1tv2.onrender.com').rstrip('/')
-GOOGLE_REDIRECT_URI          = os.environ.get('GOOGLE_REDIRECT_URI',          f"{BACK_URL}/api/google/callback")
-GOOGLE_RECOVERY_REDIRECT_URI = os.environ.get('GOOGLE_RECOVERY_REDIRECT_URI', f"{BACK_URL}/api/recovery/callback")
+# OAuth Redirects (Derived from BACKEND_URL)
+GOOGLE_REDIRECT_URI          = os.environ.get('GOOGLE_REDIRECT_URI',          f"{BACKEND_URL}/api/google/callback")
+GOOGLE_RECOVERY_REDIRECT_URI = os.environ.get('GOOGLE_RECOVERY_REDIRECT_URI', f"{BACKEND_URL}/api/recovery/callback")
 
 # Session token TTL for the share-verified step (seconds)
 SHARE_SESSION_TTL = 300   # 5 min — user must complete TOTP in this window
