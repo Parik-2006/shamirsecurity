@@ -582,6 +582,15 @@ export function AuthSuccessPage() {
 function App() {
   const location = useLocation();
 
+  // ── RECOVERY URL LISTENER ──
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('recovery_totp') === '1' || params.get('recovery_error')) {
+      setPage('login');
+      setUnlockStep('uploadShare');
+    }
+  }, [location]);
+
   // ── ALL ORIGINAL LOGIC PRESERVED EXACTLY ──
   let vaultUser = localStorage.getItem('vaultUser');
   let goldenKey = localStorage.getItem('goldenKey');

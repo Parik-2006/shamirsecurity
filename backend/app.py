@@ -795,7 +795,7 @@ def recovery_callback():
 
         import urllib.parse
         return redirect(
-            f"{FRONTEND_URL.rstrip('/')}/unlock"
+            f"{FRONTEND_URL.rstrip('/')}/"
             f"?recovery_totp=1"
             f"&recovery_id={urllib.parse.quote(recovery_id)}"
             f"&username={urllib.parse.quote(username)}"
