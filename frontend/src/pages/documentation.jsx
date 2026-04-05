@@ -22,15 +22,12 @@ function Section({ children, delay = 0, style }) {
   );
 }
 
-import { useNavigate } from 'react-router-dom';
-
-export default function Documentation() {
-  const navigate = useNavigate();
+export default function Documentation({ onBack }) {
   const cards = [
     {
       title: 'Project Vision',
       accent: palette.gold,
-      body: 'Shamir Secret Sharing is a cryptographic scheme that splits your master password into multiple pieces. Only when a threshold of shares are combined can the vault be reconstructed — ensuring no single server, device, or compromise exposes your secrets.',
+      body: 'Shamir Secret Sharing is a cryptographic scheme that splits a 127-bit sequence into three pieces. Your master password is then used specifically for encrypting and decrypting your local_share.enc. Only when a threshold of shares are combined can the vault be reconstructed — ensuring no single server, device, or compromise exposes your secrets.',
     },
     {
       title: 'Share Architecture',
@@ -71,7 +68,7 @@ export default function Documentation() {
           style={{ marginBottom: 48, textAlign: 'center' }}
         >
           <button
-            onClick={() => navigate('/')}
+            onClick={() => onBack && onBack()}
             style={{
               position: 'fixed',
               top: 32,
