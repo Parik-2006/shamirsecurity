@@ -588,7 +588,8 @@ function App() {
   let justRegistered = localStorage.getItem('justRegistered') === 'true';
   const [credentialsReady, setCredentialsReady] = useState(false);
   const navigate = useNavigate();
-  const [page, setPage] = useState('login');
+  const [page, setPage] = useState('login'); // login | register | setup-mfa
+  const [pendingSessionToken, setPendingSessionToken] = useState(null);
   const [unlockStep, setUnlockStep] = useState('login');
   const [pendingUnlock, setPendingUnlock] = useState({ username: '', password: '' });
   const [username, setUsername] = useState('');
@@ -896,7 +897,10 @@ function App() {
                 setUnlockStep('login'); setPendingUnlock({ username: '', password: '', }); 
                 setPersistentLocalShare(null); setPersistentFileName(''); setPersistentSessionToken(''); setPersistentUnlockSubStep(0);
             }}
-            onGoToSetupMFA={() => setPage('setup-mfa')}
+            onGoToSetupMFA={(token) => {
+              setPendingSessionToken(token);
+              setPage('setup-mfa');
+            }}
             
             // Persistent props
             initialStep={persistentUnlockSubStep}
@@ -954,16 +958,22 @@ function App() {
           exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 0.3 }}
         >
           <TOTPSetup 
-            onBack={() => setPage('login')} 
-            onComplete={() => {
+            onBack={() => {
+              setPendingSessionToken(null);
+              setPage('login');
+            }} 
+            sessionToken={pendingSessionToken}
+            onComplete={(key) => {
               const user = localStorage.getItem('vaultUser');
-              const key  = localStorage.getItem('goldenKey');
-              if (user && key) {
+              const gkey = key || localStorage.getItem('goldenKey');
+              if (user && gkey) {
+                if (key) localStorage.setItem('goldenKey', key);
                 setVaultPage(true);
                 setCredentialsReady(true);
               } else {
                 setPage('login'); // Fallback if not logged in
               }
+              setPendingSessionToken(null);
             }}
           />
         </motion.div>

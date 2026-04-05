@@ -169,7 +169,7 @@ function TOTPInput({ value, onChange, onSubmit, loading }) {
 }
 
 // ─── Main TOTP Setup Component ──────────────────────────────────────────────
-export default function TOTPSetup({ onBack, onComplete }) {
+export default function TOTPSetup({ onBack, onComplete, sessionToken }) {
   const [step,           setStep]           = useState('enter-username'); // enter-username | setup | verify | done
   const [username,       setUsername]       = useState('');
   const [totpSecret,     setTotpSecret]     = useState('');
@@ -206,15 +206,21 @@ export default function TOTPSetup({ onBack, onComplete }) {
 
   const handleVerify = async () => {
     if (totpCode.length !== 6) { setError('Please enter the 6-digit code.'); return; }
-    setError(''); setLoading(true);
+    setError('');    setLoading(true);
     try {
-      const res  = await fetch(`${API_URL}/api/totp/verify`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), code: totpCode }),
+      const endpoint = sessionToken ? `/api/unlock/complete` : `/api/totp/verify`;
+      const body = sessionToken 
+        ? { session_token: sessionToken, totp_code: totpCode }
+        : { username: username.trim(), code: totpCode };
+
+      const res  = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (data.valid) {
-        if (onComplete) onComplete();
+      if (data.status === 'success' || data.valid) {
+        if (onComplete) onComplete(data.golden_key);
         else setStep('done');
       } else {
         setError(data.message || 'Invalid code. Please try again.');

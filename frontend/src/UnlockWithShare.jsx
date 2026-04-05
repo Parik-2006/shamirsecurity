@@ -486,7 +486,7 @@ export default function UnlockWithShare({
                     To verify your Identity, please open
                     <br />
                     <span 
-                      onClick={onGoToSetupMFA}
+                      onClick={() => onGoToSetupMFA(sessionToken)}
                       style={{ 
                         color: 'var(--gold)', 
                         fontWeight: 700, 
