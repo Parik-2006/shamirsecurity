@@ -2,11 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import VaultPage from './VaultPage';
 import RegistrationVaultPage from './RegistrationVaultPage';
-import UnlockWithShare from './UnlockWithShare';
 import Documentation from './pages/documentation';
 import About from './pages/about';
 import Verification from './pages/verification';
 import TOTPSetup from './pages/TOTPSetup';
+
+// New Modular Flows
+import CreateVaultFlow from './flows/CreateVaultFlow';
+import NormalUnlockFlow from './flows/NormalUnlockFlow';
+import RecoveryUnlockFlow from './flows/RecoveryUnlockFlow';
+
 import './App.css';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -586,8 +591,8 @@ function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('recovery_totp') === '1' || params.get('recovery_error')) {
-      setPage('login');
-      setUnlockStep('uploadShare');
+      // LAND DIRECTLY IN RECOVERY FLOW (Step 1 or 2 handled by component internal useEffect)
+      setPage('recovery-unlock');
     }
   }, [location]);
 
@@ -597,10 +602,9 @@ function App() {
   let justRegistered = localStorage.getItem('justRegistered') === 'true';
   const [credentialsReady, setCredentialsReady] = useState(false);
   const navigate = useNavigate();
-  const [page, setPage] = useState('login'); // login | register | setup-mfa
+  const [page, setPage] = useState('login'); // login | register | setup-mfa | normal-unlock | recovery-unlock
   const [pendingSessionToken, setPendingSessionToken] = useState(null);
   const [mfaStartAtVerify, setMfaStartAtVerify] = useState(false);
-  const [unlockStep, setUnlockStep] = useState('login');
   const [pendingUnlock, setPendingUnlock] = useState({ username: '', password: '' });
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -725,7 +729,7 @@ function App() {
   return (
     <AnimatePresence mode="wait">
 
-      {page === 'login' && unlockStep === 'login' && (
+      {page === 'login' && (
         <motion.div
           key="login-centered"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -737,22 +741,12 @@ function App() {
             overflow: 'hidden',
           }}
         >
-          {/* Layer 0: Rich canvas background */}
           <LoginBackground />
-
-          {/* Layer 1: Ambient CSS glows */}
           <AmbientGlow />
-
-          {/* Layer 2: Floating crypto tags */}
           <CryptoTags />
-
-          {/* Layer 3: Moving scan lines */}
           <ScanLines />
-
-          {/* Layer 4: Top-right nav */}
           <TopNav onNavigate={handleNavigate} />
 
-          {/* Layer 5: Login form — centered */}
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
@@ -763,7 +757,6 @@ function App() {
               display: 'flex', flexDirection: 'column', alignItems: 'center',
             }}
           >
-            {/* Brand */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -798,89 +791,26 @@ function App() {
               </p>
             </motion.div>
 
-            {/* Glass card */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.32, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            <CreateVaultFlow
+              username={username} setUsername={setUsername}
+              password={password} setPassword={setPassword}
+              loading={loading} error={error} success={success}
+              onCreateVault={handleCreateVault}
+              onUnlockLogin={() => setPage('normal-unlock')}
+            />
+
+            <motion.button
+              whileHover={{ scale: 1.05, color: '#5ad2be' }}
+              onClick={() => setPage('recovery-unlock')}
               style={{
-                width: '100%',
-                background: 'rgba(13,16,20,0.88)',
-                border: '1px solid rgba(255,215,80,0.14)',
-                borderRadius: 20,
-                padding: '32px 28px 28px',
-                backdropFilter: 'blur(24px)',
-                boxShadow: '0 12px 56px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,215,80,0.05) inset',
-                position: 'relative', overflow: 'hidden',
+                marginTop: 24, background: 'none', border: 'none',
+                color: 'rgba(90,210,190,0.6)', cursor: 'pointer',
+                fontFamily: 'var(--font-display)', fontSize: '0.8rem',
+                fontWeight: 600, letterSpacing: '0.04em', textDecoration: 'underline',
               }}
             >
-              {/* Card top accent */}
-              <div style={{
-                position: 'absolute', top: 0, left: 0, right: 0, height: 1,
-                background: 'linear-gradient(90deg, transparent, rgba(255,215,80,0.4), transparent)',
-              }} />
-
-              <div style={{ marginBottom: 16 }}>
-                <label className="sv-label">Username</label>
-                <input
-                  className="sv-input" type="text" id="login-username"
-                  name="username" placeholder="your_username" autoComplete="username"
-                  value={username} onChange={e => setUsername(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && document.getElementById('login-password')?.focus()}
-                />
-              </div>
-
-              <div style={{ marginBottom: 24 }}>
-                <label className="sv-label">Master Password</label>
-                <input
-                  className="sv-input" type="password" id="login-password"
-                  name="password" placeholder="••••••••••••" autoComplete="current-password"
-                  value={password} onChange={e => setPassword(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleCreateVault()}
-                />
-              </div>
-
-              <AnimatePresence>
-                {error && (
-                  <motion.div key="err" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden', marginBottom: 14 }}>
-                    <div className="sv-alert sv-alert-error">{error}</div>
-                  </motion.div>
-                )}
-                {success && (
-                  <motion.div key="ok" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden', marginBottom: 14 }}>
-                    <div className="sv-alert sv-alert-success">{success}</div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <motion.button
-                whileHover={{ scale: 1.02, boxShadow: '0 4px 24px rgba(255,215,80,0.3)' }}
-                whileTap={{ scale: 0.98 }}
-                className="sv-btn sv-btn-primary sv-btn-full"
-                onClick={handleCreateVault} disabled={loading}
-                style={{ height: 48, marginBottom: 10 }}
-              >
-                {loading && <span className="sv-spinner" />}
-                Create New Vault
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="sv-btn sv-btn-secondary sv-btn-full"
-                onClick={handleUnlockLogin} disabled={loading}
-                style={{ height: 48 }}
-              >
-                {loading && <span className="sv-spinner" style={{ borderTopColor: 'var(--text-secondary)' }} />}
-                Unlock Vault
-              </motion.button>
-
-              <p style={{ marginTop: 20, color: 'var(--text-muted)', fontSize: '0.68rem', textAlign: 'center', lineHeight: 1.65 }}>
-                Vault creation requires Google OAuth for multi-share key distribution.
-              </p>
-            </motion.div>
-
-            {/* Status row */}
+              Lost your local share? Try Recovery →
+            </motion.button>
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}
               style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 18 }}
@@ -898,33 +828,28 @@ function App() {
         </motion.div>
       )}
 
-      {page === 'login' && unlockStep === 'uploadShare' && (
-        <motion.div key="unlock-share" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-          <UnlockWithShare
-            username={pendingUnlock.username} password={pendingUnlock.password}
+      {page === 'normal-unlock' && (
+        <motion.div key="normal-unlock" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+          <NormalUnlockFlow
+            username={username} password={password}
             onUnlock={handleUnlockWithShare}
-            onBack={() => { 
-                setUnlockStep('login'); setPendingUnlock({ username: '', password: '', }); 
-                setPersistentLocalShare(null); setPersistentFileName(''); setPersistentSessionToken(''); setPersistentUnlockSubStep(0);
-            }}
-            onGoToSetupMFA={(token, skipToVerify = false) => {
+            onBack={() => setPage('login')}
+            onGoToSetupMFA={(token) => {
               setPendingSessionToken(token);
-              setMfaStartAtVerify(skipToVerify);
+              setMfaStartAtVerify(false);
               setPage('setup-mfa');
             }}
-            
-            // Persistent props
-            initialStep={persistentUnlockSubStep}
-            initialLocalShare={persistentLocalShare}
-            initialFileName={persistentFileName}
-            initialSessionToken={persistentSessionToken}
-            onProgressUpdate={(st, share, fname, tok) => {
-                setPersistentUnlockSubStep(st);
-                setPersistentLocalShare(share);
-                setPersistentFileName(fname);
-                setPersistentSessionToken(tok);
-            }}
           />
+        </motion.div>
+      )}
+
+      {page === 'recovery-unlock' && (
+        <motion.div key="recovery-unlock" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+           <RecoveryUnlockFlow
+            username={username}
+            onUnlock={handleUnlockWithShare}
+            onBack={() => setPage('login')}
+           />
         </motion.div>
       )}
 

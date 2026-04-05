@@ -75,7 +75,7 @@ function QRCodeDisplay({ uri }) {
 }
 
 // ─── TOTP Digit Input (Robust Implementation) ────────────────────────────────
-function TOTPInput({ value, onChange, onSubmit, loading }) {
+export function TOTPInput({ value, onChange, onSubmit, loading }) {
   const refs = React.useRef([]);
   
   // Ensure value is always exactly 6 chars (padded with spaces if needed)
