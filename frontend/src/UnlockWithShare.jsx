@@ -104,98 +104,6 @@ function StepBar({ step, mode }) {
   );
 }
 
-// ─── TOTP Digit Input (Automated & Robust) ───────────────────────────────────
-function TOTPInput({ value, onChange, onSubmit, loading }) {
-  const refs = React.useRef([]);
-  
-  const code = (value || '').padEnd(6, ' ');
-  const digits = code.split('').slice(0, 6);
-
-  // Auto-submit when exactly 6 digits are entered
-  React.useEffect(() => {
-    if (value.length === 6 && !loading) {
-      onSubmit();
-    }
-  }, [value, loading, onSubmit]);
-
-  // Focus the first empty input on mount
-  React.useEffect(() => {
-    if (value === '') refs.current[0]?.focus();
-  }, []);
-
-  const handleChange = (idx, e) => {
-    const char = e.target.value.slice(-1);
-    if (!/^[0-9]$/.test(char) && char !== '') return;
-    
-    const newCodeArr = code.split('');
-    newCodeArr[idx] = char || ' ';
-    const newVal = newCodeArr.join('').trimEnd();
-    onChange(newVal);
-
-    if (char && idx < 5) {
-      refs.current[idx + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (idx, e) => {
-    if (e.key === 'Backspace') {
-      if (!digits[idx] || digits[idx] === ' ') {
-        if (idx > 0) {
-          refs.current[idx - 1]?.focus();
-          const newCodeArr = code.split('');
-          newCodeArr[idx - 1] = ' ';
-          onChange(newCodeArr.join('').trimEnd());
-        }
-      } else {
-        const newCodeArr = code.split('');
-        newCodeArr[idx] = ' ';
-        onChange(newCodeArr.join('').trimEnd());
-      }
-    } else if (e.key === 'ArrowLeft' && idx > 0) {
-      refs.current[idx - 1]?.focus();
-    } else if (e.key === 'ArrowRight' && idx < 5) {
-      refs.current[idx + 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e) => {
-    e.preventDefault();
-    const data = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
-    if (data) {
-      onChange(data);
-      refs.current[Math.min(data.length, 5)]?.focus();
-    }
-  };
-
-  return (
-    <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 32 }} onPaste={handlePaste}>
-      {digits.map((digit, i) => (
-        <input
-          key={i}
-          ref={el => refs.current[i] = el}
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          maxLength={1}
-          value={digit === ' ' ? '' : digit}
-          onChange={e => handleChange(i, e)}
-          onKeyDown={e => handleKeyDown(i, e)}
-          onFocus={e => e.target.select()}
-          disabled={loading}
-          style={{
-            width: 48, height: 58, textAlign: 'center',
-            fontSize: 24, fontWeight: 700, fontFamily: 'monospace',
-            background: 'rgba(13,16,20,0.9)',
-            border: `1.5px solid ${digit !== ' ' ? 'rgba(255,215,80,0.7)' : 'rgba(255,215,80,0.18)'}`,
-            borderRadius: 12, color: 'var(--gold)',
-            outline: 'none', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-            boxShadow: digit !== ' ' ? '0 0 16px rgba(255,215,80,0.1)' : 'none',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function UnlockWithShare({ 
@@ -572,9 +480,9 @@ export default function UnlockWithShare({
             {/* ═══════════ NORMAL UNLOCK — Step 1: TOTP ═══════════════════ */}
             {mode === 'normal' && step === 1 && (
               <motion.div key="totp-normal" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ textAlign: 'center' }}>
-                {/* Instructions focusing on the "yellow thing" */}
-                <div style={{ marginBottom: 32 }}>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: 16, marginBottom: 12, lineHeight: 1.5 }}>
+                {/* Restored Old Text & Info about Yellow Link */}
+                <div style={{ marginBottom: 28 }}>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: 15, marginBottom: 8, lineHeight: 1.6 }}>
                     Open <span 
                       onClick={onGoToSetupMFA}
                       style={{ 
@@ -582,23 +490,42 @@ export default function UnlockWithShare({
                         fontWeight: 700, 
                         cursor: 'pointer', 
                         textDecoration: 'underline',
-                        textDecorationThickness: '2px',
-                        textUnderlineOffset: '4px'
                       }}
-                      title="Setup Google Authenticator"
-                    >Google Authenticator</span>
+                      title="Setup MFA"
+                    >Google Authenticator</span> and enter 6-digit code for <strong>ShamirVault</strong>.
                   </p>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 14, fontWeight: 500 }}>
-                    Enter your code for <strong style={{ color: '#fff' }}>ShamirVault</strong>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 24, fontStyle: 'italic', letterSpacing: '0.05em' }}>
+                    Don't have MFA set up? Click the yellow <strong style={{color: 'var(--gold)'}}>Google Authenticator</strong> link above.
                   </p>
                 </div>
 
-                <TOTPInput
-                  value={totpCode}
-                  onChange={setTotpCode}
-                  onSubmit={handleUnlockComplete}
-                  loading={loading}
-                />
+                <div style={{ marginBottom: 28, maxWidth: 320, margin: '0 auto 28px' }}>
+                  <input
+                    className="sv-input"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Enter 6-digit code"
+                    value={totpCode}
+                    maxLength={6}
+                    autoFocus
+                    onChange={e => {
+                      const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+                      setTotpCode(val);
+                      if (val.length === 6 && !loading) {
+                        // Small delay to let user see the final digit before auto-submit
+                        setTimeout(() => handleUnlockComplete(val), 50);
+                      }
+                    }}
+                    style={{ 
+                      textAlign: 'center', 
+                      letterSpacing: '0.8em', 
+                      fontSize: 22, 
+                      fontWeight: 700,
+                      fontFamily: 'monospace',
+                      paddingLeft: '1.2em' 
+                    }}
+                  />
+                </div>
 
                 {/* Automation info */}
                 <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -608,8 +535,8 @@ export default function UnlockWithShare({
                       <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.05em' }}>VERIFYING & OPENING VAULT...</span>
                     </div>
                   ) : (
-                    <p style={{ color: 'var(--text-muted)', fontSize: 11, fontStyle: 'italic', opacity: 0.7 }}>
-                      Vault will open automatically once 6 digits are entered.
+                    <p style={{ color: 'var(--text-muted)', fontSize: 11, fontStyle: 'italic', opacity: 0.6 }}>
+                      Vault opens automatically upon valid code entry.
                     </p>
                   )}
                 </div>

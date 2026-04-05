@@ -953,7 +953,19 @@ function App() {
           initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 0.3 }}
         >
-          <TOTPSetup onBack={() => setPage('login')} />
+          <TOTPSetup 
+            onBack={() => setPage('login')} 
+            onComplete={() => {
+              const user = localStorage.getItem('vaultUser');
+              const key  = localStorage.getItem('goldenKey');
+              if (user && key) {
+                setVaultPage(true);
+                setCredentialsReady(true);
+              } else {
+                setPage('login'); // Fallback if not logged in
+              }
+            }}
+          />
         </motion.div>
       )}
 

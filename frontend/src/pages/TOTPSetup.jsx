@@ -169,7 +169,7 @@ function TOTPInput({ value, onChange, onSubmit, loading }) {
 }
 
 // ─── Main TOTP Setup Component ──────────────────────────────────────────────
-export default function TOTPSetup({ onBack }) {
+export default function TOTPSetup({ onBack, onComplete }) {
   const [step,           setStep]           = useState('enter-username'); // enter-username | setup | verify | done
   const [username,       setUsername]       = useState('');
   const [totpSecret,     setTotpSecret]     = useState('');
@@ -214,7 +214,8 @@ export default function TOTPSetup({ onBack }) {
       });
       const data = await res.json();
       if (data.valid) {
-        setStep('done');
+        if (onComplete) onComplete();
+        else setStep('done');
       } else {
         setError(data.message || 'Invalid code. Please try again.');
         setTotpCode('');
