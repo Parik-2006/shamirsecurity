@@ -480,65 +480,48 @@ export default function UnlockWithShare({
             {/* ═══════════ NORMAL UNLOCK — Step 1: TOTP ═══════════════════ */}
             {mode === 'normal' && step === 1 && (
               <motion.div key="totp-normal" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ textAlign: 'center' }}>
-                {/* Restored Old Text & Info about Yellow Link */}
-                <div style={{ marginBottom: 28 }}>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: 15, marginBottom: 8, lineHeight: 1.6 }}>
-                    Open <span 
+                {/* Direct Instruction Phase (No Input) */}
+                <div style={{ padding: '20px 0', textAlign: 'center' }}>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: 16, marginBottom: 24, lineHeight: 1.6 }}>
+                    To verify your Identity, please open
+                    <br />
+                    <span 
                       onClick={onGoToSetupMFA}
                       style={{ 
                         color: 'var(--gold)', 
                         fontWeight: 700, 
                         cursor: 'pointer', 
                         textDecoration: 'underline',
+                        fontSize: 18,
+                        display: 'inline-block',
+                        marginTop: 10,
+                        padding: '4px 12px',
+                        background: 'rgba(255,215,80,0.08)',
+                        borderRadius: 8
                       }}
-                      title="Setup MFA"
-                    >Google Authenticator</span> and enter 6-digit code for <strong>ShamirVault</strong>.
+                      title="Open MFA Verification"
+                    >Google Authenticator</span>
                   </p>
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 24, fontStyle: 'italic', letterSpacing: '0.05em' }}>
-                    Don't have MFA set up? Click the yellow <strong style={{color: 'var(--gold)'}}>Google Authenticator</strong> link above.
-                  </p>
-                </div>
-
-                <div style={{ marginBottom: 28, maxWidth: 320, margin: '0 auto 28px' }}>
-                  <input
-                    className="sv-input"
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="Enter 6-digit code"
-                    value={totpCode}
-                    maxLength={6}
-                    autoFocus
-                    onChange={e => {
-                      const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
-                      setTotpCode(val);
-                      if (val.length === 6 && !loading) {
-                        // Small delay to let user see the final digit before auto-submit
-                        setTimeout(() => handleUnlockComplete(val), 50);
-                      }
-                    }}
-                    style={{ 
-                      textAlign: 'center', 
-                      letterSpacing: '0.8em', 
-                      fontSize: 22, 
-                      fontWeight: 700,
-                      fontFamily: 'monospace',
-                      paddingLeft: '1.2em' 
-                    }}
-                  />
-                </div>
-
-                {/* Automation info */}
-                <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {loading ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--gold)' }}>
-                      <span className="sv-spinner" style={{ width: 16, height: 16, borderTopColor: 'transparent' }} />
-                      <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.05em' }}>VERIFYING & OPENING VAULT...</span>
-                    </div>
-                  ) : (
-                    <p style={{ color: 'var(--text-muted)', fontSize: 11, fontStyle: 'italic', opacity: 0.6 }}>
-                      Vault opens automatically upon valid code entry.
+                  
+                  <div style={{ 
+                    padding: '24px', 
+                    background: 'rgba(255,215,80,0.03)', 
+                    border: '1px solid rgba(255,215,80,0.12)', 
+                    borderRadius: 16,
+                    marginBottom: 32 
+                  }}>
+                    <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6 }}>
+                      Once you click the <strong style={{color:'var(--gold)'}}>yellow link</strong> above, 
+                      you will be taken to the verification step.
+                      <br /><br />
+                      Scan your QR or enter your 6-digit code on the <strong>next page</strong> to immediately unlock your vault.
                     </p>
-                  )}
+                  </div>
+
+                  {/* Visual Indicator of "Next Step" */}
+                  <div style={{ display: 'flex', justifyContent: 'center', opacity: 0.4 }}>
+                    <div className="sv-spinner" style={{ width: 24, height: 24, borderTopColor: 'var(--gold)' }} />
+                  </div>
                 </div>
               </motion.div>
             )}
