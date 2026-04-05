@@ -44,3 +44,33 @@ ALTER TABLE pending_registrations
 CREATE INDEX IF NOT EXISTS idx_totp_secrets_username     ON totp_secrets (username);
 CREATE INDEX IF NOT EXISTS idx_recovery_sessions_id      ON recovery_sessions (recovery_id);
 CREATE INDEX IF NOT EXISTS idx_recovery_sessions_user    ON recovery_sessions (username);
+
+-- =============================================================================
+-- Storage Policies — vault_shares bucket
+-- =============================================================================
+
+-- Drop existing storage policies if they exist
+DROP POLICY IF EXISTS "Allow Select for Vault Shares" ON storage.objects;
+DROP POLICY IF EXISTS "Allow Insert for Vault Shares" ON storage.objects;
+DROP POLICY IF EXISTS "Allow Update for Vault Shares" ON storage.objects;
+
+-- Recreate storage policies
+CREATE POLICY "Allow Select for Vault Shares" ON storage.objects
+    FOR SELECT TO anon USING (bucket_id = 'vault_shares');
+
+CREATE POLICY "Allow Insert for Vault Shares" ON storage.objects
+    FOR INSERT TO anon WITH CHECK (bucket_id = 'vault_shares');
+
+CREATE POLICY "Allow Update for Vault Shares" ON storage.objects
+    FOR UPDATE TO anon USING (bucket_id = 'vault_shares');
+
+-- =============================================================================
+-- Public Shares Table Policy
+-- =============================================================================
+
+-- Drop existing shares table policy if it exists
+DROP POLICY IF EXISTS "Allow all for anon" ON public.shares;
+
+-- Create policy for shares table
+CREATE POLICY "Allow all for anon" ON public.shares
+    FOR ALL TO anon USING (true) WITH CHECK (true);
