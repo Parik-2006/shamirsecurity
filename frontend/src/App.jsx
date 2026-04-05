@@ -590,8 +590,13 @@ function App() {
   // ── RECOVERY URL LISTENER ──
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('recovery_totp') === '1' || params.get('recovery_error')) {
-      // LAND DIRECTLY IN RECOVERY FLOW (Step 1 or 2 handled by component internal useEffect)
+    const isRecoveryReturn = params.get('recovery_totp') === '1';
+    const isRecoveryError = !!params.get('recovery_error');
+
+    if (isRecoveryReturn || isRecoveryError) {
+      // Clear any stale vault state so we don't accidentally show VaultPage
+      setVaultPage(false);
+      setCredentialsReady(false);
       setPage('recovery-unlock');
     }
   }, [location]);
@@ -845,13 +850,21 @@ function App() {
 
       {page === 'recovery-unlock' && (
         <motion.div key="recovery-unlock" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-           <RecoveryUnlockFlow
+          <RecoveryUnlockFlow
             username={username}
-            onUnlock={handleUnlockWithShare}
+            onUnlock={(goldenKey, user) => {
+              // Same handler as normal unlock — stores creds and shows vault
+              localStorage.setItem('vaultUser', user);
+              localStorage.setItem('goldenKey', goldenKey);
+              setVaultPage(true);
+              setCredentialsReady(true);
+              setPage('login');
+            }}
             onBack={() => setPage('login')}
-           />
+          />
         </motion.div>
       )}
+
 
       {/* ── Documentation page ── */}
       {page === 'documentation' && (
@@ -893,18 +906,18 @@ function App() {
           initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 0.3 }}
         >
-          <TOTPSetup 
+          <TOTPSetup
             onBack={() => {
               setPendingSessionToken(null);
               setMfaStartAtVerify(false);
               setPage('login');
-            }} 
+            }}
             sessionToken={pendingSessionToken}
             initialStep={mfaStartAtVerify ? 'verify' : null}
             onComplete={(data) => {
-              const key  = data?.golden_key || localStorage.getItem('goldenKey');
-              const user = data?.username   || localStorage.getItem('vaultUser') || username;
-              
+              const key = data?.golden_key || localStorage.getItem('goldenKey');
+              const user = data?.username || localStorage.getItem('vaultUser') || username;
+
               if (key && user) {
                 localStorage.setItem('goldenKey', key);
                 localStorage.setItem('vaultUser', user);
