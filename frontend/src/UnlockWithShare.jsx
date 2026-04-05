@@ -59,6 +59,60 @@ const DownloadIcon = () => (
   </svg>
 );
 
+// ─── TOTP Digit Input (Shared Component) ───────────────────────────────────
+function TOTPInput({ value, onChange, onSubmit, loading }) {
+  const refs = useRef([]);
+  const code = (value || '').padEnd(6, ' ');
+  const digits = code.split('').slice(0, 6);
+
+  useEffect(() => {
+    if (value === '') refs.current[0]?.focus();
+  }, []);
+
+  const handleChange = (idx, e) => {
+    const char = e.target.value.slice(-1);
+    if (!/^[0-9]$/.test(char) && char !== '') return;
+    const newCodeArr = code.split('');
+    newCodeArr[idx] = char || ' ';
+    onChange(newCodeArr.join('').trimEnd());
+    if (char && idx < 5) refs.current[idx+1]?.focus();
+  };
+
+  const handleKeyDown = (idx, e) => {
+    if (e.key === 'Backspace') {
+      if (!digits[idx] || digits[idx] === ' ') {
+        if (idx > 0) {
+          refs.current[idx-1]?.focus();
+          const arr = code.split('');
+          arr[idx-1] = ' ';
+          onChange(arr.join('').trimEnd());
+        }
+      } else {
+        const arr = code.split('');
+        arr[idx] = ' ';
+        onChange(arr.join('').trimEnd());
+      }
+    } else if (e.key === 'Enter' && value.length === 6) onSubmit?.();
+  };
+
+  return (
+    <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 24 }}>
+      {digits.map((d, i) => (
+        <input
+          key={i} ref={el => refs.current[i] = el}
+          className="sv-input"
+          style={{ width: 42, height: 50, textAlign: 'center', fontSize: 18, fontWeight: 700, padding: 0 }}
+          type="text" inputMode="numeric" maxLength={1}
+          value={d === ' ' ? '' : d}
+          onChange={e => handleChange(i, e)}
+          onKeyDown={e => handleKeyDown(i, e)}
+          disabled={loading}
+        />
+      ))}
+    </div>
+  );
+}
+
 // ─── Step Indicator ─────────────────────────────────────────────────────────
 function StepBar({ step, mode }) {
   const steps = mode === 'recovery'
@@ -269,9 +323,10 @@ export default function UnlockWithShare({
         setGoldenKey(data.golden_key);
         setNewLocalShare(data.new_local_share);
         setNewShare1(data.new_share1 || '');
-        setStep(2); // Rotate / download step
+        setStep(2); // Success / rotate step
         localStorage.removeItem('recovery_id');
         localStorage.removeItem('recovery_user');
+        setInfo('Vault recovered successfully! Download your new share to finish.');
       } else {
         setError(data.message || 'Recovery failed.');
       }

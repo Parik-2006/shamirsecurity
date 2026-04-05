@@ -757,12 +757,41 @@ def recovery_callback():
         else:
             flow.fetch_token(code=code)
 
-        # Mark OAuth done
-        supabase_retry(lambda: supabase.table("recovery_sessions")
-                       .update({"oauth_done": True}).eq("recovery_id", recovery_id).execute())
-
+        # ─── New: Fetch Share1 from Drive ───
+        credentials = flow.credentials
+        drive_service = build('drive', 'v3', credentials=credentials)
+        
         username = session['username']
-        print(f"[RECOVERY CALLBACK] OAuth verified for {username}")
+        file_name = f"{username}_share1.txt"
+        
+        # Search for file
+        query = f"name = '{file_name}' and trashed = false"
+        results = drive_service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+        files = results.get('files', [])
+        
+        share1_content = None
+        if files:
+            file_id = files[0]['id']
+            request_file = drive_service.files().get_media(fileId=file_id)
+            fh = io.BytesIO()
+            downloader = MediaIoBaseDownload(fh, request_file)
+            done = False
+            while not done:
+                _, done = downloader.next_chunk()
+            share1_content = fh.getvalue().decode('utf-8').strip()
+        
+        if not share1_content:
+            print(f"[RECOVERY CALLBACK] Share1 file NOT found for {username}")
+            return redirect(f"{FRONTEND_URL.rstrip('/')}/unlock?recovery_error=Share1+file+not+found+in+your+Google+Drive")
+
+        # Mark OAuth done + store share1_temp
+        supabase_retry(lambda: supabase.table("recovery_sessions")
+                       .update({
+                           "oauth_done": True,
+                           "share1_temp": share1_content
+                       }).eq("recovery_id", recovery_id).execute())
+
+        print(f"[RECOVERY CALLBACK] OAuth verified + Share1 fetched for {username}")
 
         import urllib.parse
         return redirect(
