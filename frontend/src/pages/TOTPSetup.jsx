@@ -193,7 +193,7 @@ export default function TOTPSetup({ onBack }) {
           backdropFilter: 'blur(12px)',
         }}
       >
-        ← Back
+        ← Back to Vault
       </button>
 
       <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: 480, padding: '0 24px' }}>

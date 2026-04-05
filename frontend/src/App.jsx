@@ -601,6 +601,12 @@ function App() {
   const [showAbout, setShowAbout] = useState(() => { try { return !sessionStorage.getItem('about_seen'); } catch { return true; } });
   const [registrationComplete, setRegistrationComplete] = useState(false);
 
+  // ── Persistent Unlock State ──
+  const [persistentLocalShare, setPersistentLocalShare] = useState(null);
+  const [persistentFileName, setPersistentFileName] = useState('');
+  const [persistentSessionToken, setPersistentSessionToken] = useState('');
+  const [persistentUnlockSubStep, setPersistentUnlockSubStep] = useState(0);
+
   useEffect(() => {
     if (location.pathname === '/vault' || location.pathname === '/download-share') {
       const u = localStorage.getItem('vaultUser'); const k = localStorage.getItem('goldenKey');
@@ -662,6 +668,9 @@ function App() {
     localStorage.setItem('vaultUser', username); localStorage.setItem('goldenKey', goldenKey);
     setVaultPage(true); setCredentialsReady(true);
     setUnlockStep('login'); setPendingUnlock({ username: '', password: '' });
+    // Clear persistent state on success
+    setPersistentLocalShare(null); setPersistentFileName('');
+    setPersistentSessionToken(''); setPersistentUnlockSubStep(0);
   };
 
   const handleUnlockVault = async () => {
@@ -883,8 +892,23 @@ function App() {
           <UnlockWithShare
             username={pendingUnlock.username} password={pendingUnlock.password}
             onUnlock={handleUnlockWithShare}
-            onBack={() => { setUnlockStep('login'); setPendingUnlock({ username: '', password: '', }); }}
+            onBack={() => { 
+                setUnlockStep('login'); setPendingUnlock({ username: '', password: '', }); 
+                setPersistentLocalShare(null); setPersistentFileName(''); setPersistentSessionToken(''); setPersistentUnlockSubStep(0);
+            }}
             onGoToSetupMFA={() => setPage('setup-mfa')}
+            
+            // Persistent props
+            initialStep={persistentUnlockSubStep}
+            initialLocalShare={persistentLocalShare}
+            initialFileName={persistentFileName}
+            initialSessionToken={persistentSessionToken}
+            onProgressUpdate={(st, share, fname, tok) => {
+                setPersistentUnlockSubStep(st);
+                setPersistentLocalShare(share);
+                setPersistentFileName(fname);
+                setPersistentSessionToken(tok);
+            }}
           />
         </motion.div>
       )}

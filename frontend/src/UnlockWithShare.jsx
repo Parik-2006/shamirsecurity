@@ -158,18 +158,22 @@ function TOTPInput({ value, onChange, onSubmit, loading }) {
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────
-export default function UnlockWithShare({ username, password, onUnlock, onBack, onGoToSetupMFA }) {
+export default function UnlockWithShare({ 
+  username, password, onUnlock, onBack, onGoToSetupMFA,
+  initialStep = 0, initialLocalShare = null, initialFileName = '', initialSessionToken = '', 
+  onProgressUpdate 
+}) {
   // Mode: 'normal' or 'recovery'
   const [mode,      setMode]      = useState('normal');
   // Unlock steps: 0=upload, 1=totp, 2=success
   // Recovery steps: 0=oauth_pending, 1=totp, 2=rotate
-  const [step,      setStep]      = useState(0);
+  const [step,      setStep]      = useState(initialStep);
 
   // Normal unlock state
-  const [localShare,    setLocalShare]    = useState(null);
-  const [fileName,      setFileName]      = useState('');
+  const [localShare,    setLocalShare]    = useState(initialLocalShare);
+  const [fileName,      setFileName]      = useState(initialFileName);
   const [dragOver,      setDragOver]      = useState(false);
-  const [sessionToken,  setSessionToken]  = useState('');
+  const [sessionToken,  setSessionToken]  = useState(initialSessionToken);
 
   // Recovery state
   const [recoveryId,    setRecoveryId]    = useState('');
@@ -188,6 +192,13 @@ export default function UnlockWithShare({ username, password, onUnlock, onBack, 
   const [info,    setInfo]    = useState('');
 
   const fileInputRef = useRef(null);
+
+  // Sync state upward to App.jsx for persistence
+  useEffect(() => {
+    if (mode === 'normal') {
+      onProgressUpdate?.(step, localShare, fileName, sessionToken);
+    }
+  }, [step, localShare, fileName, sessionToken, mode, onProgressUpdate]);
 
   // Check for recovery OAuth redirect params in URL
   useEffect(() => {
@@ -375,7 +386,11 @@ export default function UnlockWithShare({ username, password, onUnlock, onBack, 
         {!(mode === 'recovery' && step === 2) && (
           <button
             className="sv-btn sv-btn-ghost"
-            onClick={mode === 'recovery' && step > 0 ? exitRecoveryMode : onBack}
+            onClick={() => {
+              if (mode === 'recovery' && step > 0) exitRecoveryMode();
+              else if (step > 0) setStep(step - 1);
+              else onBack();
+            }}
             style={{ marginBottom: 28, padding: '8px 14px', fontSize: 13 }}
           >
             <ArrowLeftIcon />
@@ -535,6 +550,10 @@ export default function UnlockWithShare({ username, password, onUnlock, onBack, 
                   onSubmit={handleUnlockComplete}
                   loading={loading}
                 />
+
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 20, fontStyle: 'italic' }}>
+                  Don't have your app set up? Click the yellow <strong style={{color: 'var(--gold)'}}>Google Authenticator</strong> link above.
+                </p>
 
                 <motion.button
                   whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
