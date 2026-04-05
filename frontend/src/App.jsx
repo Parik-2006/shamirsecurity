@@ -963,17 +963,23 @@ function App() {
               setPage('login');
             }} 
             sessionToken={pendingSessionToken}
-            onComplete={(key) => {
-              const user = localStorage.getItem('vaultUser');
-              const gkey = key || localStorage.getItem('goldenKey');
-              if (user && gkey) {
-                if (key) localStorage.setItem('goldenKey', key);
+            onComplete={(data) => {
+              const key  = data?.golden_key || localStorage.getItem('goldenKey');
+              const user = data?.username   || localStorage.getItem('vaultUser') || username;
+              
+              if (key && user) {
+                localStorage.setItem('goldenKey', key);
+                localStorage.setItem('vaultUser', user);
                 setVaultPage(true);
                 setCredentialsReady(true);
+                setPendingSessionToken(null);
+                // Also reset persist unlock substep so we don't return to "Yellow" on next login
+                setPersistentUnlockSubStep(0);
               } else {
-                setPage('login'); // Fallback if not logged in
+                // If it was just a setup (no key), we go back to login/home
+                setPage('login');
+                setPendingSessionToken(null);
               }
-              setPendingSessionToken(null);
             }}
           />
         </motion.div>

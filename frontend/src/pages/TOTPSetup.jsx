@@ -220,7 +220,7 @@ export default function TOTPSetup({ onBack, onComplete, sessionToken }) {
       });
       const data = await res.json();
       if (data.status === 'success' || data.valid) {
-        if (onComplete) onComplete(data.golden_key);
+        if (onComplete) onComplete(data);
         else setStep('done');
       } else {
         setError(data.message || 'Invalid code. Please try again.');
