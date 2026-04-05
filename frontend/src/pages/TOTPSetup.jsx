@@ -74,49 +74,93 @@ function QRCodeDisplay({ uri }) {
   );
 }
 
-// ─── TOTP Digit Input ─────────────────────────────────────────────────────────
+// ─── TOTP Digit Input (Robust Implementation) ────────────────────────────────
 function TOTPInput({ value, onChange, onSubmit, loading }) {
-  const refs   = React.useRef([]);
-  const digits = (value + '      ').slice(0, 6).split('');
+  const refs = React.useRef([]);
+  
+  // Ensure value is always exactly 6 chars (padded with spaces if needed)
+  const code = (value || '').padEnd(6, ' ');
+  const digits = code.split('').slice(0, 6);
 
-  const handleKey = (idx, e) => {
-    if (e.key === 'Backspace') {
-      if (digits[idx].trim() !== '') {
-        const arr = value.padEnd(6, ' ').split('');
-        arr[idx] = ' ';
-        onChange(arr.join('').trim());
-      } else if (idx > 0) refs.current[idx - 1]?.focus();
-      return;
+  // Focus the first empty input on mount or when code changes
+  React.useEffect(() => {
+    const firstEmpty = digits.findIndex(d => d === ' ');
+    const activeIdx = firstEmpty === -1 ? 5 : firstEmpty;
+    // We don't auto-focus every time code changes to avoid jarring user experience,
+    // but on mount of the verify step it helps.
+    if (value === '') refs.current[0]?.focus();
+  }, []);
+
+  const handleChange = (idx, e) => {
+    const char = e.target.value.slice(-1); // Take only the last character entered
+    if (!/^[0-9]$/.test(char) && char !== '') return;
+    
+    const newCodeArr = code.split('');
+    newCodeArr[idx] = char || ' ';
+    const newVal = newCodeArr.join('');
+    onChange(newVal.trimEnd());
+
+    // Auto focus next
+    if (char && idx < 5) {
+      refs.current[idx + 1]?.focus();
     }
-    if (e.key === 'Enter' && value.length === 6) { onSubmit?.(); return; }
-    if (!/^[0-9]$/.test(e.key)) return;
-    const arr = value.padEnd(6, ' ').split('');
-    arr[idx] = e.key;
-    onChange(arr.join('').trim());
-    if (idx < 5) refs.current[idx + 1]?.focus();
+  };
+
+  const handleKeyDown = (idx, e) => {
+    if (e.key === 'Backspace') {
+      if (!digits[idx] || digits[idx] === ' ') {
+        if (idx > 0) {
+          refs.current[idx - 1]?.focus();
+          const newCodeArr = code.split('');
+          newCodeArr[idx - 1] = ' ';
+          onChange(newCodeArr.join('').trimEnd());
+        }
+      } else {
+        const newCodeArr = code.split('');
+        newCodeArr[idx] = ' ';
+        onChange(newCodeArr.join('').trimEnd());
+      }
+    } else if (e.key === 'ArrowLeft' && idx > 0) {
+      refs.current[idx - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && idx < 5) {
+      refs.current[idx + 1]?.focus();
+    } else if (e.key === 'Enter' && value.length === 6) {
+      onSubmit?.();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const data = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+    if (data) {
+      onChange(data);
+      refs.current[Math.min(data.length, 5)]?.focus();
+    }
   };
 
   return (
-    <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-      {Array.from({ length: 6 }).map((_, i) => (
+    <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }} onPaste={handlePaste}>
+      {digits.map((digit, i) => (
         <input
           key={i}
           ref={el => refs.current[i] = el}
           type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           maxLength={1}
-          value={digits[i].trim()}
-          onChange={() => {}}
-          onKeyDown={e => handleKey(i, e)}
+          value={digit === ' ' ? '' : digit}
+          onChange={e => handleChange(i, e)}
+          onKeyDown={e => handleKeyDown(i, e)}
           onFocus={e => e.target.select()}
+          disabled={loading}
           style={{
-            width: 44, height: 52, textAlign: 'center',
-            fontSize: 22, fontWeight: 700, fontFamily: 'monospace',
+            width: 48, height: 56, textAlign: 'center',
+            fontSize: 24, fontWeight: 700, fontFamily: 'monospace',
             background: 'rgba(13,16,20,0.9)',
-            border: `1.5px solid ${value[i] ? 'rgba(255,215,80,0.7)' : 'rgba(255,215,80,0.18)'}`,
-            borderRadius: 10, color: 'var(--gold)',
-            outline: 'none', caretColor: 'transparent',
-            transition: 'border-color 0.2s',
+            border: `1.5px solid ${digit !== ' ' ? 'rgba(90,210,190,0.7)' : 'rgba(90,210,190,0.18)'}`,
+            borderRadius: 12, color: '#5ad2be',
+            outline: 'none', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: digit !== ' ' ? '0 0 12px rgba(90,210,190,0.1)' : 'none',
           }}
         />
       ))}
