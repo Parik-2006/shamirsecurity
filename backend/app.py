@@ -62,8 +62,9 @@ GOOGLE_SCOPES = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'openid',
 ]
-GOOGLE_REDIRECT_URI          = os.environ.get('GOOGLE_REDIRECT_URI',          'https://shamirsecurity-1tv2.onrender.com/api/google/callback')
-GOOGLE_RECOVERY_REDIRECT_URI = os.environ.get('GOOGLE_RECOVERY_REDIRECT_URI', 'https://shamirsecurity-1tv2.onrender.com/api/recovery/callback')
+BACK_URL = os.environ.get('BACKEND_URL', 'https://shamirsecurity-1tv2.onrender.com').rstrip('/')
+GOOGLE_REDIRECT_URI          = os.environ.get('GOOGLE_REDIRECT_URI',          f"{BACK_URL}/api/google/callback")
+GOOGLE_RECOVERY_REDIRECT_URI = os.environ.get('GOOGLE_RECOVERY_REDIRECT_URI', f"{BACK_URL}/api/recovery/callback")
 
 # Session token TTL for the share-verified step (seconds)
 SHARE_SESSION_TTL = 300   # 5 min — user must complete TOTP in this window
