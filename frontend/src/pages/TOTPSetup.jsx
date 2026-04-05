@@ -169,8 +169,8 @@ function TOTPInput({ value, onChange, onSubmit, loading }) {
 }
 
 // ─── Main TOTP Setup Component ──────────────────────────────────────────────
-export default function TOTPSetup({ onBack, onComplete, sessionToken }) {
-  const [step,           setStep]           = useState('enter-username'); // enter-username | setup | verify | done
+export default function TOTPSetup({ onBack, onComplete, sessionToken, initialStep }) {
+  const [step,           setStep]           = useState(initialStep || 'enter-username'); // enter-username | setup | verify | done
   const [username,       setUsername]       = useState('');
   const [totpSecret,     setTotpSecret]     = useState('');
   const [provisioningUri, setProvisioningUri] = useState('');

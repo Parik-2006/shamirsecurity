@@ -590,6 +590,7 @@ function App() {
   const navigate = useNavigate();
   const [page, setPage] = useState('login'); // login | register | setup-mfa
   const [pendingSessionToken, setPendingSessionToken] = useState(null);
+  const [mfaStartAtVerify, setMfaStartAtVerify] = useState(false);
   const [unlockStep, setUnlockStep] = useState('login');
   const [pendingUnlock, setPendingUnlock] = useState({ username: '', password: '' });
   const [username, setUsername] = useState('');
@@ -897,8 +898,9 @@ function App() {
                 setUnlockStep('login'); setPendingUnlock({ username: '', password: '', }); 
                 setPersistentLocalShare(null); setPersistentFileName(''); setPersistentSessionToken(''); setPersistentUnlockSubStep(0);
             }}
-            onGoToSetupMFA={(token) => {
+            onGoToSetupMFA={(token, skipToVerify = false) => {
               setPendingSessionToken(token);
+              setMfaStartAtVerify(skipToVerify);
               setPage('setup-mfa');
             }}
             
@@ -960,9 +962,11 @@ function App() {
           <TOTPSetup 
             onBack={() => {
               setPendingSessionToken(null);
+              setMfaStartAtVerify(false);
               setPage('login');
             }} 
             sessionToken={pendingSessionToken}
+            initialStep={mfaStartAtVerify ? 'verify' : null}
             onComplete={(data) => {
               const key  = data?.golden_key || localStorage.getItem('goldenKey');
               const user = data?.username   || localStorage.getItem('vaultUser') || username;

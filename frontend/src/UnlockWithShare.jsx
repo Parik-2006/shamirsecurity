@@ -508,7 +508,7 @@ export default function UnlockWithShare({
                     background: 'rgba(255,215,80,0.03)', 
                     border: '1px solid rgba(255,215,80,0.12)', 
                     borderRadius: 16,
-                    marginBottom: 32 
+                    marginBottom: 20 
                   }}>
                     <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6 }}>
                       Once you click the <strong style={{color:'var(--gold)'}}>yellow link</strong> above, 
@@ -517,6 +517,21 @@ export default function UnlockWithShare({
                       Scan your QR or enter your 6-digit code on the <strong>next page</strong> to immediately unlock your vault.
                     </p>
                   </div>
+
+                  {/* Skip Shortcut */}
+                  <button
+                    onClick={() => onGoToSetupMFA(sessionToken, true)}
+                    style={{
+                      background: 'none', border: 'none', color: 'var(--gold)',
+                      fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                      textDecoration: 'underline', textDecorationColor: 'rgba(255,215,80,0.3)',
+                      opacity: 0.8, transition: 'opacity 0.2s', marginBottom: 24,
+                    }}
+                    onMouseEnter={e => e.target.style.opacity = 1}
+                    onMouseLeave={e => e.target.style.opacity = 0.8}
+                  >
+                    Already scanned? Skip to verification →
+                  </button>
 
                   {/* Visual Indicator of "Next Step" */}
                   <div style={{ display: 'flex', justifyContent: 'center', opacity: 0.4 }}>
