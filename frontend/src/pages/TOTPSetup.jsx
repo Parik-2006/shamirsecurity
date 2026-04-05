@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { QRCodeSVG } from 'qrcode.react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://shamirsecurity-098.onrender.com';
 
@@ -32,24 +33,43 @@ const CopyIcon = () => (
   </svg>
 );
 
-// ─── QR Code via Google Chart API ────────────────────────────────────────────
+// ─── QR Code via qrcode.react (Reliable Client-side Gen) ───────────────────────
 function QRCodeDisplay({ uri }) {
-  const encoded = encodeURIComponent(uri);
-  const src = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encoded}&choe=UTF-8`;
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
       style={{
-        width: 200, height: 200, margin: '0 auto 20px',
-        borderRadius: 12, overflow: 'hidden',
-        border: '2px solid rgba(255,215,80,0.25)',
-        boxShadow: '0 0 24px rgba(255,215,80,0.1)',
+        width: 220, height: 220, margin: '0 auto 24px',
+        padding: 12,
+        borderRadius: 16, overflow: 'hidden',
+        border: '1.5px solid rgba(90,210,190,0.3)',
+        boxShadow: '0 0 32px rgba(90,210,190,0.15)',
         background: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}
     >
-      <img src={src} alt="TOTP QR Code" style={{ width: '100%', height: '100%' }} />
+      {uri ? (
+        <QRCodeSVG 
+          value={uri} 
+          size={196}
+          level="H"
+          includeMargin={false}
+          imageSettings={{
+            src: "/favicon.ico",
+            x: undefined,
+            y: undefined,
+            height: 24,
+            width: 24,
+            excavate: true,
+          }}
+        />
+      ) : (
+        <div style={{ color: '#666', fontSize: 12 }}>Generating QR...</div>
+      )}
     </motion.div>
   );
 }
@@ -114,6 +134,11 @@ export default function TOTPSetup({ onBack }) {
   const [loading,        setLoading]        = useState(false);
   const [error,          setError]          = useState('');
   const [copied,         setCopied]         = useState(false);
+  
+  useEffect(() => {
+    const savedUser = localStorage.getItem('vaultUser');
+    if (savedUser) setUsername(savedUser);
+  }, []);
 
   const handleSetup = async () => {
     if (!username.trim()) { setError('Please enter your username.'); return; }
